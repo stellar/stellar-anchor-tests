@@ -1,0 +1,14 @@
+{
+  "extends": "@stellar/tsconfig",
+  "compilerOptions": {
+    "target": "es5",
+    "declaration": true,
+    "declarationDir": "lib",
+    "rootDir": "src",
+    "outDir": "lib",
+    "lib": ["esnext"],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src"]
+}
