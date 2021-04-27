@@ -22,17 +22,17 @@ export interface NetworkCall {
 
 export interface Failure {
   name: string;
-  text: string;
-  coloredText: string;
-  markdown: string;
+  text: (args: object) => string;
+  markdown: (args: object) => string;
+  message?: string;
 }
 
 export interface Result {
   test: Test;
   networkCalls: NetworkCall[];
   suite?: Suite;
-  expected?: any;
-  actual?: any;
+  expected?: string | number | object;
+  actual?: string | number | object;
   failure?: Failure;
 }
 
@@ -54,9 +54,9 @@ export interface Suite {
 }
 
 export interface Stats {
-  total: Number;
-  passed: Number;
-  failed: Number;
+  total: number;
+  passed: number;
+  failed: number;
   sep?: SEP;
   name?: string;
   suiteStats?: [Stats];
