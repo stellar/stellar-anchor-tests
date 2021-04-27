@@ -17,7 +17,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "tsc",
-    "precommit": "pretty-quick"
+    "prepare": "husky install"
   },
   "homepage": "https://github.com/stellar/stellar-anchor-tests",
   "author": "Stellar Development Foundation <hello@stellar.org>",
@@ -29,7 +29,6 @@
     "@stellar/prettier-config": "^1.0.1",
     "@stellar/tsconfig": "^1.0.2",
     "@types/yargs": "^16.0.1",
-    "concurrently": "^6.0.2",
     "husky": "^6.0.0",
     "prettier": "^2.2.1",
     "pretty-quick": "^3.1.0",
