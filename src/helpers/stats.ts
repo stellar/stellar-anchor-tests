@@ -1,6 +1,4 @@
-import { default as c } from "ansi-colors";
-
-import { Result, Stats, OutputFormat } from "../types";
+import { Result, Stats } from "../types";
 
 export function getStats(results: Result[]): Stats {
   let failed = 0;
@@ -38,26 +36,4 @@ export function getStats(results: Result[]): Stats {
     passed: passed,
     failed: failed,
   };
-}
-
-export function printStats(stats: Stats, _outputFormat: OutputFormat) {
-  let suitesPassed = 0;
-  if (stats.suiteStats) {
-    for (const suiteStat of stats.suiteStats) {
-      if (suiteStat.failed === 0) suitesPassed += 1;
-    }
-    let testSuitesLine = "Test Suites: ";
-    if (stats.suiteStats.length !== suitesPassed)
-      testSuitesLine +=
-        c.red(`${stats.suiteStats.length - suitesPassed} failed`) + ", ";
-    if (suitesPassed !== 0)
-      testSuitesLine += c.green(`${suitesPassed} passed`) + ", ";
-    testSuitesLine += `${stats.suiteStats.length} total`;
-    console.log(testSuitesLine);
-  }
-  let testsLine = "Tests:       ";
-  if (stats.failed !== 0) testsLine += c.red(`${stats.failed} failed`) + ", ";
-  if (stats.passed !== 0) testsLine += c.green(`${stats.passed} passed`) + ", ";
-  testsLine += `${stats.total} total`;
-  console.log(testsLine);
 }

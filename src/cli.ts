@@ -4,9 +4,9 @@ import { URL } from "url";
 import { Keypair } from "stellar-sdk";
 
 import { run } from "./helpers/run";
-import { getStats, printStats } from "./helpers/stats";
+import { getStats } from "./helpers/stats";
 import { Config, SEP, OutputFormat, Result } from "./types";
-import { printResult } from "./helpers/result";
+import { printResult, printStats } from "./helpers/console";
 
 const args = yargs
   .options({
@@ -28,8 +28,8 @@ const args = yargs
     "output-format": {
       alias: "o",
       requiresArg: true,
-      default: "text",
-      choices: ["text", "markdown", "json"],
+      default: "coloredText",
+      choices: ["text", "markdown", "coloredText"],
       type: "string",
       description:
         "The output format to use when sending content to standard output.",
@@ -98,10 +98,21 @@ const args = yargs
   if (args.verbose) config.verbose = args.verbose as boolean;
   if (args.mainnetMasterAccountSecret)
     config.mainnetMasterAccountSecret = args.mainnetMasterAccountSecret as string;
+  const startTime = Date.now();
   const results: Result[] = [];
   for await (const result of run(config)) {
     results.push(result);
-    printResult(result, "coloredText");
+    await printResult(
+      result,
+      config.outputFormat as OutputFormat,
+      config.verbose as boolean,
+    );
   }
-  printStats(getStats(results), "coloredText");
+  const endTime = Date.now();
+  printStats(
+    getStats(results),
+    startTime,
+    endTime,
+    args.outputFormat as OutputFormat,
+  );
 })();
