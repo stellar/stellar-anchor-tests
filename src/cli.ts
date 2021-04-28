@@ -4,7 +4,8 @@ import { URL } from "url";
 import { Keypair } from "stellar-sdk";
 
 import { run } from "./helpers/run";
-import { Config, SEP, OutputFormat } from "./types";
+import { getStats, printStats } from "./helpers/stats";
+import { Config, SEP, OutputFormat, Result } from "./types";
 import { printResult } from "./helpers/result";
 
 const args = yargs
@@ -97,7 +98,10 @@ const args = yargs
   if (args.verbose) config.verbose = args.verbose as boolean;
   if (args.mainnetMasterAccountSecret)
     config.mainnetMasterAccountSecret = args.mainnetMasterAccountSecret as string;
+  const results: Result[] = [];
   for await (const result of run(config)) {
+    results.push(result);
     printResult(result, "coloredText");
   }
+  printStats(getStats(results), "coloredText");
 })();

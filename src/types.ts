@@ -59,5 +59,5 @@ export interface Stats {
   failed: number;
   sep?: SEP;
   name?: string;
-  suiteStats?: [Stats];
+  suiteStats?: Stats[];
 }
