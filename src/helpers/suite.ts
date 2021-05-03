@@ -1,5 +1,6 @@
 import { Suite, Config, Result } from "../types";
 import { sep24TomlSuite, sep31TomlSuite } from "../tests/sep1/tests";
+import { default as sep24Suites } from "../tests/sep24/tests";
 
 export async function* runSuite(
   suite: Suite,
@@ -27,7 +28,8 @@ export function getSuites(config: Config): Suite[] {
   let suites: Suite[] = [];
   if (config.seps.includes(1)) {
     if (config.seps.includes(24)) {
-      suites = suites.concat(sep24TomlSuite);
+      suites.push(sep24TomlSuite);
+      suites = suites.concat(sep24Suites);
     } else if (config.seps.includes(31)) {
       suites = suites.concat(sep31TomlSuite);
     }

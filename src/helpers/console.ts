@@ -52,7 +52,7 @@ function printColoredTextStats(
   testsLine += `${stats.total} total`;
   console.log(testsLine);
   const secondsString = ((endTime - startTime) / 1000).toFixed(3);
-  console.log(`Time: ${secondsString}s`);
+  console.log(`Time:        ${secondsString}s`);
 }
 
 async function printColoredTextResult(result: Result, verbose: boolean) {
