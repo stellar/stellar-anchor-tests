@@ -10,8 +10,6 @@ export function printStats(
 ) {
   if (outputFormat === "coloredText") {
     printColoredTextStats(stats, startTime, endTime);
-  } else if (outputFormat === "markdown") {
-    //printMarkdownStats(stats);
   } else if (outputFormat === "text") {
     //printTextStats(stats);
   }
@@ -24,8 +22,6 @@ export async function printResult(
 ) {
   if (outputFormat === "coloredText") {
     await printColoredTextResult(result, verbose);
-  } else if (outputFormat === "markdown") {
-    //printMarkdownResult(result);
   } else if (outputFormat === "text") {
     //printTextResult(result);
   }
@@ -62,17 +58,17 @@ function printColoredTextStats(
 async function printColoredTextResult(result: Result, verbose: boolean) {
   let color = result.failure ? c.red : c.green;
   let symbol = result.failure ? c.symbols.cross : c.symbols.check;
-  let symbolLabel: string = result.failure ? "FAIL" : "PASS";
-  let header = `${symbol} ${symbolLabel} `;
+  let header = `${symbol} `;
   if (result.suite) {
     if (result.suite.sep)
       header += `SEP-${result.suite.sep} ${c.symbols.pointer} `;
     header += `${result.suite.name} ${c.symbols.pointer} `;
   }
-  header += `${result.test.assertion} \n`;
+  header += `${result.test.assertion}`;
   console.log(color(header));
   console.group(); // result group
   if (result.failure) {
+    console.log();
     console.log(c.bold("Failure Type:\n"));
     console.group(); // failure type group
     console.log(`${result.failure.name}\n`);
@@ -86,12 +82,12 @@ async function printColoredTextResult(result: Result, verbose: boolean) {
     }
     console.groupEnd(); // description group
   } else if (verbose) {
-    console.log(c.bold("Description:\n"));
+    console.log(c.bold("\nDescription:\n"));
     console.group(); // description group
     console.log(result.test.successMessage + "\n");
     console.groupEnd(); // description group
   }
-  if (verbose && result.networkCalls) {
+  if (verbose && result.networkCalls.length) {
     console.log(c.bold("Network Calls:\n"));
     for (const networkCall of result.networkCalls) {
       console.log("Request:\n");

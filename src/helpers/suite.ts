@@ -1,5 +1,5 @@
 import { Suite, Config, Result } from "../types";
-import { suites as sep1Suites } from "../tests/sep1/tests";
+import { sep24TomlSuite, sep31TomlSuite } from "../tests/sep1/tests";
 
 export async function* runSuite(
   suite: Suite,
@@ -12,7 +12,7 @@ export async function* runSuite(
     if (test.before) {
       await test.before();
     }
-    const result = await test.run(config);
+    const result = await test.run(config, suite);
     if (test.after) {
       await test.after();
     }
@@ -26,7 +26,11 @@ export async function* runSuite(
 export function getSuites(config: Config): Suite[] {
   let suites: Suite[] = [];
   if (config.seps.includes(1)) {
-    suites = suites.concat(sep1Suites);
+    if (config.seps.includes(24)) {
+      suites = suites.concat(sep24TomlSuite);
+    } else if (config.seps.includes(31)) {
+      suites = suites.concat(sep31TomlSuite);
+    }
   }
   return filterBySearchStrings(suites, config);
 }

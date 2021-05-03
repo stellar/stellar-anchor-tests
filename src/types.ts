@@ -2,7 +2,7 @@ import { Request, Response } from "node-fetch";
 
 export type SEP = 1 | 6 | 10 | 12 | 24 | 31;
 export type SepConfig = { [key in SEP]: object };
-export type OutputFormat = "coloredText" | "text" | "markdown" | "json";
+export type OutputFormat = "coloredText" | "text" | "json";
 
 export interface Config {
   homeDomain: string;
@@ -23,7 +23,6 @@ export interface NetworkCall {
 export interface Failure {
   name: string;
   text: (args: object) => string;
-  markdown: (args: object) => string;
   message?: string;
 }
 
@@ -41,7 +40,7 @@ export interface Test {
   successMessage: string;
   failureModes: Record<string, Failure>;
   before?: () => Promise<void>;
-  run(config: Config): Promise<Result>;
+  run(config: Config, suite?: Suite): Promise<Result>;
   after?: () => Promise<void>;
 }
 

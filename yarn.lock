@@ -12,13 +12,6 @@
   resolved "https://registry.npmjs.org/@stellar/tsconfig/-/tsconfig-1.0.2.tgz"
   integrity sha512-lC51QSlYRM8K3oGe0/WGPq+p9+u+yPzwZXSKrZXKOe4sq79vzfiqFbQyp5enOffFzXlahcDyTgY67mBOkJytfw==
 
-"@types/ansi-colors@^3.2.2":
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/@types/ansi-colors/-/ansi-colors-3.2.2.tgz#eef6ba52d6ec7f0e381aa3afcec9416521663412"
-  integrity sha512-DkX/S7NQKUZ+6w4i6/LwYj6yP5DWHNv3DnK79Kbrn6IfrIJdg69KFL69/LoSXuqb9otgXRo/wDFGTQxqSgeKPw==
-  dependencies:
-    ansi-colors "*"
-
 "@types/eventsource@^1.1.2":
   version "1.1.5"
   resolved "https://registry.npmjs.org/@types/eventsource/-/eventsource-1.1.5.tgz"
@@ -66,7 +59,7 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-ansi-colors@*, ansi-colors@^4.1.1:
+ansi-colors@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/ansi-colors/-/ansi-colors-4.1.1.tgz#cbb9ae256bf750af1eab344f229aa27fe94ba348"
   integrity sha512-JoX0apGbHaUJBNl6yF+p6JAFYZ666/hhCGKN5t9QFjbJQKUU/g8MNbFDbvfrgKXvI1QpZplPOnwIo99lX/AAmA==
@@ -348,6 +341,11 @@ js-xdr@^1.1.3:
   dependencies:
     lodash "^4.17.5"
     long "^2.2.3"
+
+jsonschema@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/jsonschema/-/jsonschema-1.4.0.tgz#1afa34c4bc22190d8e42271ec17ac8b3404f87b2"
+  integrity sha512-/YgW6pRMr6M7C+4o8kS+B/2myEpHCrxO4PEWnqJNBFMjn7EWXqlQ4tGwL6xTHeRplwuZmcAncdvfOad1nT2yMw==
 
 locate-path@^5.0.0:
   version "5.0.0"
