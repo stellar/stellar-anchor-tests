@@ -155,6 +155,7 @@ async function printColoredTextResult(result: Result, verbose: boolean) {
         const contentType = networkCall.response.headers.get("Content-Type");
         if (contentType && contentType.includes("application/json")) {
           console.dir(await networkCall.response.json(), { depth: Infinity });
+          console.log();
         } else {
           console.group(); // body group
           console.log(await networkCall.response.text());

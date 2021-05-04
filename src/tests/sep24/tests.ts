@@ -1,10 +1,10 @@
 import fetch from "node-fetch";
 import { Request } from "node-fetch";
-import { parse } from "toml";
 import { validate } from "jsonschema";
 
 import { Suite, Test, Result, NetworkCall, Config } from "../../types";
 import { makeFailure } from "../../helpers/failure";
+import { getTomlObj, getTomlFailureModes } from "../../helpers/sep1";
 import { infoSchema } from "../../schemas/sep24";
 
 let transferServerUrl: string;
@@ -23,21 +23,11 @@ const isCompliantWithSchema: Test = {
   failureModes: {
     CONNECTION_ERROR: {
       name: "connection error",
-      text(args: any): string {
-        return (
-          `A connection failure occured when making a request to: ` +
-          `\n\n${args.url}/\n\n` +
-          `Make sure CORS is enabled for this endpoint.`
-        );
-      },
-    },
-    PARSE_ERROR: {
-      name: "parse error",
       text: (args: any) => {
         return (
-          "stellar.toml files must comply with the TOML format specification\n\n" +
-          "https://toml.io/en/v1.0.0\n\nThe parsing library returned:\n\n" +
-          `Line: ${args.line}\nColumn: ${args.column}\nError: ${args.message}`
+          `A connection failure occured when making a request to: ` +
+          `\n\n${args.url}\n\n` +
+          `Make sure that CORS is enabled.`
         );
       },
     },
@@ -45,12 +35,6 @@ const isCompliantWithSchema: Test = {
       name: "TRANSFER_SERVER_SEP0024 not found",
       text(_args: any): string {
         return "The stellar.toml file does not have a valid TRANSFER_SERVER_SEP0024 URL";
-      },
-    },
-    UNEXPECTED_STATUS_CODE: {
-      name: "unexpected status code",
-      text: (_args: any) => {
-        return "A HTTP 200 Success is expected for /info responses.";
       },
     },
     BAD_CONTENT_TYPE: {
@@ -70,6 +54,7 @@ const isCompliantWithSchema: Test = {
         );
       },
     },
+    ...getTomlFailureModes,
   },
   async run(config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
@@ -77,42 +62,12 @@ const isCompliantWithSchema: Test = {
       networkCalls: [],
       suite: suite,
     };
-    const tomlCall: NetworkCall = {
-      request: new Request(config.homeDomain + "/.well-known/stellar.toml"),
-    };
-    result.networkCalls.push(tomlCall);
-    try {
-      tomlCall.response = await fetch(tomlCall.request.clone());
-    } catch {
-      result.failure = makeFailure(
-        this.failureModes.CONNECTION_ERROR,
-        { url: tomlCall.request.url },
-        config,
-      );
-      return result;
-    }
-    try {
-      tomlObj = parse(await tomlCall.response.clone().text());
-    } catch (e) {
-      result.failure = makeFailure(
-        this.failureModes.PARSE_ERROR,
-        {
-          message: e.message,
-          line: e.line,
-          column: e.column,
-        },
-        config,
-      );
-      return result;
-    }
+    tomlObj = await getTomlObj(config.homeDomain, result);
+    if (!tomlObj) return result;
     transferServerUrl =
       tomlObj.TRANSFER_SERVER_SEP0024 || tomlObj.TRANSFER_SERVER;
     if (!transferServerUrl) {
-      result.failure = makeFailure(
-        this.failureModes.TRANSFER_SERVER_NOT_FOUND,
-        {},
-        config,
-      );
+      result.failure = makeFailure(this.failureModes.TRANSFER_SERVER_NOT_FOUND);
       return result;
     }
     const infoCall: NetworkCall = {
@@ -122,29 +77,27 @@ const isCompliantWithSchema: Test = {
     try {
       infoCall.response = await fetch(infoCall.request.clone());
     } catch {
-      result.failure = makeFailure(
-        this.failureModes.CONNECTION_ERROR,
-        { url: infoCall.request.url },
-        config,
-      );
+      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
+        url: infoCall.request.url,
+      });
+      return result;
+    }
+    if (infoCall.response.status !== 200) {
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE);
+      result.expected = 200;
+      result.actual = infoCall.response.status;
       return result;
     }
     if (infoCall.response.headers.get("Content-Type") !== "application/json") {
-      result.failure = makeFailure(
-        this.failureModes.BAD_CONTENT_TYPE,
-        {},
-        config,
-      );
+      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
       return result;
     }
     infoObj = await infoCall.response.clone().json();
     const validationResult = validate(infoObj, infoSchema);
     if (validationResult.errors.length > 0) {
-      result.failure = makeFailure(
-        this.failureModes.INVALID_SCHEMA,
-        { errors: validationResult.errors },
-        config,
-      );
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
     }
     return result;
   },

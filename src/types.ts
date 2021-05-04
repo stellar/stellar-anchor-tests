@@ -22,7 +22,7 @@ export interface NetworkCall {
 
 export interface Failure {
   name: string;
-  text: (args: object) => string;
+  text: (args?: object) => string;
   message?: string;
 }
 
