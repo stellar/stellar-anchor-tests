@@ -8,15 +8,17 @@ import {
 } from "stellar-sdk";
 import fetch from "node-fetch";
 import { Request } from "node-fetch";
-import { URL, URLSearchParams } from "url";
-import { decode } from "jsonwebtoken";
-import { validate } from "jsonschema";
+import { URL } from "url";
 
 import { Test, Config, Suite, Result, NetworkCall } from "../../types";
 import { makeFailure } from "../../helpers/failure";
 import { getTomlFailureModes, getTomlObj } from "../../helpers/sep1";
-import { getChallengeFailureModes, getChallenge } from "../../helpers/sep10";
-import { jwtSchema } from "../../schemas/sep10";
+import {
+  getChallenge,
+  getChallengeFailureModes,
+  postChallengeFailureModes,
+  postChallenge,
+} from "../../helpers/sep10";
 
 let tomlObj: any;
 let webAuthEndpoint: string;
@@ -673,32 +675,48 @@ getAuthSuite.tests.push(invalidAccount);
 const returnsValidJwt: Test = {
   assertion: "returns a valid JWT",
   successMessage: "returns a valid JWT",
+  failureModes: postChallengeFailureModes,
+  async run(_config: Config, suite?: Suite): Promise<Result> {
+    const result: Result = {
+      test: this,
+      networkCalls: [],
+      suite: suite,
+    };
+    const clientKeypair = Keypair.random();
+    await postChallenge(clientKeypair, tomlObj, result);
+    return result;
+  },
+};
+postAuthSuite.tests.push(returnsValidJwt);
+
+const acceptsJson: Test = {
+  assertion: "accepts JSON requests",
+  successMessage: "accepts JSON requests",
+  failureModes: postChallengeFailureModes,
+  async run(_config: Config, suite?: Suite): Promise<Result> {
+    const result: Result = {
+      test: this,
+      networkCalls: [],
+      suite: suite,
+    };
+    const clientKeypair = Keypair.random();
+    await postChallenge(clientKeypair, tomlObj, result, true);
+    return result;
+  },
+};
+postAuthSuite.tests.push(acceptsJson);
+
+const failsWithNoBody: Test = {
+  assertion: "fails with no 'transaction' key in the body",
+  successMessage: "fails with no 'transaction' key in the body",
   failureModes: {
-    NO_TOKEN: {
-      name: "no token",
+    POST_AUTH_UNEXPECTED_STATUS_CODE: {
+      name: "unexpected status code",
       text(_args: any): string {
-        return "A 'token' attribute must be present in responses to valid POST /auth requests";
-      },
-    },
-    JWT_DECODE_FAILURE: {
-      name: "JWT decode failure",
-      text(args: any): string {
         return (
-          "Unable to decode the JWT.\n\n" +
-          `The jsonwebtoken library returned: ${args.error}`
+          "A 400 Bad Request is expected for requests with no " +
+          "'transaction' attribute in the body."
         );
-      },
-    },
-    JWT_NOT_JSON: {
-      name: "JWT contents is not JSON",
-      text(_args: any): string {
-        return "jsonwebtoken was unable to parse the JWT's contents as JSON";
-      },
-    },
-    INVALID_JWT_SCHEMA: {
-      name: "invalid JWT content schema",
-      text(args: any): string {
-        return `${args.errors}`;
       },
     },
     ...getChallengeFailureModes,
@@ -712,13 +730,13 @@ const returnsValidJwt: Test = {
     const clientKeypair = Keypair.random();
     const challenge = await getChallenge(clientKeypair, tomlObj, result);
     if (!challenge) return result;
-    challenge.sign(clientKeypair);
-    const postAuthCall: NetworkCall = {
-      request: new Request(webAuthEndpoint, {
-        method: "POST",
-        body: new URLSearchParams({ transaction: challenge.toXDR() }),
-      }),
-    };
+    const postAuthRequest = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({}),
+      headers: { "Content-Type": "application/json" },
+    });
+    const postAuthCall: NetworkCall = { request: postAuthRequest };
+    result.networkCalls.push(postAuthCall);
     try {
       postAuthCall.response = await fetch(postAuthCall.request.clone());
     } catch {
@@ -727,52 +745,123 @@ const returnsValidJwt: Test = {
       });
       return result;
     }
-    if (postAuthCall.response.status !== 200) {
-      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE);
-      result.expected = 200;
+    if (postAuthCall.response.status !== 400) {
+      result.failure = makeFailure(
+        this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
+      );
+      result.expected = 400;
       result.actual = postAuthCall.response.status;
-    }
-    const postAuthResponseContentType = postAuthCall.response.headers.get(
-      "Content-Type",
-    );
-    if (
-      !postAuthResponseContentType ||
-      postAuthResponseContentType !== "application/json"
-    ) {
-      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
-      result.expected = "application/json";
-      if (postAuthResponseContentType)
-        result.actual = postAuthResponseContentType;
-      return result;
-    }
-    const responseBody = await postAuthCall.response.clone().json();
-    if (!responseBody.token) {
-      result.failure = makeFailure(this.failureModes.NO_TOKEN);
-      return result;
-    }
-    let token;
-    try {
-      token = decode(responseBody.token);
-    } catch (e) {
-      result.failure = makeFailure(this.failureModes.JWT_DECODE_FAILURE, {
-        error: e.message,
-      });
-      return result;
-    }
-    if (!token || typeof token !== "object") {
-      result.failure = makeFailure(this.failureModes.JWT_NOT_JSON);
-      return result;
-    }
-    const validatorResult = validate(token, jwtSchema);
-    if (validatorResult.errors.length !== 0) {
-      result.failure = makeFailure(this.failureModes.INVALID_JWT_SCHEMA, {
-        errors: validatorResult.errors.join("\n"),
-      });
       return result;
     }
     return result;
   },
 };
-postAuthSuite.tests.push(returnsValidJwt);
+postAuthSuite.tests.push(failsWithNoBody);
+
+const failsWithNoClientSignature: Test = {
+  assertion: "fails if the challenge is not signed by the client",
+  successMessage: "fails if the challenge is not signed by the client",
+  failureModes: {
+    POST_AUTH_UNEXPECTED_STATUS_CODE: {
+      name: "unexpected status code",
+      text(_args: any): string {
+        return (
+          "A 400 Bad Request is expected if the challenge " +
+          " is not signed by the client."
+        );
+      },
+    },
+    ...getChallengeFailureModes,
+  },
+  async run(_config: Config, suite?: Suite): Promise<Result> {
+    const result: Result = {
+      test: this,
+      networkCalls: [],
+      suite: suite,
+    };
+    const clientKeypair = Keypair.random();
+    const challenge = await getChallenge(clientKeypair, tomlObj, result);
+    if (!challenge) return result;
+    const postAuthRequest = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({ transaction: challenge.toXDR() }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const postAuthCall: NetworkCall = { request: postAuthRequest };
+    result.networkCalls.push(postAuthCall);
+    try {
+      postAuthCall.response = await fetch(postAuthCall.request.clone());
+    } catch {
+      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
+        url: postAuthCall.request.url,
+      });
+      return result;
+    }
+    if (postAuthCall.response.status !== 400) {
+      result.failure = makeFailure(
+        this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
+      );
+      result.expected = 400;
+      result.actual = postAuthCall.response.status;
+      return result;
+    }
+    return result;
+  },
+};
+postAuthSuite.tests.push(failsWithNoClientSignature);
+
+const failsWithInvalidTransactionValue: Test = {
+  assertion: "fails if the 'transaction' value is invalid",
+  successMessage: "fails if the 'transaction' value is invalid",
+  failureModes: {
+    POST_AUTH_UNEXPECTED_STATUS_CODE: {
+      name: "unexpected status code",
+      text(_args: any): string {
+        return (
+          "A 400 Bad Request is expected if the 'transaction' " +
+          " value is not a base64-encoded transaction string."
+        );
+      },
+    },
+    ...getChallengeFailureModes,
+  },
+  async run(_config: Config, suite?: Suite): Promise<Result> {
+    const result: Result = {
+      test: this,
+      networkCalls: [],
+      suite: suite,
+    };
+    const clientKeypair = Keypair.random();
+    const challenge = await getChallenge(clientKeypair, tomlObj, result);
+    if (!challenge) return result;
+    const postAuthRequest = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({
+        transaction: { "not a transaction string": true },
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const postAuthCall: NetworkCall = { request: postAuthRequest };
+    result.networkCalls.push(postAuthCall);
+    try {
+      postAuthCall.response = await fetch(postAuthCall.request.clone());
+    } catch {
+      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
+        url: postAuthCall.request.url,
+      });
+      return result;
+    }
+    if (postAuthCall.response.status !== 400) {
+      result.failure = makeFailure(
+        this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
+      );
+      result.expected = 400;
+      result.actual = postAuthCall.response.status;
+      return result;
+    }
+    return result;
+  },
+};
+postAuthSuite.tests.push(failsWithInvalidTransactionValue);
 
 export default [tomlSuite, getAuthSuite, postAuthSuite];

@@ -95,5 +95,6 @@ const args = yargs
     await printResult(result, config.verbose as boolean);
   }
   const endTime = Date.now();
+  console.log(); // add new line between results and stats
   printStats(getStats(results), startTime, endTime);
 })();
