@@ -1,6 +1,7 @@
 import { Suite, Config, Result } from "../types";
 import { sep24TomlSuite, sep31TomlSuite } from "../tests/sep1/tests";
 import { default as sep24Suites } from "../tests/sep24/tests";
+import { default as sep10Suites } from "../tests/sep10/tests";
 
 export async function* runSuite(
   suite: Suite,
@@ -29,10 +30,15 @@ export function getSuites(config: Config): Suite[] {
   if (config.seps.includes(1)) {
     if (config.seps.includes(24)) {
       suites.push(sep24TomlSuite);
-      suites = suites.concat(sep24Suites);
     } else if (config.seps.includes(31)) {
-      suites = suites.concat(sep31TomlSuite);
+      suites.push(sep31TomlSuite);
     }
+  }
+  if (config.seps.includes(10)) {
+    suites = suites.concat(sep10Suites);
+  }
+  if (config.seps.includes(24)) {
+    suites = suites.concat(sep24Suites);
   }
   return filterBySearchStrings(suites, config);
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import yargs from "yargs";
 import { URL } from "url";
-import { Keypair } from "stellar-sdk";
+import { Keypair, Networks } from "stellar-sdk";
 
 import { run } from "./helpers/run";
 import { getStats } from "./helpers/stats";
@@ -56,6 +56,14 @@ const args = yargs
       description:
         "The Stellar account to use when when funding temporary test accounts. Currently, 50XLM must be present in the account.",
     },
+    network: {
+      alias: "n",
+      type: "string",
+      requiresArg: true,
+      default: "testnet",
+      choices: ["testnet", "pubnet"],
+      description: "The Stellar network to use when testing",
+    },
   })
   .check((argv: any) => {
     if (!argv.homeDomain.startsWith("http")) {
@@ -89,10 +97,15 @@ const args = yargs
   }).argv;
 
 (async () => {
+  let networkPassphrase = Networks.TESTNET;
+  if (args.network === "pubnet") {
+    networkPassphrase = Networks.PUBLIC;
+  }
   const config: Config = {
     homeDomain: args.homeDomain as string,
     seps: args.seps as SEP[],
     outputFormat: args.outputFormat as OutputFormat,
+    networkPassphrase: networkPassphrase,
   };
   if (args.currency) config.currency = args.currency as string;
   if (args.verbose) config.verbose = args.verbose as boolean;
