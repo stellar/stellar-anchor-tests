@@ -507,4 +507,161 @@ const returnsValidChallengeResponse: Test = {
 };
 getAuthSuite.tests.push(returnsValidChallengeResponse);
 
+const noAccount: Test = {
+  assertion: "rejects requests with no 'account' parameter",
+  successMessage: "rejects requests with no 'account' parameter",
+  failureModes: {
+    NO_TOML: {
+      name: "no TOML file",
+      text(_args: any): string {
+        return "Unable to fetch TOML";
+      },
+    },
+    NO_WEB_AUTH_ENDPOINT: {
+      name: "no WEB_AUTH_ENDPOINT",
+      text(_args: any): string {
+        return "No WEB_AUTH_ENDPOINT in TOML file";
+      },
+    },
+    CONNECTION_ERROR: {
+      name: "connection error",
+      text(args: any): string {
+        return (
+          `A connection failure occured when making a request to: ` +
+          `\n\n${args.url}\n\n` +
+          `Make sure that CORS is enabled.`
+        );
+      },
+    },
+    UNEXPECTED_STATUS_CODE: {
+      name: "unexpected status code",
+      text(_args: any): string {
+        return "400 Bad Request is expected for requests without an 'account' parameter";
+      },
+    },
+    INVALID_ERROR_SCHEMA: {
+      name: "invalid error schema",
+      text(_args: any): string {
+        return "Error responses must contain an 'error' key and string value";
+      },
+    },
+    BAD_CONTENT_TYPE: {
+      name: "bad content type",
+      text(_args: any): string {
+        return "Content-Type headers for GET /auth responses must be 'application/json'";
+      },
+    },
+  },
+  async run(_config: Config, suite?: Suite): Promise<Result> {
+    const result: Result = {
+      test: this,
+      networkCalls: [],
+      suite: suite,
+    };
+    if (!tomlObj) {
+      result.failure = makeFailure(this.failureModes.NO_TOML);
+      return result;
+    } else if (!webAuthEndpoint) {
+      result.failure = makeFailure(this.failureModes.NO_WEB_AUTH_ENDPOINT);
+      return result;
+    }
+    const getAuthCall: NetworkCall = {
+      request: new Request(webAuthEndpoint),
+    };
+    result.networkCalls.push(getAuthCall);
+    try {
+      getAuthCall.response = await fetch(getAuthCall.request.clone());
+    } catch {
+      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
+        url: getAuthCall.request.url,
+      });
+      return result;
+    }
+    if (getAuthCall.response.status !== 400) {
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE);
+      result.expected = 400;
+      result.actual = getAuthCall.response.status;
+      return result;
+    }
+    const getAuthContentType = getAuthCall.response.headers.get("Content-Type");
+    if (!getAuthContentType || getAuthContentType !== "application/json") {
+      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
+      result.expected = "application/json";
+      if (getAuthContentType) result.actual = getAuthContentType;
+      return result;
+    }
+    const responseBody = await getAuthCall.response.clone().json();
+    if (
+      !responseBody.error ||
+      !(
+        typeof responseBody.error === "string" ||
+        responseBody.error instanceof String
+      )
+    ) {
+      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
+      return result;
+    }
+    return result;
+  },
+};
+getAuthSuite.tests.push(noAccount);
+
+const invalidAccount: Test = {
+  assertion: "rejects requests with an invalid 'account' parameter",
+  successMessage: "rejects requests with an invalid 'account' parameter",
+  failureModes: noAccount.failureModes,
+  async run(_config: Config, suite?: Suite): Promise<Result> {
+    const result: Result = {
+      test: this,
+      networkCalls: [],
+      suite: suite,
+    };
+    if (!tomlObj) {
+      result.failure = makeFailure(this.failureModes.NO_TOML);
+      return result;
+    } else if (!webAuthEndpoint) {
+      result.failure = makeFailure(this.failureModes.NO_WEB_AUTH_ENDPOINT);
+      return result;
+    }
+    const getAuthCall: NetworkCall = {
+      request: new Request(webAuthEndpoint + "?account=invalid-account"),
+    };
+    result.networkCalls.push(getAuthCall);
+    try {
+      getAuthCall.response = await fetch(getAuthCall.request.clone());
+    } catch {
+      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
+        url: getAuthCall.request.url,
+      });
+      return result;
+    }
+    if (getAuthCall.response.status !== 400) {
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE);
+      result.expected = 400;
+      result.actual = getAuthCall.response.status;
+      return result;
+    }
+    const getAuthContentType = getAuthCall.response.headers.get("Content-Type");
+    if (!getAuthContentType || getAuthContentType !== "application/json") {
+      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
+      result.expected = "application/json";
+      if (getAuthContentType) result.actual = getAuthContentType;
+      return result;
+    }
+    const responseBody = await getAuthCall.response.clone().json();
+    if (
+      !responseBody.error ||
+      !(
+        typeof responseBody.error === "string" ||
+        responseBody.error instanceof String
+      )
+    ) {
+      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
+      return result;
+    }
+    return result;
+  },
+};
+getAuthSuite.tests.push(invalidAccount);
+
 export default [tomlSuite, getAuthSuite, postAuthSuite];
