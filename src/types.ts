@@ -1,9 +1,7 @@
-import { Networks } from "stellar-sdk";
 import { Request, Response } from "node-fetch";
 
 export type SEP = 1 | 6 | 10 | 12 | 24 | 31;
 export type SepConfig = { [key in SEP]: object };
-export type OutputFormat = "coloredText" | "text" | "json";
 
 export interface Config {
   homeDomain: string;
@@ -12,9 +10,7 @@ export interface Config {
   currency?: string;
   searchStrings?: [string];
   sepConfig?: SepConfig;
-  networkPassphrase: Networks.TESTNET | Networks.PUBLIC;
   mainnetMasterAccountSecret?: string;
-  outputFormat?: OutputFormat;
 }
 
 export interface NetworkCall {

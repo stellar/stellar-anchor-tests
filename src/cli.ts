@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import yargs from "yargs";
 import { URL } from "url";
-import { Keypair, Networks } from "stellar-sdk";
+import { Keypair } from "stellar-sdk";
 
 import { run } from "./helpers/run";
 import { getStats } from "./helpers/stats";
-import { Config, SEP, OutputFormat, Result } from "./types";
+import { Config, SEP, Result } from "./types";
 import { printResult, printStats } from "./helpers/console";
 
 const args = yargs
@@ -24,15 +24,6 @@ const args = yargs
       type: "string",
       description:
         "The currency to use for testing. Must match one of the CURRENCIES listed in the TOML file.",
-    },
-    "output-format": {
-      alias: "o",
-      requiresArg: true,
-      default: "coloredText",
-      choices: ["text", "markdown", "coloredText"],
-      type: "string",
-      description:
-        "The output format to use when sending content to standard output.",
     },
     seps: {
       alias: "s",
@@ -55,14 +46,6 @@ const args = yargs
       requiresArg: true,
       description:
         "The Stellar account to use when when funding temporary test accounts. Currently, 50XLM must be present in the account.",
-    },
-    network: {
-      alias: "n",
-      type: "string",
-      requiresArg: true,
-      default: "testnet",
-      choices: ["testnet", "pubnet"],
-      description: "The Stellar network to use when testing",
     },
   })
   .check((argv: any) => {
@@ -97,15 +80,9 @@ const args = yargs
   }).argv;
 
 (async () => {
-  let networkPassphrase = Networks.TESTNET;
-  if (args.network === "pubnet") {
-    networkPassphrase = Networks.PUBLIC;
-  }
   const config: Config = {
     homeDomain: args.homeDomain as string,
     seps: args.seps as SEP[],
-    outputFormat: args.outputFormat as OutputFormat,
-    networkPassphrase: networkPassphrase,
   };
   if (args.currency) config.currency = args.currency as string;
   if (args.verbose) config.verbose = args.verbose as boolean;
@@ -115,17 +92,8 @@ const args = yargs
   const results: Result[] = [];
   for await (const result of run(config)) {
     results.push(result);
-    await printResult(
-      result,
-      config.outputFormat as OutputFormat,
-      config.verbose as boolean,
-    );
+    await printResult(result, config.verbose as boolean);
   }
   const endTime = Date.now();
-  printStats(
-    getStats(results),
-    startTime,
-    endTime,
-    args.outputFormat as OutputFormat,
-  );
+  printStats(getStats(results), startTime, endTime);
 })();

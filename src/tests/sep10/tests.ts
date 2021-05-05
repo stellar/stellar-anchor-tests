@@ -8,11 +8,15 @@ import {
 } from "stellar-sdk";
 import fetch from "node-fetch";
 import { Request } from "node-fetch";
-import { URL } from "url";
+import { URL, URLSearchParams } from "url";
+import { decode } from "jsonwebtoken";
+import { validate } from "jsonschema";
 
 import { Test, Config, Suite, Result, NetworkCall } from "../../types";
 import { makeFailure } from "../../helpers/failure";
 import { getTomlFailureModes, getTomlObj } from "../../helpers/sep1";
+import { getChallengeFailureModes, getChallenge } from "../../helpers/sep10";
+import { jwtSchema } from "../../schemas/sep10";
 
 let tomlObj: any;
 let webAuthEndpoint: string;
@@ -216,6 +220,7 @@ const returnsValidChallengeResponse: Test = {
         return (
           "Unable to decode the 'transaction' value:\n\n. " +
           `${args.transaction}\n\n` +
+          `With network passphrase: ${args.networkPassphrase}\n\n` +
           "'transaction' must be a base64-encoded string of the Stellar transaction XDR."
         );
       },
@@ -412,11 +417,12 @@ const returnsValidChallengeResponse: Test = {
     try {
       challenge = TransactionBuilder.fromXDR(
         responseBody.transaction,
-        config.networkPassphrase,
+        tomlObj.NETWORK_PASSPHRASE,
       );
     } catch {
       result.failure = makeFailure(this.failureModes.DESERIALIZATION_FAILED, {
         transaction: responseBody.transaction,
+        networkPassphrase: tomlObj.NETWORK_PASSPHRASE,
       });
       return result;
     }
@@ -663,5 +669,110 @@ const invalidAccount: Test = {
   },
 };
 getAuthSuite.tests.push(invalidAccount);
+
+const returnsValidJwt: Test = {
+  assertion: "returns a valid JWT",
+  successMessage: "returns a valid JWT",
+  failureModes: {
+    NO_TOKEN: {
+      name: "no token",
+      text(_args: any): string {
+        return "A 'token' attribute must be present in responses to valid POST /auth requests";
+      },
+    },
+    JWT_DECODE_FAILURE: {
+      name: "JWT decode failure",
+      text(args: any): string {
+        return (
+          "Unable to decode the JWT.\n\n" +
+          `The jsonwebtoken library returned: ${args.error}`
+        );
+      },
+    },
+    JWT_NOT_JSON: {
+      name: "JWT contents is not JSON",
+      text(_args: any): string {
+        return "jsonwebtoken was unable to parse the JWT's contents as JSON";
+      },
+    },
+    INVALID_JWT_SCHEMA: {
+      name: "invalid JWT content schema",
+      text(args: any): string {
+        return `${args.errors}`;
+      },
+    },
+    ...getChallengeFailureModes,
+  },
+  async run(_config: Config, suite?: Suite): Promise<Result> {
+    const result: Result = {
+      test: this,
+      networkCalls: [],
+      suite: suite,
+    };
+    const clientKeypair = Keypair.random();
+    const challenge = await getChallenge(clientKeypair, tomlObj, result);
+    if (!challenge) return result;
+    challenge.sign(clientKeypair);
+    const postAuthCall: NetworkCall = {
+      request: new Request(webAuthEndpoint, {
+        method: "POST",
+        body: new URLSearchParams({ transaction: challenge.toXDR() }),
+      }),
+    };
+    try {
+      postAuthCall.response = await fetch(postAuthCall.request.clone());
+    } catch {
+      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
+        url: postAuthCall.request.url,
+      });
+      return result;
+    }
+    if (postAuthCall.response.status !== 200) {
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE);
+      result.expected = 200;
+      result.actual = postAuthCall.response.status;
+    }
+    const postAuthResponseContentType = postAuthCall.response.headers.get(
+      "Content-Type",
+    );
+    if (
+      !postAuthResponseContentType ||
+      postAuthResponseContentType !== "application/json"
+    ) {
+      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
+      result.expected = "application/json";
+      if (postAuthResponseContentType)
+        result.actual = postAuthResponseContentType;
+      return result;
+    }
+    const responseBody = await postAuthCall.response.clone().json();
+    if (!responseBody.token) {
+      result.failure = makeFailure(this.failureModes.NO_TOKEN);
+      return result;
+    }
+    let token;
+    try {
+      token = decode(responseBody.token);
+    } catch (e) {
+      result.failure = makeFailure(this.failureModes.JWT_DECODE_FAILURE, {
+        error: e.message,
+      });
+      return result;
+    }
+    if (!token || typeof token !== "object") {
+      result.failure = makeFailure(this.failureModes.JWT_NOT_JSON);
+      return result;
+    }
+    const validatorResult = validate(token, jwtSchema);
+    if (validatorResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_JWT_SCHEMA, {
+        errors: validatorResult.errors.join("\n"),
+      });
+      return result;
+    }
+    return result;
+  },
+};
+postAuthSuite.tests.push(returnsValidJwt);
 
 export default [tomlSuite, getAuthSuite, postAuthSuite];

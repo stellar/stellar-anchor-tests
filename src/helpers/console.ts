@@ -1,30 +1,13 @@
 import { default as c } from "ansi-colors";
 
-import { Result, Stats, OutputFormat } from "../types";
+import { Result, Stats } from "../types";
 
-export function printStats(
-  stats: Stats,
-  startTime: number,
-  endTime: number,
-  outputFormat: OutputFormat,
-) {
-  if (outputFormat === "coloredText") {
-    printColoredTextStats(stats, startTime, endTime);
-  } else if (outputFormat === "text") {
-    //printTextStats(stats);
-  }
+export function printStats(stats: Stats, startTime: number, endTime: number) {
+  printColoredTextStats(stats, startTime, endTime);
 }
 
-export async function printResult(
-  result: Result,
-  outputFormat: OutputFormat,
-  verbose: boolean,
-) {
-  if (outputFormat === "coloredText") {
-    await printColoredTextResult(result, verbose);
-  } else if (outputFormat === "text") {
-    //printTextResult(result);
-  }
+export async function printResult(result: Result, verbose: boolean) {
+  await printColoredTextResult(result, verbose);
 }
 
 function printColoredTextStats(
