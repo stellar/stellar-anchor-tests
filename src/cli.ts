@@ -84,6 +84,7 @@ const args = yargs
     homeDomain: args.homeDomain as string,
     seps: args.seps as SEP[],
   };
+  if (args._.length) config.searchStrings = args._.map(String);
   if (args.currency) config.currency = args.currency as string;
   if (args.verbose) config.verbose = args.verbose as boolean;
   if (args.mainnetMasterAccountSecret)

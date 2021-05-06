@@ -45,28 +45,31 @@ export const getTomlFailureModes: Record<string, Failure> = {
 
 export async function getTomlObj(
   homeDomain: string,
-  result: Result,
+  result?: Result,
 ): Promise<any> {
   const getTomlCall: NetworkCall = {
     request: new Request(homeDomain + "/.well-known/stellar.toml"),
   };
-  result.networkCalls.push(getTomlCall);
+  if (result) result.networkCalls.push(getTomlCall);
   let getResponse: Response;
   try {
     getResponse = await fetch(getTomlCall.request.clone());
   } catch (e) {
-    result.failure = makeFailure(getTomlFailureModes.TOML_CONNECTION_ERROR, {
-      url: getTomlCall.request.url,
-    });
+    if (result)
+      result.failure = makeFailure(getTomlFailureModes.TOML_CONNECTION_ERROR, {
+        url: getTomlCall.request.url,
+      });
     return;
   }
   getTomlCall.response = getResponse.clone();
   if (getResponse.status !== 200) {
-    result.failure = makeFailure(
-      getTomlFailureModes.TOML_UNEXPECTED_STATUS_CODE,
-    );
-    result.expected = 200;
-    result.actual = getResponse.status;
+    if (result) {
+      result.failure = makeFailure(
+        getTomlFailureModes.TOML_UNEXPECTED_STATUS_CODE,
+      );
+      result.expected = 200;
+      result.actual = getResponse.status;
+    }
     return;
   }
   const contentType = getResponse.headers.get("Content-Type");
@@ -78,23 +81,26 @@ export async function getTomlObj(
     }
   }
   if (!contentType || !matched) {
-    result.failure = makeFailure(getTomlFailureModes.TOML_BAD_CONTENT_TYPE);
-    result.expected = "'application/toml' or 'text/plain'";
-    if (contentType) {
-      result.actual = contentType;
-    } else {
-      result.actual = "not found";
+    if (result) {
+      result.failure = makeFailure(getTomlFailureModes.TOML_BAD_CONTENT_TYPE);
+      result.expected = "'application/toml' or 'text/plain'";
+      if (contentType) {
+        result.actual = contentType;
+      } else {
+        result.actual = "not found";
+      }
     }
     return;
   }
   try {
     return parse(await getResponse.text());
   } catch (e) {
-    result.failure = makeFailure(getTomlFailureModes.TOML_PARSE_ERROR, {
-      message: e.message,
-      line: e.line,
-      column: e.column,
-    });
+    if (result)
+      result.failure = makeFailure(getTomlFailureModes.TOML_PARSE_ERROR, {
+        message: e.message,
+        line: e.line,
+        column: e.column,
+      });
     return;
   }
 }

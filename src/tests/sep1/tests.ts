@@ -127,6 +127,21 @@ const tomlExists: Test = {
 sep24TomlSuite.tests.push(tomlExists);
 sep31TomlSuite.tests.push(tomlExists);
 
+const checkTomlContentBuffer = async (
+  config: Config,
+  suite?: Suite,
+): Promise<Result | void> => {
+  if (!tomlContentBuffer) {
+    const result = await tomlExists.run(config, suite);
+    if (result.failure) return result;
+    if (!tomlContentBuffer)
+      throw (
+        "tomlExists test did not assign tomlContentBuffer, " +
+        "but no failure was returned"
+      );
+  }
+};
+
 const usesTransferServerSep0024: Test = {
   assertion: "contains a valid TRANSFER_SERVER_SEP0024 URL",
   successMessage: "A valid TRANSFER_SERVER_0024 URL is present.",
@@ -144,6 +159,7 @@ const usesTransferServerSep0024: Test = {
       },
     },
   },
+  before: checkTomlContentBuffer,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
@@ -170,12 +186,6 @@ const hasDirectPaymentServer: Test = {
   assertion: "contains a valid DIRECT_PAYMENT_SERVER URL",
   successMessage: "A valid DIRECT_PAYMENT_SERVER URL is present.",
   failureModes: {
-    NO_TOML: {
-      name: "no stellar.toml file",
-      text(_args: any): string {
-        return "Unable to fetch TOML";
-      },
-    },
     NOT_FOUND: {
       name: "not found",
       text(_args: any): string {
@@ -189,16 +199,13 @@ const hasDirectPaymentServer: Test = {
       },
     },
   },
+  before: checkTomlContentBuffer,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
       suite: suite,
       networkCalls: [],
     };
-    if (!tomlContentsObj) {
-      result.failure = makeFailure(this.failureModes.NO_TOML);
-      return result;
-    }
     if (!tomlContentsObj.DIRECT_PAYMENT_SERVER) {
       result.failure = makeFailure(this.failureModes.NOT_FOUND);
       return result;
@@ -233,6 +240,7 @@ const validFileSize: Test = {
       },
     },
   },
+  before: checkTomlContentBuffer,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
@@ -275,6 +283,7 @@ const hasNetworkPassphrase: Test = {
       },
     },
   },
+  before: checkTomlContentBuffer,
   async run(_config: Config, suite: Suite): Promise<Result> {
     const result: Result = {
       test: this,
@@ -304,12 +313,6 @@ const hasCurrenciesSection: Test = {
   assertion: "has a valid CURRENCIES section",
   successMessage: "the file has a valid CURRENCIES section",
   failureModes: {
-    NO_TOML: {
-      name: "no stellar.toml file",
-      text(_args: any): string {
-        return "Unable to fetch TOML";
-      },
-    },
     NOT_FOUND: {
       name: "not found",
       text(_args: any): string {
@@ -330,16 +333,14 @@ const hasCurrenciesSection: Test = {
       },
     },
   },
+  before: checkTomlContentBuffer,
   async run(_config: Config, suite: Suite): Promise<Result> {
     const result: Result = {
       test: this,
       suite: suite,
       networkCalls: [],
     };
-    if (!tomlContentsObj) {
-      result.failure = makeFailure(this.failureModes.NO_TOML);
-      return result;
-    } else if (!tomlContentsObj.CURRENCIES) {
+    if (!tomlContentsObj.CURRENCIES) {
       result.failure = makeFailure(this.failureModes.NOT_FOUND);
       return result;
     }
@@ -382,16 +383,13 @@ const validURLs: Test = {
       },
     },
   },
+  before: checkTomlContentBuffer,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
       suite: suite,
       networkCalls: [],
     };
-    if (!tomlContentsObj) {
-      result.failure = makeFailure(this.failureModes.NOT_FOUND);
-      return result;
-    }
     const urlAttributes = [
       "FEDERATION_SERVER",
       "AUTH_SERVER",

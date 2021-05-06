@@ -8,7 +8,7 @@ export interface Config {
   seps: SEP[];
   verbose?: boolean;
   currency?: string;
-  searchStrings?: [string];
+  searchStrings?: string[];
   sepConfig?: SepConfig;
   mainnetMasterAccountSecret?: string;
 }
@@ -37,17 +37,15 @@ export interface Test {
   assertion: string;
   successMessage: string;
   failureModes: Record<string, Failure>;
-  before?: () => Promise<void>;
+  before?: (config: Config, suite?: Suite) => Promise<Result | void>;
   run(config: Config, suite?: Suite): Promise<Result>;
-  after?: () => Promise<void>;
+  after?: (config: Config, suite?: Suite) => Promise<Result | void>;
 }
 
 export interface Suite {
   name: string;
   tests: Test[];
   sep?: SEP;
-  before?: () => Promise<void>;
-  after?: () => Promise<void>;
 }
 
 export interface Stats {

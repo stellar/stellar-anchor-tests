@@ -21,8 +21,6 @@ import {
 } from "../../helpers/sep10";
 
 let tomlObj: any;
-let webAuthEndpoint: string;
-let signingKey: string;
 
 const tomlSuite: Suite = {
   name: "SEP-10 TOML tests",
@@ -80,12 +78,11 @@ const hasWebAuthEndpoint: Test = {
       );
       return result;
     }
-    webAuthEndpoint = tomlObj.WEB_AUTH_ENDPOINT;
-    if (!webAuthEndpoint.startsWith("https")) {
+    if (!tomlObj.WEB_AUTH_ENDPOINT.startsWith("https")) {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;
     }
-    if (webAuthEndpoint.slice(-1) === "/") {
+    if (tomlObj.WEB_AUTH_ENDPOINT.slice(-1) === "/") {
       result.failure = makeFailure(this.failureModes.ENDS_WITH_SLASH);
       return result;
     }
@@ -94,16 +91,34 @@ const hasWebAuthEndpoint: Test = {
 };
 tomlSuite.tests.push(hasWebAuthEndpoint);
 
+const checkTomlObj = async (
+  config: Config,
+  suite?: Suite,
+): Promise<Result | void> => {
+  if (!tomlObj) {
+    const result = await hasWebAuthEndpoint.run(config, suite);
+    if (result.failure) {
+      // all other failure modes are blocking
+      if (
+        result.failure.name !==
+        hasWebAuthEndpoint.failureModes.ENDS_WITH_SLASH.name
+      )
+        return result;
+      // remove slash
+      tomlObj.WEB_AUTH_ENDPOINT = tomlObj.WEB_AUTH_ENDPOINT.slice(0, -1);
+    }
+    if (!tomlObj)
+      throw (
+        "hasWebAuthEndpoint test did not assign tomlContentBuffer, " +
+        "but no failure was returned"
+      );
+  }
+};
+
 const hasSigningKey: Test = {
   assertion: "has valid SIGNING_KEY",
   successMessage: "the TOML file has a valid SIGNING_KEY",
   failureModes: {
-    NO_TOML: {
-      name: "no TOML file",
-      text(_args: any): string {
-        return "Unable to fetch TOML";
-      },
-    },
     SIGNING_KEY_NOT_FOUND: {
       name: "SIGNING_KEY not found",
       text(_args: any): string {
@@ -124,22 +139,19 @@ const hasSigningKey: Test = {
       },
     },
   },
+  before: checkTomlObj,
   async run(_config: Config, suite: Suite): Promise<Result> {
     const result: Result = {
       test: this,
       networkCalls: [],
       suite: suite,
     };
-    if (!tomlObj) {
-      result.failure = makeFailure(this.failureModes.NO_TOML);
-      return result;
-    }
     if (!tomlObj.SIGNING_KEY) {
       result.failure = makeFailure(this.failureModes.SIGNING_KEY_NOT_FOUND);
       return result;
     }
     try {
-      signingKey = Keypair.fromPublicKey(tomlObj.SIGNING_KEY).publicKey();
+      Keypair.fromPublicKey(tomlObj.SIGNING_KEY).publicKey();
     } catch {
       result.failure = makeFailure(this.failureModes.INVALID_SIGNING_KEY);
     }
@@ -152,18 +164,6 @@ const returnsValidChallengeResponse: Test = {
   assertion: "returns a valid GET /auth response",
   successMessage: "returns a valid GET /auth response",
   failureModes: {
-    NO_TOML: {
-      name: "no TOML file",
-      text(_args: any): string {
-        return "Unable to fetch TOML";
-      },
-    },
-    NO_WEB_AUTH_ENDPOINT: {
-      name: "no WEB_AUTH_ENDPOINT",
-      text(_args: any): string {
-        return "No WEB_AUTH_ENDPOINT in TOML file";
-      },
-    },
     CONNECTION_ERROR: {
       name: "connection error",
       text(args: any): string {
@@ -336,23 +336,17 @@ const returnsValidChallengeResponse: Test = {
       },
     },
   },
+  before: checkTomlObj,
   async run(config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
       networkCalls: [],
       suite: suite,
     };
-    if (!tomlObj) {
-      result.failure = makeFailure(this.failureModes.NO_TOML);
-      return result;
-    } else if (!webAuthEndpoint) {
-      result.failure = makeFailure(this.failureModes.NO_WEB_AUTH_ENDPOINT);
-      return result;
-    }
     const clientKeypair = Keypair.random();
     const getAuthCall: NetworkCall = {
       request: new Request(
-        webAuthEndpoint + `?account=${clientKeypair.publicKey()}`,
+        tomlObj.WEB_AUTH_ENDPOINT + `?account=${clientKeypair.publicKey()}`,
       ),
     };
     result.networkCalls.push(getAuthCall);
@@ -436,11 +430,11 @@ const returnsValidChallengeResponse: Test = {
       result.expected = "0";
       result.actual = challenge.sequence;
       return result;
-    } else if (challenge.source !== signingKey) {
+    } else if (challenge.source !== tomlObj.SIGNING_KEY) {
       result.failure = makeFailure(
         this.failureModes.SOURCE_ACCOUNT_NOT_SIGNING_KEY,
       );
-      result.expected = signingKey;
+      result.expected = tomlObj.SIGNING_KEY;
       result.actual = challenge.source;
       return result;
     } else if (!challenge.timeBounds || !challenge.timeBounds.maxTime) {
@@ -480,9 +474,9 @@ const returnsValidChallengeResponse: Test = {
           this.failureModes.INCLUDES_NON_MANAGE_DATA_OP,
         );
         return result;
-      } else if (op.source !== signingKey) {
+      } else if (op.source !== tomlObj.SIGNING_KEY) {
         result.failure = makeFailure(this.failureModes.INVALID_OP_SOURCE);
-        result.expected = signingKey;
+        result.expected = tomlObj.SIGNING_KEY;
         result.actual = op.source;
         return result;
       } else if (op.name === "web_auth_domain") {
@@ -506,7 +500,7 @@ const returnsValidChallengeResponse: Test = {
       result.failure = makeFailure(this.failureModes.UNEXPECTED_SIGNATURES);
       return result;
     }
-    if (!Utils.verifyTxSignedBy(challenge, signingKey)) {
+    if (!Utils.verifyTxSignedBy(challenge, tomlObj.SIGNING_KEY)) {
       result.failure = makeFailure(this.failureModes.INVALID_SERVER_SIGNATURE);
       return result;
     }
@@ -519,18 +513,6 @@ const noAccount: Test = {
   assertion: "rejects requests with no 'account' parameter",
   successMessage: "rejects requests with no 'account' parameter",
   failureModes: {
-    NO_TOML: {
-      name: "no TOML file",
-      text(_args: any): string {
-        return "Unable to fetch TOML";
-      },
-    },
-    NO_WEB_AUTH_ENDPOINT: {
-      name: "no WEB_AUTH_ENDPOINT",
-      text(_args: any): string {
-        return "No WEB_AUTH_ENDPOINT in TOML file";
-      },
-    },
     CONNECTION_ERROR: {
       name: "connection error",
       text(args: any): string {
@@ -560,21 +542,15 @@ const noAccount: Test = {
       },
     },
   },
+  before: checkTomlObj,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
       networkCalls: [],
       suite: suite,
     };
-    if (!tomlObj) {
-      result.failure = makeFailure(this.failureModes.NO_TOML);
-      return result;
-    } else if (!webAuthEndpoint) {
-      result.failure = makeFailure(this.failureModes.NO_WEB_AUTH_ENDPOINT);
-      return result;
-    }
     const getAuthCall: NetworkCall = {
-      request: new Request(webAuthEndpoint),
+      request: new Request(tomlObj.WEB_AUTH_ENDPOINT),
     };
     result.networkCalls.push(getAuthCall);
     try {
@@ -618,21 +594,17 @@ const invalidAccount: Test = {
   assertion: "rejects requests with an invalid 'account' parameter",
   successMessage: "rejects requests with an invalid 'account' parameter",
   failureModes: noAccount.failureModes,
+  before: checkTomlObj,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
       networkCalls: [],
       suite: suite,
     };
-    if (!tomlObj) {
-      result.failure = makeFailure(this.failureModes.NO_TOML);
-      return result;
-    } else if (!webAuthEndpoint) {
-      result.failure = makeFailure(this.failureModes.NO_WEB_AUTH_ENDPOINT);
-      return result;
-    }
     const getAuthCall: NetworkCall = {
-      request: new Request(webAuthEndpoint + "?account=invalid-account"),
+      request: new Request(
+        tomlObj.WEB_AUTH_ENDPOINT + "?account=invalid-account",
+      ),
     };
     result.networkCalls.push(getAuthCall);
     try {
@@ -676,6 +648,7 @@ const returnsValidJwt: Test = {
   assertion: "returns a valid JWT",
   successMessage: "returns a valid JWT",
   failureModes: postChallengeFailureModes,
+  before: checkTomlObj,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
@@ -693,6 +666,7 @@ const acceptsJson: Test = {
   assertion: "accepts JSON requests",
   successMessage: "accepts JSON requests",
   failureModes: postChallengeFailureModes,
+  before: checkTomlObj,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
@@ -721,6 +695,7 @@ const failsWithNoBody: Test = {
     },
     ...getChallengeFailureModes,
   },
+  before: checkTomlObj,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
@@ -773,6 +748,7 @@ const failsWithNoClientSignature: Test = {
     },
     ...getChallengeFailureModes,
   },
+  before: checkTomlObj,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
@@ -825,6 +801,7 @@ const failsWithInvalidTransactionValue: Test = {
     },
     ...getChallengeFailureModes,
   },
+  before: checkTomlObj,
   async run(_config: Config, suite?: Suite): Promise<Result> {
     const result: Result = {
       test: this,
@@ -863,5 +840,88 @@ const failsWithInvalidTransactionValue: Test = {
   },
 };
 postAuthSuite.tests.push(failsWithInvalidTransactionValue);
+
+export const failsIfChallengeNotSignedByServer: Test = {
+  assertion: "fails if the challenge is not signed by SIGNING_KEY",
+  successMessage: "fails if the challenge is not signed by SIGNING_KEY",
+  failureModes: {
+    POST_AUTH_UNEXPECTED_STATUS_CODE: {
+      name: "unexpected status code",
+      text(_args: any): string {
+        return (
+          "A 400 Bad Request is expected if the challenge " +
+          " is not signed by the SIGNING_KEY from the TOML."
+        );
+      },
+    },
+    INVALID_NETWORK_PASSPHRASE: {
+      name: "invalid network passphrase",
+      text(_args: any): string {
+        return "The TOML file must have a valid NETWORK_PASSPHRASE";
+      },
+    },
+    ...getChallengeFailureModes,
+  },
+  before: checkTomlObj,
+  async run(config: Config, suite?: Suite): Promise<Result> {
+    const result: Result = {
+      test: this,
+      networkCalls: [],
+      suite: suite,
+    };
+    const clientKeypair = Keypair.random();
+    const anchorHost = new URL(config.homeDomain).host;
+    if (!tomlObj) {
+      result.failure = makeFailure(this.failureModes.NO_TOML);
+      return result;
+    } else if (
+      ![Networks.PUBLIC, Networks.TESTNET].includes(tomlObj.NETWORK_PASSPHRASE)
+    ) {
+      result.failure = makeFailure(
+        this.failureModes.INVALID_NETWORK_PASSPHRASE,
+      );
+      result.expected = `'${Networks.PUBLIC}' or '${Networks.TESTNET}'`;
+      return result;
+    } else if (!tomlObj.WEB_AUTH_ENDPOINT) {
+      result.failure = makeFailure(this.failureModes.NO_WEB_AUTH_ENDPOINT);
+      return result;
+    }
+    const challengeXdr = Utils.buildChallengeTx(
+      clientKeypair,
+      clientKeypair.publicKey(),
+      anchorHost,
+      15,
+      tomlObj.NETWORK_PASSPHRASE,
+      anchorHost,
+    );
+    const postAuthRequest = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({
+        transaction: challengeXdr,
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+    const postAuthCall: NetworkCall = { request: postAuthRequest };
+    result.networkCalls.push(postAuthCall);
+    try {
+      postAuthCall.response = await fetch(postAuthCall.request.clone());
+    } catch {
+      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
+        url: postAuthCall.request.url,
+      });
+      return result;
+    }
+    if (postAuthCall.response.status !== 400) {
+      result.failure = makeFailure(
+        this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
+      );
+      result.expected = 400;
+      result.actual = postAuthCall.response.status;
+      return result;
+    }
+    return result;
+  },
+};
+postAuthSuite.tests.push(failsIfChallengeNotSignedByServer);
 
 export default [tomlSuite, getAuthSuite, postAuthSuite];

@@ -2,26 +2,52 @@ import { Suite, Config, Result } from "../types";
 import { sep24TomlSuite, sep31TomlSuite } from "../tests/sep1/tests";
 import { default as sep24Suites } from "../tests/sep24/tests";
 import { default as sep10Suites } from "../tests/sep10/tests";
+import { makeFailure } from "./failure";
 
 export async function* runSuite(
   suite: Suite,
   config: Config,
 ): AsyncGenerator<Result> {
-  if (suite.before) {
-    await suite.before();
-  }
   for await (const test of suite.tests) {
-    if (test.before) {
-      await test.before();
+    try {
+      if (test.before) {
+        const beforeResult = await test.before(config, suite);
+        if (beforeResult) {
+          yield beforeResult;
+          continue;
+        }
+      }
+      const result = await test.run(config, suite);
+      if (test.after) {
+        const afterResult = await test.after(config, suite);
+        if (afterResult) {
+          yield afterResult;
+          continue;
+        }
+      }
+      yield result;
+    } catch (e) {
+      const result: Result = {
+        test: test,
+        networkCalls: [],
+        suite: suite,
+        failure: makeFailure(
+          {
+            name: "unexpected exception",
+            text(args: any): string {
+              return (
+                "An unexpected exception occurred while running:\n\n" +
+                `Suite: '${suite.name}'\nTest: '${test.assertion}'\n\n` +
+                `Exception message: '${args.exception}'\n\n` +
+                "Please report this bug at https://github.com/stellar/stellar-anchor-tests/issues"
+              );
+            },
+          },
+          { exception: e.message },
+        ),
+      };
+      return result;
     }
-    const result = await test.run(config, suite);
-    if (test.after) {
-      await test.after();
-    }
-    yield result;
-  }
-  if (suite.after) {
-    await suite.after();
   }
 }
 
@@ -67,8 +93,6 @@ function filterBySearchStrings(suites: Suite[], config: Config): Suite[] {
       tests: [],
     };
     if (suite.sep) filteredSuite.sep = suite.sep;
-    if (suite.before) filteredSuite.before = suite.before;
-    if (suite.after) filteredSuite.after = suite.after;
     for (const test of suite.tests) {
       const assertionLower = test.assertion.toLowerCase();
       for (const searchString of config.searchStrings) {
