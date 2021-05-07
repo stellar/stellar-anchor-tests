@@ -619,10 +619,47 @@ const acceptsJson: Test = {
 };
 postAuthSuite.tests.push(acceptsJson);
 
+const postAuthBadRequest = async (
+  result: Result,
+  tomlObj: any,
+  requestBody: any,
+  failureText: string,
+): Promise<Result> => {
+  const postAuthRequest = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
+    method: "POST",
+    body: requestBody,
+    headers: { "Content-Type": "application/json" },
+  });
+  const postAuthCall: NetworkCall = { request: postAuthRequest };
+  result.networkCalls.push(postAuthCall);
+  try {
+    postAuthCall.response = await fetch(postAuthCall.request.clone());
+  } catch {
+    result.failure = makeFailure(postChallengeFailureModes.CONNECTION_ERROR, {
+      url: postAuthCall.request.url,
+    });
+    return result;
+  }
+  if (postAuthCall.response.status !== 400) {
+    result.failure = {
+      name: "unexpected status code",
+      text(_args: any): string {
+        return failureText;
+      },
+      message: failureText,
+    };
+    result.expected = 400;
+    result.actual = postAuthCall.response.status;
+    return result;
+  }
+  return result;
+};
+
 const failsWithNoBody: Test = {
   assertion: "fails with no 'transaction' key in the body",
   successMessage: "fails with no 'transaction' key in the body",
   failureModes: {
+    CONNECTION_ERROR: getChallengeFailureModes.CONNECTION_ERROR,
     POST_AUTH_UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",
       text(_args: any): string {
@@ -632,45 +669,16 @@ const failsWithNoBody: Test = {
         );
       },
     },
-    ...getChallengeFailureModes,
   },
   before: checkTomlAndWebAuthEndpoint,
   async run(_config: Config, suite: Suite): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    const clientKeypair = Keypair.random();
-    const challenge = await getChallenge(
-      clientKeypair,
-      suite.context.tomlObj,
+    return await postAuthBadRequest(
       result,
+      suite.context.tomlObj,
+      JSON.stringify({}),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
-    if (!challenge) return result;
-    const postAuthRequest = new Request(
-      suite.context.tomlObj.WEB_AUTH_ENDPOINT,
-      {
-        method: "POST",
-        body: JSON.stringify({}),
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-    const postAuthCall: NetworkCall = { request: postAuthRequest };
-    result.networkCalls.push(postAuthCall);
-    try {
-      postAuthCall.response = await fetch(postAuthCall.request.clone());
-    } catch {
-      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
-        url: postAuthCall.request.url,
-      });
-      return result;
-    }
-    if (postAuthCall.response.status !== 400) {
-      result.failure = makeFailure(
-        this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
-      );
-      result.expected = 400;
-      result.actual = postAuthCall.response.status;
-      return result;
-    }
-    return result;
   },
 };
 postAuthSuite.tests.push(failsWithNoBody);
@@ -700,33 +708,12 @@ const failsWithNoClientSignature: Test = {
       result,
     );
     if (!challenge) return result;
-    const postAuthRequest = new Request(
-      suite.context.tomlObj.WEB_AUTH_ENDPOINT,
-      {
-        method: "POST",
-        body: JSON.stringify({ transaction: challenge.toXDR() }),
-        headers: { "Content-Type": "application/json" },
-      },
+    return await postAuthBadRequest(
+      result,
+      suite.context.tomlObj,
+      JSON.stringify({ transaction: challenge.toXDR() }),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
-    const postAuthCall: NetworkCall = { request: postAuthRequest };
-    result.networkCalls.push(postAuthCall);
-    try {
-      postAuthCall.response = await fetch(postAuthCall.request.clone());
-    } catch {
-      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
-        url: postAuthCall.request.url,
-      });
-      return result;
-    }
-    if (postAuthCall.response.status !== 400) {
-      result.failure = makeFailure(
-        this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
-      );
-      result.expected = 400;
-      result.actual = postAuthCall.response.status;
-      return result;
-    }
-    return result;
   },
 };
 postAuthSuite.tests.push(failsWithNoClientSignature);
@@ -735,6 +722,7 @@ const failsWithInvalidTransactionValue: Test = {
   assertion: "fails if the 'transaction' value is invalid",
   successMessage: "fails if the 'transaction' value is invalid",
   failureModes: {
+    CONNECTION_ERROR: getChallengeFailureModes.CONNECTION_ERROR,
     POST_AUTH_UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",
       text(_args: any): string {
@@ -744,47 +732,16 @@ const failsWithInvalidTransactionValue: Test = {
         );
       },
     },
-    ...getChallengeFailureModes,
   },
   before: checkTomlAndWebAuthEndpoint,
   async run(_config: Config, suite: Suite): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    const clientKeypair = Keypair.random();
-    const challenge = await getChallenge(
-      clientKeypair,
-      suite.context.tomlObj,
+    return await postAuthBadRequest(
       result,
+      suite.context.tomlObj,
+      JSON.stringify({ transaction: { "not a transaction string": true } }),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
-    if (!challenge) return result;
-    const postAuthRequest = new Request(
-      suite.context.tomlObj.WEB_AUTH_ENDPOINT,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          transaction: { "not a transaction string": true },
-        }),
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-    const postAuthCall: NetworkCall = { request: postAuthRequest };
-    result.networkCalls.push(postAuthCall);
-    try {
-      postAuthCall.response = await fetch(postAuthCall.request.clone());
-    } catch {
-      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
-        url: postAuthCall.request.url,
-      });
-      return result;
-    }
-    if (postAuthCall.response.status !== 400) {
-      result.failure = makeFailure(
-        this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
-      );
-      result.expected = 400;
-      result.actual = postAuthCall.response.status;
-      return result;
-    }
-    return result;
   },
 };
 postAuthSuite.tests.push(failsWithInvalidTransactionValue);
@@ -793,6 +750,7 @@ export const failsIfChallengeNotSignedByServer: Test = {
   assertion: "fails if the challenge is not signed by SIGNING_KEY",
   successMessage: "fails if the challenge is not signed by SIGNING_KEY",
   failureModes: {
+    CONNECTION_ERROR: getChallengeFailureModes.CONNECTION_ERROR,
     POST_AUTH_UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",
       text(_args: any): string {
@@ -802,36 +760,12 @@ export const failsIfChallengeNotSignedByServer: Test = {
         );
       },
     },
-    INVALID_NETWORK_PASSPHRASE: {
-      name: "invalid network passphrase",
-      text(_args: any): string {
-        return "The TOML file must have a valid NETWORK_PASSPHRASE";
-      },
-    },
-    ...getChallengeFailureModes,
   },
   before: checkTomlAndWebAuthEndpoint,
   async run(config: Config, suite: Suite): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const anchorHost = new URL(config.homeDomain).host;
-    if (!suite.context.tomlObj) {
-      result.failure = makeFailure(this.failureModes.NO_TOML);
-      return result;
-    } else if (
-      ![Networks.PUBLIC, Networks.TESTNET].includes(
-        suite.context.tomlObj.NETWORK_PASSPHRASE,
-      )
-    ) {
-      result.failure = makeFailure(
-        this.failureModes.INVALID_NETWORK_PASSPHRASE,
-      );
-      result.expected = `'${Networks.PUBLIC}' or '${Networks.TESTNET}'`;
-      return result;
-    } else if (!suite.context.tomlObj.WEB_AUTH_ENDPOINT) {
-      result.failure = makeFailure(this.failureModes.NO_WEB_AUTH_ENDPOINT);
-      return result;
-    }
     const challengeXdr = Utils.buildChallengeTx(
       clientKeypair,
       clientKeypair.publicKey(),
@@ -840,37 +774,50 @@ export const failsIfChallengeNotSignedByServer: Test = {
       suite.context.tomlObj.NETWORK_PASSPHRASE,
       anchorHost,
     );
-    const postAuthRequest = new Request(
-      suite.context.tomlObj.WEB_AUTH_ENDPOINT,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          transaction: challengeXdr,
-        }),
-        headers: { "Content-Type": "application/json" },
-      },
+    return await postAuthBadRequest(
+      result,
+      suite.context.tomlObj,
+      JSON.stringify({ transaction: challengeXdr }),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
-    const postAuthCall: NetworkCall = { request: postAuthRequest };
-    result.networkCalls.push(postAuthCall);
-    try {
-      postAuthCall.response = await fetch(postAuthCall.request.clone());
-    } catch {
-      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
-        url: postAuthCall.request.url,
-      });
-      return result;
-    }
-    if (postAuthCall.response.status !== 400) {
-      result.failure = makeFailure(
-        this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
-      );
-      result.expected = 400;
-      result.actual = postAuthCall.response.status;
-      return result;
-    }
-    return result;
   },
 };
 postAuthSuite.tests.push(failsIfChallengeNotSignedByServer);
+
+const extraClientSigners: Test = {
+  assertion:
+    "fails if a challenge for a nonexistent account has extra client signatures",
+  successMessage:
+    "fails if a challenge for a nonexistent account has extra client signatures",
+  failureModes: {
+    POST_AUTH_UNEXPECTED_STATUS_CODE: {
+      name: "unexpected status code",
+      text(_args: any): string {
+        return "A 400 Bad Request is expected if the challenge has extra signatures.";
+      },
+    },
+    ...getChallengeFailureModes,
+  },
+  before: checkWebAuthEndpoint,
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const clientKeypair = Keypair.random();
+    const challenge = await getChallenge(
+      clientKeypair,
+      suite.context.tomlObj,
+      result,
+    );
+    if (!challenge) return result;
+    challenge.sign(clientKeypair);
+    challenge.sign(Keypair.random());
+    return await postAuthBadRequest(
+      result,
+      suite.context.tomlObj,
+      JSON.stringify({ transaction: challenge.toXDR() }),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+    );
+  },
+};
+postAuthSuite.tests.push(extraClientSigners);
 
 export default [tomlSuite, getAuthSuite, postAuthSuite];
