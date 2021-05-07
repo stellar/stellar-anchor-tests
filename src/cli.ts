@@ -5,8 +5,8 @@ import { Keypair } from "stellar-sdk";
 
 import { run } from "./helpers/run";
 import { getStats } from "./helpers/stats";
-import { Config, SEP, Result } from "./types";
-import { printResult, printStats } from "./helpers/console";
+import { Config, SEP, TestRun } from "./types";
+import { printTestRun, printStats } from "./helpers/console";
 
 const args = yargs
   .options({
@@ -90,12 +90,12 @@ const args = yargs
   if (args.mainnetMasterAccountSecret)
     config.mainnetMasterAccountSecret = args.mainnetMasterAccountSecret as string;
   const startTime = Date.now();
-  const results: Result[] = [];
-  for await (const result of run(config)) {
-    results.push(result);
-    await printResult(result, config.verbose as boolean);
+  const testRuns: TestRun[] = [];
+  for await (const testRun of run(config)) {
+    testRuns.push(testRun);
+    await printTestRun(testRun, config.verbose as boolean);
   }
   const endTime = Date.now();
   console.log(); // add new line between results and stats
-  printStats(getStats(results), startTime, endTime);
+  printStats(getStats(testRuns), startTime, endTime);
 })();

@@ -1,151 +1,85 @@
-import fetch from "node-fetch";
-import { Request, Response } from "node-fetch";
-import toml from "toml";
 import { URL } from "url";
 import { Networks } from "stellar-sdk";
 import { validate } from "jsonschema";
 
-import { Test, Config, Result, Suite, NetworkCall } from "../../types";
-import { makeFailure } from "../../helpers/failure";
+import { Test, Config, Result, Suite } from "../../types";
 import { currencySchema } from "../../schemas/sep1";
+import { makeFailure } from "../../helpers/failure";
+import {
+  noTomlFailure,
+  checkTomlExists,
+  getTomlFailureModes,
+  checkTomlObj,
+} from "../../helpers/sep1";
 
-let tomlContentBuffer: ArrayBuffer;
-let tomlContentsObj: any;
+const sep1TomlSuite: Suite = {
+  sep: 1,
+  name: "Toml Tests",
+  tests: [],
+  context: {
+    tomlObj: undefined,
+    tomlContentBuffer: undefined,
+    tomlFetchFailed: undefined,
+  },
+};
 
 const sep24TomlSuite: Suite = {
   sep: 1,
   name: "SEP-24 Toml Tests",
   tests: [],
+  context: {
+    tomlObj: undefined,
+  },
 };
 
 const sep31TomlSuite: Suite = {
   sep: 1,
   name: "SEP-31 Toml Tests",
   tests: [],
+  context: {
+    tomlObj: undefined,
+  },
 };
 
 const tomlExists: Test = {
   assertion: "the file exists at ./well-known/stellar.toml",
   successMessage:
     "A TOML-formatted file exists at URL path ./well-known/stellar.toml",
+  failureModes: getTomlFailureModes,
+  run: checkTomlExists,
+};
+sep1TomlSuite.tests.push(tomlExists);
+
+const validFileSize: Test = {
+  assertion: "the file has a size less than 100KB",
+  successMessage: "the file has a size less than 100KB",
   failureModes: {
-    CONNECTION_ERROR: {
-      name: "connection error",
-      text: (args: any) => {
-        return (
-          `A connection failure occured when making a request to: ` +
-          `\n\n${args.homeDomain}/.well-known/stellar.toml\n\n` +
-          `Make sure the file exists at the expected path and that CORS is enabled.`
-        );
-      },
-    },
-    UNEXPECTED_STATUS_CODE: {
-      name: "unexpected status code",
-      text: (_args: any) => {
-        return "A HTTP 200 Success is expected in responses for stellar.toml files.";
-      },
-    },
-    BAD_CONTENT_TYPE: {
-      name: "bad content type",
-      text: (_args: any) => {
-        return (
-          "HTTP responses containing TOML-formatted files must have a Content-Type " +
-          "header of 'application/toml' or 'text/plain'"
-        );
-      },
-    },
-    PARSE_ERROR: {
-      name: "parse error",
-      text: (args: any) => {
-        return (
-          "stellar.toml files must comply with the TOML format specification\n\n" +
-          "https://toml.io/en/v1.0.0\n\nThe parsing library returned:\n\n" +
-          `Line: ${args.line}\nColumn: ${args.column}\nError: ${args.message}`
-        );
+    NO_TOML: noTomlFailure,
+    MAX_SIZE_EXCEEDED: {
+      name: "max file sized exceeded",
+      text(args: any): string {
+        return `The max file size is 100KB, but the file is ${args.kb}`;
       },
     },
   },
-  async run(config: Config, suite?: Suite): Promise<Result> {
-    const result: Result = {
-      test: this,
-      suite: suite,
-      networkCalls: [],
-    };
-    const getTomlCall: NetworkCall = {
-      request: new Request(config.homeDomain + "/.well-known/stellar.toml"),
-    };
-    result.networkCalls.push(getTomlCall);
-    let getResponse: Response;
-    try {
-      getResponse = await fetch(getTomlCall.request.clone());
-    } catch (e) {
-      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
-        homeDomain: config.homeDomain,
+  before: checkTomlObj,
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    if (suite.context.tomlContentBuffer.byteLength > 100000) {
+      result.failure = makeFailure(this.failureModes.MAX_SIZE_EXCEEDED, {
+        kb: suite.context.tomlContentBuffer.byteLength / 1000,
       });
-      return result;
-    }
-    getTomlCall.response = getResponse.clone();
-    if (getResponse.status !== 200) {
-      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE);
-      result.expected = 200;
-      result.actual = getResponse.status;
-    }
-    const contentType = getResponse.headers.get("Content-Type");
-    const acceptedContentTypes = ["application/toml", "text/plain"];
-    let matched = false;
-    for (const acceptedContentType of acceptedContentTypes) {
-      if (contentType && contentType.includes(acceptedContentType)) {
-        matched = true;
-      }
-    }
-    if (!contentType || !matched) {
-      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
-      result.expected = "'application/toml' or 'text/plain'";
-      if (contentType) {
-        result.actual = contentType;
-      } else {
-        result.actual = "not found";
-      }
-      return result;
-    }
-    // clone the response so we can read the body twice
-    const getResponseClone = getResponse.clone();
-    try {
-      tomlContentBuffer = await getResponse.arrayBuffer();
-      tomlContentsObj = toml.parse(await getResponseClone.text());
-    } catch (e) {
-      result.failure = makeFailure(this.failureModes.PARSE_ERROR, {
-        message: e.message,
-        line: e.line,
-        column: e.column,
-      });
-      return result;
     }
     return result;
   },
 };
-sep24TomlSuite.tests.push(tomlExists);
-sep31TomlSuite.tests.push(tomlExists);
-
-const checkTomlContentBuffer = async (
-  config: Config,
-  suite?: Suite,
-): Promise<Result | void> => {
-  if (!tomlContentBuffer) {
-    const result = await tomlExists.run(config, suite);
-    if (result.failure) return result;
-    if (!tomlContentBuffer)
-      throw (
-        "tomlExists test did not assign tomlContentBuffer, " +
-        "but no failure was returned"
-      );
-  }
-};
+sep1TomlSuite.tests.push(validFileSize);
 
 const usesTransferServerSep0024: Test = {
   assertion: "contains a valid TRANSFER_SERVER_SEP0024 URL",
   successMessage: "A valid TRANSFER_SERVER_0024 URL is present.",
   failureModes: {
+    NO_TOML: noTomlFailure,
     NOT_FOUND: {
       name: "not found",
       text(_args: any): string {
@@ -159,22 +93,21 @@ const usesTransferServerSep0024: Test = {
       },
     },
   },
-  before: checkTomlContentBuffer,
-  async run(_config: Config, suite?: Suite): Promise<Result> {
-    const result: Result = {
-      test: this,
-      suite: suite,
-      networkCalls: [],
-    };
-    if (!tomlContentsObj.TRANSFER_SERVER_SEP0024) {
+  before: checkTomlObj,
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    if (!suite.context.tomlObj.TRANSFER_SERVER_SEP0024) {
       result.failure = makeFailure(this.failureModes.NOT_FOUND);
+      return result;
     }
     try {
-      let transferServerURL = new URL(tomlContentsObj.TRANSFER_SERVER_SEP0024);
+      let transferServerURL = new URL(
+        suite.context.tomlObj.TRANSFER_SERVER_SEP0024,
+      );
       if (transferServerURL.protocol !== "https:") throw "no HTTPS protocol";
     } catch {
       result.failure = makeFailure(this.failureModes.INVALID_URL, {
-        url: tomlContentsObj.TRANSFER_SERVER_SEP0024,
+        url: suite.context.tomlObj.TRANSFER_SERVER_SEP0024,
       });
     }
     return result;
@@ -186,6 +119,7 @@ const hasDirectPaymentServer: Test = {
   assertion: "contains a valid DIRECT_PAYMENT_SERVER URL",
   successMessage: "A valid DIRECT_PAYMENT_SERVER URL is present.",
   failureModes: {
+    NO_TOML: noTomlFailure,
     NOT_FOUND: {
       name: "not found",
       text(_args: any): string {
@@ -199,23 +133,21 @@ const hasDirectPaymentServer: Test = {
       },
     },
   },
-  before: checkTomlContentBuffer,
-  async run(_config: Config, suite?: Suite): Promise<Result> {
-    const result: Result = {
-      test: this,
-      suite: suite,
-      networkCalls: [],
-    };
-    if (!tomlContentsObj.DIRECT_PAYMENT_SERVER) {
+  before: checkTomlObj,
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    if (!suite.context.tomlObj.DIRECT_PAYMENT_SERVER) {
       result.failure = makeFailure(this.failureModes.NOT_FOUND);
       return result;
     }
     try {
-      let transferServerURL = new URL(tomlContentsObj.DIRECT_PAYMENT_SERVER);
+      let transferServerURL = new URL(
+        suite.context.tomlObj.DIRECT_PAYMENT_SERVER,
+      );
       if (transferServerURL.protocol !== "https:") throw "no HTTPS protocol";
     } catch {
       result.failure = makeFailure(this.failureModes.INVALID_URL, {
-        url: tomlContentsObj.DIRECT_PAYMENT_SERVER,
+        url: suite.context.tomlObj.DIRECT_PAYMENT_SERVER,
       });
     }
     return result;
@@ -223,53 +155,11 @@ const hasDirectPaymentServer: Test = {
 };
 sep31TomlSuite.tests.push(hasDirectPaymentServer);
 
-const validFileSize: Test = {
-  assertion: "the file has a size less than 100KB",
-  successMessage: "the file has a size less than 100KB",
-  failureModes: {
-    NOT_FOUND: {
-      name: "not found",
-      text(_args: any): string {
-        return "No file contents were found.";
-      },
-    },
-    MAX_SIZE_EXCEEDED: {
-      name: "max file sized exceeded",
-      text(args: any): string {
-        return `The max file size is 100KB, but the file is ${args.kb}`;
-      },
-    },
-  },
-  before: checkTomlContentBuffer,
-  async run(_config: Config, suite?: Suite): Promise<Result> {
-    const result: Result = {
-      test: this,
-      suite: suite,
-      networkCalls: [],
-    };
-    if (tomlContentBuffer.byteLength === 0) {
-      result.failure = makeFailure(this.failureModes.NOT_FOUND);
-    } else if (tomlContentBuffer.byteLength > 100000) {
-      result.failure = makeFailure(this.failureModes.MAX_SIZE_EXCEEDED, {
-        kb: tomlContentBuffer.byteLength / 1000,
-      });
-    }
-    return result;
-  },
-};
-sep24TomlSuite.tests.push(validFileSize);
-sep31TomlSuite.tests.push(validFileSize);
-
 const hasNetworkPassphrase: Test = {
   assertion: "has a valid network passphrase",
   successMessage: "the file has a valid network passphrase",
   failureModes: {
-    NO_TOML: {
-      name: "no stellar.toml file",
-      text(_args: any): string {
-        return "Unable to fetch TOML";
-      },
-    },
+    NO_TOML: noTomlFailure,
     NOT_FOUND: {
       name: "not found",
       text(_args: any): string {
@@ -283,36 +173,32 @@ const hasNetworkPassphrase: Test = {
       },
     },
   },
-  before: checkTomlContentBuffer,
+  before: checkTomlObj,
   async run(_config: Config, suite: Suite): Promise<Result> {
-    const result: Result = {
-      test: this,
-      suite: suite,
-      networkCalls: [],
-    };
-    if (!tomlContentsObj) {
+    const result: Result = { networkCalls: [] };
+    if (!suite.context.tomlObj) {
       result.failure = makeFailure(this.failureModes.NO_TOML);
-    } else if (!tomlContentsObj.NETWORK_PASSPHRASE) {
+    } else if (!suite.context.tomlObj.NETWORK_PASSPHRASE) {
       result.failure = makeFailure(this.failureModes.NOT_FOUND);
     } else if (
       ![Networks.TESTNET, Networks.PUBLIC].includes(
-        tomlContentsObj.NETWORK_PASSPHRASE,
+        suite.context.tomlObj.NETWORK_PASSPHRASE,
       )
     ) {
       result.failure = makeFailure(this.failureModes.INVALID_PASSPHRASE);
       result.expected = `$'{Networks.TESTNET}' or '${Networks.PUBLIC}'`;
-      result.actual = tomlContentsObj.NETWORK_PASSPHRASE;
+      result.actual = suite.context.tomlObj.NETWORK_PASSPHRASE;
     }
     return result;
   },
 };
-sep24TomlSuite.tests.push(hasNetworkPassphrase);
-sep31TomlSuite.tests.push(hasNetworkPassphrase);
+sep1TomlSuite.tests.push(hasNetworkPassphrase);
 
 const hasCurrenciesSection: Test = {
   assertion: "has a valid CURRENCIES section",
   successMessage: "the file has a valid CURRENCIES section",
   failureModes: {
+    NO_TOML: noTomlFailure,
     NOT_FOUND: {
       name: "not found",
       text(_args: any): string {
@@ -333,18 +219,14 @@ const hasCurrenciesSection: Test = {
       },
     },
   },
-  before: checkTomlContentBuffer,
+  before: checkTomlObj,
   async run(_config: Config, suite: Suite): Promise<Result> {
-    const result: Result = {
-      test: this,
-      suite: suite,
-      networkCalls: [],
-    };
-    if (!tomlContentsObj.CURRENCIES) {
+    const result: Result = { networkCalls: [] };
+    if (!suite.context.tomlObj.CURRENCIES) {
       result.failure = makeFailure(this.failureModes.NOT_FOUND);
       return result;
     }
-    for (const currency of tomlContentsObj.CURRENCIES) {
+    for (const currency of suite.context.tomlObj.CURRENCIES) {
       const validatorResult = validate(currency, currencySchema);
       if (validatorResult.errors.length !== 0) {
         result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
@@ -357,13 +239,13 @@ const hasCurrenciesSection: Test = {
     return result;
   },
 };
-sep24TomlSuite.tests.push(hasCurrenciesSection);
-sep31TomlSuite.tests.push(hasCurrenciesSection);
+sep1TomlSuite.tests.push(hasCurrenciesSection);
 
 const validURLs: Test = {
   assertion: "all URLs are HTTPS and end without slashes",
   successMessage: "all URLs are HTTPS and end without slashes",
   failureModes: {
+    NO_TOML: noTomlFailure,
     NOT_FOUND: {
       name: "not found",
       text(_args: any): string {
@@ -383,13 +265,9 @@ const validURLs: Test = {
       },
     },
   },
-  before: checkTomlContentBuffer,
-  async run(_config: Config, suite?: Suite): Promise<Result> {
-    const result: Result = {
-      test: this,
-      suite: suite,
-      networkCalls: [],
-    };
+  before: checkTomlObj,
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
     const urlAttributes = [
       "FEDERATION_SERVER",
       "AUTH_SERVER",
@@ -418,26 +296,25 @@ const validURLs: Test = {
     };
     for (const attr of urlAttributes) {
       if (attr.startsWith("ORG")) {
-        if (!tomlContentsObj.DOCUMENTATION) {
+        if (!suite.context.tomlObj.DOCUMENTATION) {
           continue;
         }
-        checkUrl(tomlContentsObj.DOCUMENTATION[attr]);
+        checkUrl(suite.context.tomlObj.DOCUMENTATION[attr]);
       } else if (
         ["image", "attestation_of_reserve", "approval_server"].includes(attr)
       ) {
-        if (!tomlContentsObj.CURRENCIES) {
+        if (!suite.context.tomlObj.CURRENCIES) {
           continue;
         }
-        checkUrl(tomlContentsObj.CURRENCIES[attr]);
+        checkUrl(suite.context.tomlObj.CURRENCIES[attr]);
       } else {
-        checkUrl(tomlContentsObj[attr]);
+        checkUrl(suite.context.tomlObj[attr]);
       }
       if (result.failure) return result;
     }
     return result;
   },
 };
-sep24TomlSuite.tests.push(validURLs);
-sep31TomlSuite.tests.push(validURLs);
+sep1TomlSuite.tests.push(validURLs);
 
-export { sep24TomlSuite, sep31TomlSuite };
+export { sep1TomlSuite, sep24TomlSuite, sep31TomlSuite };

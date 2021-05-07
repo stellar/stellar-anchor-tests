@@ -4,23 +4,25 @@ import { validate } from "jsonschema";
 
 import { Suite, Test, Result, NetworkCall, Config } from "../../types";
 import { makeFailure } from "../../helpers/failure";
-import { getTomlObj, getTomlFailureModes } from "../../helpers/sep1";
+import { noTomlFailure, checkTomlObj } from "../../helpers/sep1";
 import { infoSchema } from "../../schemas/sep24";
-
-let transferServerUrl: string;
-let infoObj: any;
-let tomlObj: any;
 
 const infoSuite: Suite = {
   sep: 24,
   name: "Info Tests",
   tests: [],
+  context: {
+    tomlObj: undefined,
+    transferServerUrl: undefined,
+    infoObj: undefined,
+  },
 };
 
 const isCompliantWithSchema: Test = {
   assertion: "response is compliant with the schema",
   successMessage: "the response body is compliant with the schema",
   failureModes: {
+    NO_TOML: noTomlFailure,
     CONNECTION_ERROR: {
       name: "connection error",
       text: (args: any) => {
@@ -54,24 +56,20 @@ const isCompliantWithSchema: Test = {
         );
       },
     },
-    ...getTomlFailureModes,
   },
-  async run(config: Config, suite?: Suite): Promise<Result> {
-    const result: Result = {
-      test: this,
-      networkCalls: [],
-      suite: suite,
-    };
-    tomlObj = await getTomlObj(config.homeDomain, result);
-    if (!tomlObj) return result;
-    transferServerUrl =
-      tomlObj.TRANSFER_SERVER_SEP0024 || tomlObj.TRANSFER_SERVER;
-    if (!transferServerUrl) {
+  before: checkTomlObj,
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    if (!suite.context.tomlObj) return result;
+    suite.context.transferServerUrl =
+      suite.context.tomlObj.TRANSFER_SERVER_SEP0024 ||
+      suite.context.tomlObj.TRANSFER_SERVER;
+    if (!suite.context.transferServerUrl) {
       result.failure = makeFailure(this.failureModes.TRANSFER_SERVER_NOT_FOUND);
       return result;
     }
     const infoCall: NetworkCall = {
-      request: new Request(transferServerUrl + "/info"),
+      request: new Request(suite.context.transferServerUrl + "/info"),
     };
     result.networkCalls.push(infoCall);
     try {
@@ -92,8 +90,8 @@ const isCompliantWithSchema: Test = {
       result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
       return result;
     }
-    infoObj = await infoCall.response.clone().json();
-    const validationResult = validate(infoObj, infoSchema);
+    suite.context.infoObj = await infoCall.response.clone().json();
+    const validationResult = validate(suite.context.infoObj, infoSchema);
     if (validationResult.errors.length > 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
         errors: validationResult.errors.join("\n"),

@@ -1,13 +1,13 @@
 import { default as c } from "ansi-colors";
 
-import { Result, Stats } from "../types";
+import { TestRun, Stats } from "../types";
 
 export function printStats(stats: Stats, startTime: number, endTime: number) {
   printColoredTextStats(stats, startTime, endTime);
 }
 
-export async function printResult(result: Result, verbose: boolean) {
-  await printColoredTextResult(result, verbose);
+export async function printTestRun(testRun: TestRun, verbose: boolean) {
+  await printColoredTextTestRun(testRun, verbose);
 }
 
 function printColoredTextStats(
@@ -38,41 +38,41 @@ function printColoredTextStats(
   console.log(`Time:        ${secondsString}s`);
 }
 
-async function printColoredTextResult(result: Result, verbose: boolean) {
-  let color = result.failure ? c.red : c.green;
-  let symbol = result.failure ? c.symbols.cross : c.symbols.check;
+async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
+  let color = testRun.result.failure ? c.red : c.green;
+  let symbol = testRun.result.failure ? c.symbols.cross : c.symbols.check;
   let header = `${symbol} `;
-  if (result.suite) {
-    if (result.suite.sep)
-      header += `SEP-${result.suite.sep} ${c.symbols.pointer} `;
-    header += `${result.suite.name} ${c.symbols.pointer} `;
+  if (testRun.suite) {
+    if (testRun.suite.sep)
+      header += `SEP-${testRun.suite.sep} ${c.symbols.pointer} `;
+    header += `${testRun.suite.name} ${c.symbols.pointer} `;
   }
-  header += `${result.test.assertion}`;
+  header += `${testRun.test.assertion}`;
   console.log(color(header));
   console.group(); // result group
-  if (result.failure) {
+  if (testRun.result.failure) {
     console.log();
     console.log(c.bold("Failure Type:\n"));
     console.group(); // failure type group
-    console.log(`${result.failure.name}\n`);
+    console.log(`${testRun.result.failure.name}\n`);
     console.groupEnd(); // failure type group
     console.log(c.bold("Description:\n"));
     console.group(); // description group
-    console.log(result.failure.message + "\n");
-    if (result.expected && result.actual) {
-      console.log(`Expected: ${result.expected}`);
-      console.log(`Received: '${result.actual}'\n`);
+    console.log(testRun.result.failure.message + "\n");
+    if (testRun.result.expected && testRun.result.actual) {
+      console.log(`Expected: ${testRun.result.expected}`);
+      console.log(`Received: '${testRun.result.actual}'\n`);
     }
     console.groupEnd(); // description group
   } else if (verbose) {
     console.log(c.bold("\nDescription:\n"));
     console.group(); // description group
-    console.log(result.test.successMessage + "\n");
+    console.log(testRun.test.successMessage + "\n");
     console.groupEnd(); // description group
   }
-  if (verbose && result.networkCalls.length) {
+  if (verbose && testRun.result.networkCalls.length) {
     console.log(c.bold("Network Calls:\n"));
-    for (const networkCall of result.networkCalls) {
+    for (const networkCall of testRun.result.networkCalls) {
       console.log("Request:\n");
       console.group(); // request group
       console.log(`${networkCall.request.method} ${networkCall.request.url}\n`);

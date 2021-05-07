@@ -1,10 +1,39 @@
 import fetch from "node-fetch";
-import { Request, Response } from "node-fetch";
+import { Request } from "node-fetch";
 import { parse } from "toml";
-
-import { Result, Failure, NetworkCall } from "../types";
 import { makeFailure } from "./failure";
 
+import { Config, Suite, Result, Failure, NetworkCall } from "../types";
+
+// failureMode for checkTomlObj
+export const noTomlFailure: Failure = {
+  name: "no TOML",
+  text(_args: any): string {
+    return "Retreiving or parsing the stellar.toml file failed.";
+  },
+};
+
+// resuable before() function
+export const checkTomlObj = async (
+  config: Config,
+  suite: Suite,
+): Promise<Result | void> => {
+  if (!suite.context) suite.context = {};
+  if (suite.context.tomlObj) return;
+  const noTomlResult: Result = {
+    networkCalls: [],
+    failure: makeFailure(noTomlFailure),
+  };
+  if (suite.context.tomlFetchFailed) {
+    return noTomlResult;
+  }
+  await checkTomlExists(config, suite);
+  if (suite.context.tomlFetchFailed) {
+    return noTomlResult;
+  }
+};
+
+// failureMode for checkTomlExists
 export const getTomlFailureModes: Record<string, Failure> = {
   TOML_CONNECTION_ERROR: {
     name: "connection error",
@@ -43,36 +72,35 @@ export const getTomlFailureModes: Record<string, Failure> = {
   },
 };
 
-export async function getTomlObj(
-  homeDomain: string,
-  result?: Result,
-): Promise<any> {
+// a reuseable run() function
+export const checkTomlExists = async (
+  config: Config,
+  suite: Suite,
+): Promise<Result> => {
+  const result: Result = { networkCalls: [] };
   const getTomlCall: NetworkCall = {
-    request: new Request(homeDomain + "/.well-known/stellar.toml"),
+    request: new Request(config.homeDomain + "/.well-known/stellar.toml"),
   };
-  if (result) result.networkCalls.push(getTomlCall);
-  let getResponse: Response;
+  result.networkCalls.push(getTomlCall);
   try {
-    getResponse = await fetch(getTomlCall.request.clone());
+    getTomlCall.response = await fetch(getTomlCall.request.clone());
   } catch (e) {
-    if (result)
-      result.failure = makeFailure(getTomlFailureModes.TOML_CONNECTION_ERROR, {
-        url: getTomlCall.request.url,
-      });
-    return;
+    suite.context.tomlFetchFailed = true;
+    result.failure = makeFailure(getTomlFailureModes.TOML_CONNECTION_ERROR, {
+      homeDomain: config.homeDomain,
+    });
+    return result;
   }
-  getTomlCall.response = getResponse.clone();
-  if (getResponse.status !== 200) {
-    if (result) {
-      result.failure = makeFailure(
-        getTomlFailureModes.TOML_UNEXPECTED_STATUS_CODE,
-      );
-      result.expected = 200;
-      result.actual = getResponse.status;
-    }
-    return;
+  if (getTomlCall.response.status !== 200) {
+    suite.context.tomlFetchFailed = true;
+    result.failure = makeFailure(
+      getTomlFailureModes.TOML_UNEXPECTED_STATUS_CODE,
+    );
+    result.expected = 200;
+    result.actual = getTomlCall.response.status;
+    return result;
   }
-  const contentType = getResponse.headers.get("Content-Type");
+  const contentType = getTomlCall.response.headers.get("Content-Type");
   const acceptedContentTypes = ["application/toml", "text/plain"];
   let matched = false;
   for (const acceptedContentType of acceptedContentTypes) {
@@ -81,26 +109,31 @@ export async function getTomlObj(
     }
   }
   if (!contentType || !matched) {
-    if (result) {
-      result.failure = makeFailure(getTomlFailureModes.TOML_BAD_CONTENT_TYPE);
-      result.expected = "'application/toml' or 'text/plain'";
-      if (contentType) {
-        result.actual = contentType;
-      } else {
-        result.actual = "not found";
-      }
+    suite.context.tomlFetchFailed = true;
+    result.failure = makeFailure(getTomlFailureModes.TOML_BAD_CONTENT_TYPE);
+    result.expected = "'application/toml' or 'text/plain'";
+    if (contentType) {
+      result.actual = contentType;
+    } else {
+      result.actual = "not found";
     }
-    return;
+    return result;
   }
+  // clone the response so we can read the body twice
   try {
-    return parse(await getResponse.text());
+    suite.context.tomlContentBuffer = await getTomlCall.response
+      .clone()
+      .arrayBuffer();
+    suite.context.tomlObj = parse(await getTomlCall.response.clone().text());
   } catch (e) {
-    if (result)
-      result.failure = makeFailure(getTomlFailureModes.TOML_PARSE_ERROR, {
-        message: e.message,
-        line: e.line,
-        column: e.column,
-      });
-    return;
+    suite.context.tomlFetchFailed = true;
+    result.failure = makeFailure(getTomlFailureModes.TOML_PARSE_ERROR, {
+      message: e.message,
+      line: e.line,
+      column: e.column,
+    });
+    return result;
   }
-}
+  suite.context.tomlFetchFailed = false;
+  return result;
+};

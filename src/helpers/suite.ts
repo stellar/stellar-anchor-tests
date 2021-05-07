@@ -1,5 +1,9 @@
-import { Suite, Config, Result } from "../types";
-import { sep24TomlSuite, sep31TomlSuite } from "../tests/sep1/tests";
+import { Suite, Config, TestRun } from "../types";
+import {
+  sep1TomlSuite,
+  sep24TomlSuite,
+  sep31TomlSuite,
+} from "../tests/sep1/tests";
 import { default as sep24Suites } from "../tests/sep24/tests";
 import { default as sep10Suites } from "../tests/sep10/tests";
 import { makeFailure } from "./failure";
@@ -7,13 +11,13 @@ import { makeFailure } from "./failure";
 export async function* runSuite(
   suite: Suite,
   config: Config,
-): AsyncGenerator<Result> {
+): AsyncGenerator<TestRun> {
   for await (const test of suite.tests) {
     try {
       if (test.before) {
         const beforeResult = await test.before(config, suite);
         if (beforeResult) {
-          yield beforeResult;
+          yield { test: test, result: beforeResult, suite: suite };
           continue;
         }
       }
@@ -21,32 +25,31 @@ export async function* runSuite(
       if (test.after) {
         const afterResult = await test.after(config, suite);
         if (afterResult) {
-          yield afterResult;
+          yield { test: test, result: afterResult, suite: suite };
           continue;
         }
       }
-      yield result;
+      yield { test: test, result: result, suite: suite };
     } catch (e) {
-      const result: Result = {
-        test: test,
-        networkCalls: [],
-        suite: suite,
-        failure: makeFailure(
-          {
-            name: "unexpected exception",
-            text(args: any): string {
-              return (
-                "An unexpected exception occurred while running:\n\n" +
-                `Suite: '${suite.name}'\nTest: '${test.assertion}'\n\n` +
-                `Exception message: '${args.exception}'\n\n` +
-                "Please report this bug at https://github.com/stellar/stellar-anchor-tests/issues"
-              );
-            },
-          },
-          { exception: e.message },
-        ),
+      const failure = {
+        name: "unexpected exception",
+        text(args: any): string {
+          return (
+            "An unexpected exception occurred while running:\n\n" +
+            `Suite: '${suite.name}'\nTest: '${test.assertion}'\n\n` +
+            `Exception message: '${args.exception}'\n\n` +
+            "Please report this bug at https://github.com/stellar/stellar-anchor-tests/issues"
+          );
+        },
       };
-      return result;
+      yield {
+        test: test,
+        result: {
+          networkCalls: [],
+          failure: makeFailure(failure, { exception: e.message }),
+        },
+        suite: suite,
+      };
     }
   }
 }
@@ -54,17 +57,17 @@ export async function* runSuite(
 export function getSuites(config: Config): Suite[] {
   let suites: Suite[] = [];
   if (config.seps.includes(1)) {
-    if (config.seps.includes(24)) {
-      suites.push(sep24TomlSuite);
-    } else if (config.seps.includes(31)) {
-      suites.push(sep31TomlSuite);
-    }
+    suites.push(sep1TomlSuite);
   }
   if (config.seps.includes(10)) {
     suites = suites.concat(sep10Suites);
   }
   if (config.seps.includes(24)) {
+    suites.push(sep24TomlSuite);
     suites = suites.concat(sep24Suites);
+  }
+  if (config.seps.includes(31)) {
+    suites.push(sep31TomlSuite);
   }
   return filterBySearchStrings(suites, config);
 }
