@@ -22,6 +22,50 @@ export const invalidWebAuthEndpointFailure: Failure = {
   },
 };
 
+export const friendbotFailureModes: Record<string, Failure> = {
+  FRIENDBOT_CONNECTION_ERROR: {
+    name: "connection error",
+    text(_args: any): string {
+      return (
+        "A connection error occured when trying to fund a " +
+        "testnet account using friendbot"
+      );
+    },
+  },
+  FRIENDBOT_UNEXPECTED_STATUS_CODE: {
+    name: "unexpected status code",
+    text(_args: any): string {
+      return "A 200 Success code is expected for friendbot requests";
+    },
+  },
+};
+
+export const friendBot = async (
+  account: string,
+  result: Result,
+): Promise<void> => {
+  const friendBotNetworkCall: NetworkCall = {
+    request: new Request(`https://friendbot.stellar.org/?addr=${account}`),
+  };
+  result.networkCalls.push(friendBotNetworkCall);
+  try {
+    friendBotNetworkCall.response = await fetch(
+      friendBotNetworkCall.request.clone(),
+    );
+  } catch {
+    result.failure = makeFailure(
+      friendbotFailureModes.FRIENDBOT_CONNECTION_ERROR,
+    );
+    return;
+  }
+  if (friendBotNetworkCall.response.status !== 200) {
+    result.failure = makeFailure(
+      friendbotFailureModes.FRIENDBOT_UNEXPECTED_STATUS_CODE,
+    );
+    return;
+  }
+};
+
 export const getWebAuthEndpointFailureModes: Record<string, Failure> = {
   NO_TOML: noTomlFailure,
   NOT_FOUND: {
@@ -281,8 +325,14 @@ export async function postChallenge(
   tomlObj: any,
   result: Result,
   useJson: boolean = false,
+  challenge?: Transaction,
 ): Promise<string | void> {
-  const challenge = await getChallenge(clientKeypair, tomlObj, result);
+  if (!challenge)
+    challenge = (await getChallenge(
+      clientKeypair,
+      tomlObj,
+      result,
+    )) as Transaction;
   if (!challenge) return;
   challenge.sign(clientKeypair);
   let request: Request;

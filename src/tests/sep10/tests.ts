@@ -5,6 +5,8 @@ import {
   FeeBumpTransaction,
   TransactionBuilder,
   Utils,
+  Server,
+  Operation,
 } from "stellar-sdk";
 import fetch from "node-fetch";
 import { Request } from "node-fetch";
@@ -22,6 +24,8 @@ import {
   getChallengeFailureModes,
   postChallengeFailureModes,
   postChallenge,
+  friendBot,
+  friendbotFailureModes,
 } from "../../helpers/sep10";
 
 const tomlSuite: Suite = {
@@ -819,5 +823,59 @@ const extraClientSigners: Test = {
   },
 };
 postAuthSuite.tests.push(extraClientSigners);
+
+const failsIfWeighBelowMediumThreshold: Test = {
+  assertion:
+    "fails if the challenge signature weight is less than the account's medium threshold",
+  successMessage:
+    "fails if the challenge signature weight is less than the account's medium threshold",
+  failureModes: {
+    POST_AUTH_UNEXPECTED_STATUS_CODE: {
+      name: "unexpected status code",
+      text(_args: any): string {
+        return (
+          "A 400 Bad Request is expected if the signature weight on the challenge is not greater than " +
+          "or equal to the account's medium threshold."
+        );
+      },
+    },
+    ...getChallengeFailureModes,
+    ...friendbotFailureModes,
+  },
+  before: checkTomlAndWebAuthEndpoint,
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const clientKeypair = Keypair.random();
+    await friendBot(clientKeypair.publicKey(), result);
+    if (result.failure) return result;
+    const server = new Server("https://horizon-testnet.stellar.org");
+    const clientAccount = await server.loadAccount(clientKeypair.publicKey());
+    const raiseThresoldsTx = new TransactionBuilder(clientAccount, {
+      fee: "10000",
+      networkPassphrase: Networks.TESTNET,
+    }).addOperation(
+      Operation.setOptions({
+        lowThreshold: 2,
+        medThreshold: 2,
+        highThreshold: 2,
+      }),
+    );
+    const increaseThresholdsCall: NetworkCall = {
+      request: new Request(),
+    };
+    const challenge = await getChallenge(
+      clientKeypair,
+      suite.context.tomlObj,
+      result,
+    );
+    if (!challenge) return result;
+    return await postAuthBadRequest(
+      result,
+      suite.context.tomlObj,
+      { transaction: challenge.toXDR() },
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+    );
+  },
+};
 
 export default [tomlSuite, getAuthSuite, postAuthSuite];
