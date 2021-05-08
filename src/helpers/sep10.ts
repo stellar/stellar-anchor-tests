@@ -6,7 +6,6 @@ import {
 } from "stellar-sdk";
 import fetch from "node-fetch";
 import { Request } from "node-fetch";
-import { URLSearchParams } from "url";
 import { decode } from "jsonwebtoken";
 import { validate } from "jsonschema";
 
@@ -345,7 +344,7 @@ export async function postChallenge(
   } else {
     request = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
       method: "POST",
-      body: new URLSearchParams({ transaction: challenge.toXDR() }),
+      body: `transaction=${encodeURIComponent(challenge.toXDR())}`,
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
   }

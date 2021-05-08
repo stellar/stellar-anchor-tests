@@ -1,4 +1,7 @@
 import { default as c } from "ansi-colors";
+import { inspect } from "util";
+
+inspect.styles.string = "yellow";
 
 import { TestRun, Stats } from "../types";
 
@@ -39,7 +42,7 @@ function printColoredTextStats(
 }
 
 async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
-  let color = testRun.result.failure ? c.red : c.green;
+  let color = testRun.result.failure ? c.red.bold : c.green.bold;
   let symbol = testRun.result.failure ? c.symbols.cross : c.symbols.check;
   let header = `${symbol} `;
   if (testRun.suite) {
@@ -86,7 +89,6 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
         for (const header of requestHeaderKeys) {
           console.log(`${header}: ${requestHeaders[header]}`);
         }
-        console.log();
         console.groupEnd(); // header group
         console.log();
       }
@@ -94,14 +96,14 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
       let requestBodyIsJson = false;
       let requestBody: string | object | null = null;
       if (
-        requestHeaders["Content-Type"] &&
-        requestHeaders["Content-Type"].includes("application/json")
+        requestHeaders["content-type"] &&
+        requestHeaders["content-type"].includes("json")
       ) {
         requestBodyIsJson = true;
         requestBody = await networkCall.request.json();
       } else if (
-        requestHeaders["Content-Type"] &&
-        requestHeaders["Content-Type"].includes("multipart/form-data")
+        requestHeaders["content-type"] &&
+        requestHeaders["content-type"].includes("multipart/form-data")
       ) {
         requestBody = ""; // TODO
       } else {
@@ -110,12 +112,13 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
       if (requestBody) {
         console.log(`Body:\n`);
         if (requestBodyIsJson) {
-          console.dir(requestBody, { depth: Infinity });
+          console.dir(requestBody, { depth: Infinity, colors: true });
         } else {
           console.group(); // request body group
           console.log(requestBody);
           console.groupEnd();
         }
+        console.log();
       }
       console.log("Response:\n");
       console.group(); // response group
@@ -136,16 +139,19 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
         }
         console.log(`Body:\n`);
         const contentType = networkCall.response.headers.get("Content-Type");
-        if (contentType && contentType.includes("application/json")) {
-          console.dir(await networkCall.response.json(), { depth: Infinity });
-          console.log();
+        if (contentType && contentType.includes("json")) {
+          console.dir(await networkCall.response.json(), {
+            depth: Infinity,
+            colors: true,
+          });
         } else {
           console.group(); // body group
           console.log(await networkCall.response.text());
           console.groupEnd(); // body group
         }
+        console.log();
       } else {
-        console.log("No response returned.");
+        console.log("No response returned.\n");
       }
       console.groupEnd(); // response group
     }

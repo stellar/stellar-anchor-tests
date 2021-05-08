@@ -5,7 +5,6 @@ import {
   FeeBumpTransaction,
   TransactionBuilder,
   Utils,
-  Server,
   Operation,
 } from "stellar-sdk";
 import fetch from "node-fetch";
@@ -15,6 +14,7 @@ import { URL } from "url";
 import { Test, Config, Suite, Result, NetworkCall } from "../../types";
 import { makeFailure } from "../../helpers/failure";
 import { noTomlFailure, checkTomlObj } from "../../helpers/sep1";
+import { loadAccount, submitTransaction } from "../../helpers/horizon";
 import {
   invalidWebAuthEndpointFailure,
   getWebAuthEndpointFailureModes,
@@ -631,7 +631,7 @@ const postAuthBadRequest = async (
 ): Promise<Result> => {
   const postAuthRequest = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
     method: "POST",
-    body: requestBody,
+    body: JSON.stringify(requestBody),
     headers: { "Content-Type": "application/json" },
   });
   const postAuthCall: NetworkCall = { request: postAuthRequest };
@@ -680,7 +680,7 @@ const failsWithNoBody: Test = {
     return await postAuthBadRequest(
       result,
       suite.context.tomlObj,
-      JSON.stringify({}),
+      {},
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
@@ -715,7 +715,7 @@ const failsWithNoClientSignature: Test = {
     return await postAuthBadRequest(
       result,
       suite.context.tomlObj,
-      JSON.stringify({ transaction: challenge.toXDR() }),
+      { transaction: challenge.toXDR() },
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
@@ -743,7 +743,7 @@ const failsWithInvalidTransactionValue: Test = {
     return await postAuthBadRequest(
       result,
       suite.context.tomlObj,
-      JSON.stringify({ transaction: { "not a transaction string": true } }),
+      { transaction: { "not a transaction string": true } },
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
@@ -781,7 +781,7 @@ export const failsIfChallengeNotSignedByServer: Test = {
     return await postAuthBadRequest(
       result,
       suite.context.tomlObj,
-      JSON.stringify({ transaction: challengeXdr }),
+      { transaction: challengeXdr },
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
@@ -817,7 +817,7 @@ const extraClientSigners: Test = {
     return await postAuthBadRequest(
       result,
       suite.context.tomlObj,
-      JSON.stringify({ transaction: challenge.toXDR() }),
+      { transaction: challenge.toXDR() },
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
@@ -848,27 +848,34 @@ const failsIfWeighBelowMediumThreshold: Test = {
     const clientKeypair = Keypair.random();
     await friendBot(clientKeypair.publicKey(), result);
     if (result.failure) return result;
-    const server = new Server("https://horizon-testnet.stellar.org");
-    const clientAccount = await server.loadAccount(clientKeypair.publicKey());
+    const clientAccount = await loadAccount(clientKeypair.publicKey(), result);
+    if (!clientAccount) return result;
     const raiseThresoldsTx = new TransactionBuilder(clientAccount, {
       fee: "10000",
       networkPassphrase: Networks.TESTNET,
-    }).addOperation(
-      Operation.setOptions({
-        lowThreshold: 2,
-        medThreshold: 2,
-        highThreshold: 2,
-      }),
+    })
+      .addOperation(
+        Operation.setOptions({
+          lowThreshold: 2,
+          medThreshold: 2,
+          highThreshold: 2,
+        }),
+      )
+      .setTimeout(30)
+      .build();
+    raiseThresoldsTx.sign(clientKeypair);
+    const horizonResponse = await submitTransaction(
+      raiseThresoldsTx.toXDR(),
+      result,
     );
-    const increaseThresholdsCall: NetworkCall = {
-      request: new Request(),
-    };
+    if (!horizonResponse) return result;
     const challenge = await getChallenge(
       clientKeypair,
       suite.context.tomlObj,
       result,
     );
     if (!challenge) return result;
+    challenge.sign(clientKeypair);
     return await postAuthBadRequest(
       result,
       suite.context.tomlObj,
@@ -877,5 +884,6 @@ const failsIfWeighBelowMediumThreshold: Test = {
     );
   },
 };
+postAuthSuite.tests.push(failsIfWeighBelowMediumThreshold);
 
 export default [tomlSuite, getAuthSuite, postAuthSuite];
