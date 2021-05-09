@@ -886,4 +886,207 @@ const failsIfWeighBelowMediumThreshold: Test = {
 };
 postAuthSuite.tests.push(failsIfWeighBelowMediumThreshold);
 
+const signedByNonMasterSigner: Test = {
+  assertion: "succeeds with a signature from a non-master signer",
+  successMessage: "succeeds with a signature from a non-master signer",
+  failureModes: {
+    ...postChallengeFailureModes,
+    UNEXPECTED_STATUS_CODE: {
+      name: "unexpected status code",
+      text(_args: any): string {
+        return (
+          "Challenge transactions signed by non-master signer(s) with weight greater than " +
+          "or equal to the account's medium threshold are valid, but the request was rejected."
+        );
+      },
+    },
+  },
+  before: checkTomlAndWebAuthEndpoint,
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const clientKeypair = Keypair.random();
+    const clientSignerKeypair = Keypair.random();
+    await friendBot(clientKeypair.publicKey(), result);
+    if (result.failure) return result;
+    const clientAccount = await loadAccount(clientKeypair.publicKey(), result);
+    if (!clientAccount) return result;
+    const raiseThresholdsTx = new TransactionBuilder(clientAccount, {
+      fee: "10000",
+      networkPassphrase: Networks.TESTNET,
+    })
+      .addOperation(
+        Operation.setOptions({
+          lowThreshold: 1,
+          medThreshold: 1,
+          highThreshold: 1,
+          signer: {
+            ed25519PublicKey: clientSignerKeypair.publicKey(),
+            weight: 1,
+          },
+        }),
+      )
+      .setTimeout(30)
+      .build();
+    raiseThresholdsTx.sign(clientKeypair);
+    await submitTransaction(raiseThresholdsTx.toXDR(), result);
+    if (result.failure) return result;
+    const challenge = await getChallenge(
+      clientKeypair,
+      suite.context.tomlObj,
+      result,
+    );
+    if (!challenge) return result;
+    challenge.sign(clientSignerKeypair);
+    await postChallenge(
+      clientKeypair,
+      suite.context.tomlObj,
+      result,
+      false,
+      challenge,
+    );
+    return result;
+  },
+};
+postAuthSuite.tests.push(signedByNonMasterSigner);
+
+const failsWithDuplicateSignatures: Test = {
+  assertion: "fails for challenges signed more than once by the same signer",
+  successMessage:
+    "fails for challenges signed more than once by the same signer",
+  failureModes: {
+    ...postChallengeFailureModes,
+    UNEXPECTED_STATUS_CODE: {
+      name: "unexpected status code",
+      text(_args: any): string {
+        return (
+          "The weight of a signer's signature should only be used once when " +
+          "calculating the cumulative weight of the signatures on a challenge. " +
+          "Not checking for duplicate signatures enables a signer to get a " +
+          "token that can be used for operations the signer is not authenticated " +
+          "to perform without signatures from other signers."
+        );
+      },
+    },
+  },
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const clientKeypair = Keypair.random();
+    const clientSignerKeypair = Keypair.random();
+    await friendBot(clientKeypair.publicKey(), result);
+    if (result.failure) return result;
+    const clientAccount = await loadAccount(clientKeypair.publicKey(), result);
+    if (!clientAccount) return result;
+    const raiseThresholdsTx = new TransactionBuilder(clientAccount, {
+      fee: "10000",
+      networkPassphrase: Networks.TESTNET,
+    })
+      .addOperation(
+        Operation.setOptions({
+          lowThreshold: 2,
+          medThreshold: 2,
+          highThreshold: 2,
+          signer: {
+            ed25519PublicKey: clientSignerKeypair.publicKey(),
+            weight: 1,
+          },
+        }),
+      )
+      .setTimeout(30)
+      .build();
+    raiseThresholdsTx.sign(clientKeypair);
+    await submitTransaction(raiseThresholdsTx.toXDR(), result);
+    if (result.failure) return result;
+    const challenge = await getChallenge(
+      clientKeypair,
+      suite.context.tomlObj,
+      result,
+    );
+    if (!challenge) return result;
+    challenge.sign(clientSignerKeypair);
+    challenge.sign(clientSignerKeypair);
+    await postAuthBadRequest(
+      result,
+      suite.context.tomlObj,
+      { transaction: challenge.toXDR() },
+      this.failureModes.UNEXPECTED_STATUS_CODE.text(),
+    );
+    return result;
+  },
+};
+postAuthSuite.tests.push(failsWithDuplicateSignatures);
+
+const multipleNonMasterSigners: Test = {
+  assertion:
+    "returns a token for challenges with sufficient signatures from multiple non-master signers",
+  successMessage:
+    "returns a token for challenges with sufficient signatures from multiple non-master signers",
+  failureModes: {
+    ...postChallengeFailureModes,
+    UNEXPECTED_STATUS_CODE: {
+      name: "unexpected status code",
+      text(_args: any): string {
+        return (
+          "Challenges can be signed by multiple signers to reach the medium threshold of the account. " +
+          "However, the SEP-10 server did not return a token for such a challenge."
+        );
+      },
+    },
+  },
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const clientKeypair = Keypair.random();
+    const clientSignerKeypair = Keypair.random();
+    const clientSigner2Keypair = Keypair.random();
+    await friendBot(clientKeypair.publicKey(), result);
+    if (result.failure) return result;
+    const clientAccount = await loadAccount(clientKeypair.publicKey(), result);
+    if (!clientAccount) return result;
+    const raiseThresholdsTx = new TransactionBuilder(clientAccount, {
+      fee: "10000",
+      networkPassphrase: Networks.TESTNET,
+    })
+      .addOperation(
+        Operation.setOptions({
+          lowThreshold: 2,
+          medThreshold: 2,
+          highThreshold: 2,
+          signer: {
+            ed25519PublicKey: clientSignerKeypair.publicKey(),
+            weight: 1,
+          },
+        }),
+      )
+      .addOperation(
+        Operation.setOptions({
+          signer: {
+            ed25519PublicKey: clientSigner2Keypair.publicKey(),
+            weight: 1,
+          },
+        }),
+      )
+      .setTimeout(30)
+      .build();
+    raiseThresholdsTx.sign(clientKeypair);
+    await submitTransaction(raiseThresholdsTx.toXDR(), result);
+    if (result.failure) return result;
+    const challenge = await getChallenge(
+      clientKeypair,
+      suite.context.tomlObj,
+      result,
+    );
+    if (!challenge) return result;
+    challenge.sign(clientSignerKeypair);
+    challenge.sign(clientSigner2Keypair);
+    await postChallenge(
+      clientKeypair,
+      suite.context.tomlObj,
+      result,
+      false,
+      challenge,
+    );
+    return result;
+  },
+};
+postAuthSuite.tests.push(multipleNonMasterSigners);
+
 export default [tomlSuite, getAuthSuite, postAuthSuite];

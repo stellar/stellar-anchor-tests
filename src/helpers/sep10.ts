@@ -326,14 +326,15 @@ export async function postChallenge(
   useJson: boolean = false,
   challenge?: Transaction,
 ): Promise<string | void> {
-  if (!challenge)
+  if (!challenge) {
     challenge = (await getChallenge(
       clientKeypair,
       tomlObj,
       result,
     )) as Transaction;
+    challenge.sign(clientKeypair);
+  }
   if (!challenge) return;
-  challenge.sign(clientKeypair);
   let request: Request;
   if (useJson) {
     request = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
