@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 import yargs from "yargs";
 import { URL } from "url";
-import { Keypair } from "stellar-sdk";
+import fetch from "node-fetch";
+import { parse } from "toml";
+import { Networks } from "stellar-sdk";
 
 import { run } from "./helpers/run";
 import { getStats } from "./helpers/stats";
@@ -40,13 +42,6 @@ const args = yargs
       description:
         "Display the each request and response used in each failed test.",
     },
-    "mainnet-master-account-secret": {
-      alias: "m",
-      type: "string",
-      requiresArg: true,
-      description:
-        "The Stellar account to use when when funding temporary test accounts. Currently, 50XLM must be present in the account.",
-    },
   })
   .check((argv: any) => {
     if (!argv.homeDomain.startsWith("http")) {
@@ -69,13 +64,6 @@ const args = yargs
           throw "error: invalid --sep value provided. Choices: 1, 6, 10, 12, 24, 31.";
       }
     }
-    if (argv.mainnetMasterAccountSecret) {
-      try {
-        Keypair.fromSecret(argv.mainnetMasterAccountSecret).secret;
-      } catch {
-        throw "error: --mainnet-master-account-secret is not a secret key.";
-      }
-    }
     return true;
   }).argv;
 
@@ -87,8 +75,25 @@ const args = yargs
   if (args._.length) config.searchStrings = args._.map(String);
   if (args.currency) config.currency = args.currency as string;
   if (args.verbose) config.verbose = args.verbose as boolean;
-  if (args.mainnetMasterAccountSecret)
-    config.mainnetMasterAccountSecret = args.mainnetMasterAccountSecret as string;
+  let tomlObj;
+  try {
+    const tomlResponse = await fetch(
+      config.homeDomain + "/.well-known/stellar.toml",
+    );
+    tomlObj = parse(await tomlResponse.text());
+  } catch {}
+  if (tomlObj) {
+    if (
+      ![Networks.PUBLIC, Networks.TESTNET].includes(tomlObj.NETWORK_PASSPHRASE)
+    ) {
+      console.error(
+        "error: NETWORK_PASSPHRASE is not one of the accepted values:\n\n" +
+          `'${Networks.TESTNET}'\n'${Networks.PUBLIC}\n'`,
+      );
+      return;
+    }
+    config.networkPassphrase = tomlObj.NETWORK_PASSPHRASE;
+  }
   const startTime = Date.now();
   const testRuns: TestRun[] = [];
   for await (const testRun of run(config)) {

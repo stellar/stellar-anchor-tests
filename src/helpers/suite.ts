@@ -1,3 +1,5 @@
+import { Networks } from "stellar-sdk";
+
 import { Suite, Config, TestRun } from "../types";
 import {
   sep1TomlSuite,
@@ -60,7 +62,16 @@ export function getSuites(config: Config): Suite[] {
     suites.push(sep1TomlSuite);
   }
   if (config.seps.includes(10)) {
-    suites = suites.concat(sep10Suites);
+    console.log("SEP-10 tests selected");
+    if (config.networkPassphrase === Networks.PUBLIC) {
+      // signer support tests not yet supported on pubnet
+      const filteredSep10Suites = sep10Suites.filter(
+        (suite: Suite) => !suite.name.includes("Account Signer Support"),
+      );
+      suites = suites.concat(filteredSep10Suites);
+    } else {
+      suites = suites.concat(sep10Suites);
+    }
   }
   if (config.seps.includes(24)) {
     suites.push(sep24TomlSuite);

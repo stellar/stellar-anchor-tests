@@ -55,6 +55,15 @@ const postAuthSuite: Suite = {
   },
 };
 
+const accountSignerSupportSuite: Suite = {
+  name: "Account Signer Support",
+  sep: 10,
+  tests: [],
+  context: {
+    tomlObj: undefined,
+  },
+};
+
 const hasWebAuthEndpoint: Test = {
   assertion: "has a valid WEB_AUTH_ENDPOINT in the TOML file",
   successMessage: "has a valid WEB_AUTH_ENDPOINT in the TOML file",
@@ -884,7 +893,7 @@ const failsIfWeighBelowMediumThreshold: Test = {
     );
   },
 };
-postAuthSuite.tests.push(failsIfWeighBelowMediumThreshold);
+accountSignerSupportSuite.tests.push(failsIfWeighBelowMediumThreshold);
 
 const signedByNonMasterSigner: Test = {
   assertion: "succeeds with a signature from a non-master signer",
@@ -947,7 +956,7 @@ const signedByNonMasterSigner: Test = {
     return result;
   },
 };
-postAuthSuite.tests.push(signedByNonMasterSigner);
+accountSignerSupportSuite.tests.push(signedByNonMasterSigner);
 
 const failsWithDuplicateSignatures: Test = {
   assertion: "fails for challenges signed more than once by the same signer",
@@ -1013,7 +1022,7 @@ const failsWithDuplicateSignatures: Test = {
     return result;
   },
 };
-postAuthSuite.tests.push(failsWithDuplicateSignatures);
+accountSignerSupportSuite.tests.push(failsWithDuplicateSignatures);
 
 const multipleNonMasterSigners: Test = {
   assertion:
@@ -1087,6 +1096,11 @@ const multipleNonMasterSigners: Test = {
     return result;
   },
 };
-postAuthSuite.tests.push(multipleNonMasterSigners);
+accountSignerSupportSuite.tests.push(multipleNonMasterSigners);
 
-export default [tomlSuite, getAuthSuite, postAuthSuite];
+export default [
+  tomlSuite,
+  getAuthSuite,
+  postAuthSuite,
+  accountSignerSupportSuite,
+];

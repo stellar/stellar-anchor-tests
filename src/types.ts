@@ -1,3 +1,4 @@
+import { Networks } from "stellar-sdk";
 import { Request, Response } from "node-fetch";
 
 export type SEP = 1 | 6 | 10 | 12 | 24 | 31;
@@ -10,7 +11,7 @@ export interface Config {
   currency?: string;
   searchStrings?: string[];
   sepConfig?: SepConfig;
-  mainnetMasterAccountSecret?: string;
+  networkPassphrase?: Networks.TESTNET | Networks.PUBLIC;
 }
 
 export interface NetworkCall {
