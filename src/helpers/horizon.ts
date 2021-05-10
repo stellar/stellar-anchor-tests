@@ -62,6 +62,7 @@ const makeRequest = async (
   }
   if (networkCall.response.status !== 200) {
     result.failure = makeFailure(unexpectedStatusCode, {
+      method: networkCall.request.method,
       url: networkCall.request.url,
     });
     result.expected = 200;

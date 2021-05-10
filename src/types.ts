@@ -8,7 +8,7 @@ export interface Config {
   homeDomain: string;
   seps: SEP[];
   verbose?: boolean;
-  currency?: string;
+  assetCode?: string;
   searchStrings?: string[];
   sepConfig?: SepConfig;
   networkPassphrase?: Networks.TESTNET | Networks.PUBLIC;

@@ -3,12 +3,8 @@ import { Request } from "node-fetch";
 import { validate } from "jsonschema";
 
 import { Suite, Test, Result, NetworkCall, Config, Failure } from "../../types";
-import { makeFailure } from "../../helpers/failure";
-import {
-  noTomlFailure,
-  checkTomlObj,
-  getTomlFailureModes,
-} from "../../helpers/sep1";
+import { makeFailure, genericFailures } from "../../helpers/failure";
+import { noTomlFailure, checkTomlObj } from "../../helpers/sep1";
 import { infoSchema } from "../../schemas/sep24";
 
 const sep24TomlSuite: Suite = {
@@ -28,6 +24,7 @@ const infoSuite: Suite = {
     tomlObj: undefined,
     transferServerUrl: undefined,
     infoObj: undefined,
+    attemptedGetInfo: undefined,
   },
 };
 
@@ -35,7 +32,13 @@ const infoSuite: Suite = {
   sep: 24,
   name: "Deposit Tests",
   tests: [],
-  context: { tomlObj: undefined }
+  context: {
+    assetCode: undefined,
+    assetEnabled: undefined,
+    clientKeypair: undefined,
+    tomlObj: undefined,
+    token: undefined,
+  }
 }*/
 
 const transferServerUrlFailures: Record<string, Failure> = {
@@ -63,7 +66,7 @@ const validTransferServerUrl: Test = {
   assertion: "has a valid transfer server URL",
   successMessage: "has a valid transfer server URL",
   failureModes: {
-    ...getTomlFailureModes,
+    NO_TOML: noTomlFailure,
     ...transferServerUrlFailures,
   },
   before: checkTomlObj,
@@ -117,22 +120,6 @@ const isCompliantWithSchema: Test = {
   successMessage: "the response body is compliant with the schema",
   failureModes: {
     NO_TOML: noTomlFailure,
-    CONNECTION_ERROR: {
-      name: "connection error",
-      text: (args: any) => {
-        return (
-          `A connection failure occured when making a request to: ` +
-          `\n\n${args.url}\n\n` +
-          `Make sure that CORS is enabled.`
-        );
-      },
-    },
-    BAD_CONTENT_TYPE: {
-      name: "bad content type",
-      text: (_args: any) => {
-        return "Content-Type headers for /info responses must be application/json";
-      },
-    },
     INVALID_SCHEMA: {
       name: "invalid schema",
       text(args: any): string {
@@ -144,9 +131,12 @@ const isCompliantWithSchema: Test = {
         );
       },
     },
+    ...transferServerUrlFailures,
+    ...genericFailures,
   },
   before: checkTomlAndTransferServer,
   async run(_config: Config, suite: Suite): Promise<Result> {
+    suite.context.attemptedGetInfo = true;
     const result: Result = { networkCalls: [] };
     const infoCall: NetworkCall = {
       request: new Request(suite.context.transferServerUrl + "/info"),
@@ -158,16 +148,25 @@ const isCompliantWithSchema: Test = {
       result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
         url: infoCall.request.url,
       });
+      suite.context.infoRequestFailed = true;
       return result;
     }
     if (infoCall.response.status !== 200) {
-      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE);
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE, {
+        method: infoCall.request.method,
+        url: infoCall.request.method,
+      });
       result.expected = 200;
       result.actual = infoCall.response.status;
+      suite.context.infoRequestFailed = true;
       return result;
     }
     if (infoCall.response.headers.get("Content-Type") !== "application/json") {
-      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
+      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE, {
+        method: infoCall.request.method,
+        url: infoCall.request.method,
+      });
+      suite.context.infoRequestFailed = true;
       return result;
     }
     suite.context.infoObj = await infoCall.response.clone().json();
@@ -181,5 +180,80 @@ const isCompliantWithSchema: Test = {
   },
 };
 infoSuite.tests.push(isCompliantWithSchema);
+
+const containsConfiguredAssetCode: Test = {
+  assertion: "contains configured asset code",
+  successMessage: "contains configured asset code",
+  failureModes: {
+    CONFIGURED_ASSET_CODE_NOT_FOUND: {
+      name: "configured asset code not found",
+      text(args: any): string {
+        return `${args.assetCode} is not present in the /info response`;
+      },
+    },
+    CONFIGURED_ASSET_CODE_NOT_ENABLED: {
+      name: "configured asset code not enabled",
+      text(args: any): string {
+        return `${args.assetCode} is not enabled for SEP-24`;
+      },
+    },
+    NO_ASSET_CODES: {
+      name: "no enabled assets",
+      text(_args: any): string {
+        return "There are no enabled assets in the /info response";
+      },
+    },
+    NO_INFO: {
+      name: "unable to parse or fetch /info JSON",
+      text(_args: any): string {
+        return "unable to fetch JSON";
+      },
+    },
+    ...transferServerUrlFailures,
+    ...genericFailures,
+  },
+  before: checkTomlAndTransferServer,
+  async run(config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    let getInfoResult;
+    if (!suite.context.attemptedGetInfo) {
+      getInfoResult = await isCompliantWithSchema.run(config, suite);
+    }
+    if (!suite.context.infoObj) {
+      result.failure = makeFailure(this.failureModes.NO_INFO);
+      if (getInfoResult) result.networkCalls = getInfoResult.networkCalls;
+      return result;
+    }
+    const depositAssets = suite.context.infoObj.deposit;
+    if (!config.assetCode) {
+      for (const assetCode in depositAssets) {
+        if (depositAssets[assetCode].enabled) {
+          config.assetCode = assetCode;
+          break;
+        }
+      }
+      if (!config.assetCode) {
+        result.failure = makeFailure(this.failureModes.NO_ASSET_CODES);
+        return result;
+      }
+    } else {
+      if (!depositAssets[config.assetCode]) {
+        result.failure = makeFailure(
+          this.failureModes.CONFIGURED_ASSET_CODE_NOT_FOUND,
+          { assetCode: config.assetCode },
+        );
+        return result;
+      } else if (!depositAssets[config.assetCode].enabled) {
+        result.failure = makeFailure(
+          this.failureModes.CONFIGURED_ASSET_CODE_NOT_ENABLED,
+          { assetCode: config.assetCode },
+        );
+        return result;
+      }
+    }
+    return result;
+  },
+};
+infoSuite.tests.push(containsConfiguredAssetCode);
 
 export default [sep24TomlSuite, infoSuite];

@@ -23,7 +23,20 @@ export const unexpectedStatusCode: Failure = {
   text(args: any): string {
     return (
       "An unexpected status code was included in the response to: " +
-      `\n\n${args.url}`
+      `\n\n${args.method} ${args.url}`
     );
   },
+};
+
+export const badContentType: Failure = {
+  name: "bad content type",
+  text(args: any): string {
+    return `The response to ${args.method} ${args.url} uses an unexpected Content-Type.`;
+  },
+};
+
+export const genericFailures: Record<string, Failure> = {
+  CONNECTION_ERROR: connectionFailure,
+  UNEXPECTED_STATUS_CODE: unexpectedStatusCode,
+  BAD_CONTENT_TYPE: badContentType,
 };
