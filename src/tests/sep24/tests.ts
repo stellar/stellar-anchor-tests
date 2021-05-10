@@ -2,10 +2,23 @@ import fetch from "node-fetch";
 import { Request } from "node-fetch";
 import { validate } from "jsonschema";
 
-import { Suite, Test, Result, NetworkCall, Config } from "../../types";
+import { Suite, Test, Result, NetworkCall, Config, Failure } from "../../types";
 import { makeFailure } from "../../helpers/failure";
-import { noTomlFailure, checkTomlObj } from "../../helpers/sep1";
+import {
+  noTomlFailure,
+  checkTomlObj,
+  getTomlFailureModes,
+} from "../../helpers/sep1";
 import { infoSchema } from "../../schemas/sep24";
+
+const sep24TomlSuite: Suite = {
+  sep: 24,
+  name: "Toml Tests",
+  tests: [],
+  context: {
+    tomlObj: undefined,
+  },
+};
 
 const infoSuite: Suite = {
   sep: 24,
@@ -16,6 +29,87 @@ const infoSuite: Suite = {
     transferServerUrl: undefined,
     infoObj: undefined,
   },
+};
+
+/*const depositSuite: Suite = {
+  sep: 24,
+  name: "Deposit Tests",
+  tests: [],
+  context: { tomlObj: undefined }
+}*/
+
+const transferServerUrlFailures: Record<string, Failure> = {
+  TRANSFER_SERVER_NOT_FOUND: {
+    name: "TRANSFER_SERVER_SEP0024 not found",
+    text(_args: any): string {
+      return "The stellar.toml file does not have a valid TRANSFER_SERVER_SEP0024 URL";
+    },
+  },
+  NO_HTTPS: {
+    name: "no https",
+    text(_args: any): string {
+      return "The transfer server URL must use HTTPS";
+    },
+  },
+  ENDS_WITH_SLASH: {
+    name: "ends with slash",
+    text(_args: any): string {
+      return "The transfer server URL cannot end with a '/'";
+    },
+  },
+};
+
+const validTransferServerUrl: Test = {
+  assertion: "has a valid transfer server URL",
+  successMessage: "has a valid transfer server URL",
+  failureModes: {
+    ...getTomlFailureModes,
+    ...transferServerUrlFailures,
+  },
+  before: checkTomlObj,
+  async run(_config: Config, suite: Suite): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    suite.context.transferServerUrl =
+      suite.context.tomlObj.TRANSFER_SERVER_SEP0024 ||
+      suite.context.tomlObj.TRANSFER_SERVER;
+    if (!suite.context.transferServerUrl) {
+      result.failure = makeFailure(
+        transferServerUrlFailures.TRANSFER_SERVER_NOT_FOUND,
+      );
+      return result;
+    }
+    if (!suite.context.transferServerUrl.startsWith("https")) {
+      result.failure = makeFailure(transferServerUrlFailures.NO_HTTPS);
+      return result;
+    }
+    if (suite.context.tomlObj.WEB_AUTH_ENDPOINT.slice(-1) === "/") {
+      result.failure = makeFailure(transferServerUrlFailures.ENDS_WITH_SLASH);
+      return result;
+    }
+    return result;
+  },
+};
+sep24TomlSuite.tests.push(validTransferServerUrl);
+
+const checkTomlAndTransferServer = async (
+  config: Config,
+  suite: Suite,
+): Promise<Result | void> => {
+  const tomlResult = await checkTomlObj(config, suite);
+  if (tomlResult) return tomlResult;
+  const transferServerResult = await validTransferServerUrl.run(config, suite);
+  if (transferServerResult.failure) {
+    if (
+      transferServerResult.failure.name !==
+      transferServerUrlFailures.ENDS_WITH_SLASH.name
+    ) {
+      return transferServerResult;
+    }
+    suite.context.transferServerUrl = suite.context.transferServerUrl.slice(
+      0,
+      -1,
+    );
+  }
 };
 
 const isCompliantWithSchema: Test = {
@@ -31,12 +125,6 @@ const isCompliantWithSchema: Test = {
           `\n\n${args.url}\n\n` +
           `Make sure that CORS is enabled.`
         );
-      },
-    },
-    TRANSFER_SERVER_NOT_FOUND: {
-      name: "TRANSFER_SERVER_SEP0024 not found",
-      text(_args: any): string {
-        return "The stellar.toml file does not have a valid TRANSFER_SERVER_SEP0024 URL";
       },
     },
     BAD_CONTENT_TYPE: {
@@ -57,17 +145,9 @@ const isCompliantWithSchema: Test = {
       },
     },
   },
-  before: checkTomlObj,
+  before: checkTomlAndTransferServer,
   async run(_config: Config, suite: Suite): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    if (!suite.context.tomlObj) return result;
-    suite.context.transferServerUrl =
-      suite.context.tomlObj.TRANSFER_SERVER_SEP0024 ||
-      suite.context.tomlObj.TRANSFER_SERVER;
-    if (!suite.context.transferServerUrl) {
-      result.failure = makeFailure(this.failureModes.TRANSFER_SERVER_NOT_FOUND);
-      return result;
-    }
     const infoCall: NetworkCall = {
       request: new Request(suite.context.transferServerUrl + "/info"),
     };
@@ -102,4 +182,4 @@ const isCompliantWithSchema: Test = {
 };
 infoSuite.tests.push(isCompliantWithSchema);
 
-export default [infoSuite];
+export default [sep24TomlSuite, infoSuite];

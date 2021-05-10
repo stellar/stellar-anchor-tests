@@ -23,15 +23,6 @@ const sep1TomlSuite: Suite = {
   },
 };
 
-const sep24TomlSuite: Suite = {
-  sep: 1,
-  name: "SEP-24 Toml Tests",
-  tests: [],
-  context: {
-    tomlObj: undefined,
-  },
-};
-
 const sep31TomlSuite: Suite = {
   sep: 1,
   name: "SEP-31 Toml Tests",
@@ -74,46 +65,6 @@ const validFileSize: Test = {
   },
 };
 sep1TomlSuite.tests.push(validFileSize);
-
-const usesTransferServerSep0024: Test = {
-  assertion: "contains a valid TRANSFER_SERVER_SEP0024 URL",
-  successMessage: "A valid TRANSFER_SERVER_0024 URL is present.",
-  failureModes: {
-    NO_TOML: noTomlFailure,
-    NOT_FOUND: {
-      name: "not found",
-      text(_args: any): string {
-        return "TRANSFER_SERVER_SEP0024 is missing from the stellar.toml file.";
-      },
-    },
-    INVALID_URL: {
-      name: "invalid URL",
-      text(args: any): string {
-        return `TRANSFER_SERVER_SEP0024 must be a valid HTTPS URL, got ${args.url}`;
-      },
-    },
-  },
-  before: checkTomlObj,
-  async run(_config: Config, suite: Suite): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    if (!suite.context.tomlObj.TRANSFER_SERVER_SEP0024) {
-      result.failure = makeFailure(this.failureModes.NOT_FOUND);
-      return result;
-    }
-    try {
-      let transferServerURL = new URL(
-        suite.context.tomlObj.TRANSFER_SERVER_SEP0024,
-      );
-      if (transferServerURL.protocol !== "https:") throw "no HTTPS protocol";
-    } catch {
-      result.failure = makeFailure(this.failureModes.INVALID_URL, {
-        url: suite.context.tomlObj.TRANSFER_SERVER_SEP0024,
-      });
-    }
-    return result;
-  },
-};
-sep24TomlSuite.tests.push(usesTransferServerSep0024);
 
 const hasDirectPaymentServer: Test = {
   assertion: "contains a valid DIRECT_PAYMENT_SERVER URL",
@@ -317,4 +268,4 @@ const validURLs: Test = {
 };
 sep1TomlSuite.tests.push(validURLs);
 
-export { sep1TomlSuite, sep24TomlSuite, sep31TomlSuite };
+export default [sep1TomlSuite, sep31TomlSuite];

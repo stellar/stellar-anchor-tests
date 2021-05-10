@@ -12,5 +12,3 @@ export type {
 export { run } from "./helpers/run";
 export { runSuite, getSuites } from "./helpers/suite";
 export { getStats } from "./helpers/stats";
-
-export { sep24TomlSuite } from "./tests/sep1/tests";

@@ -1,11 +1,7 @@
 import { Networks } from "stellar-sdk";
 
 import { Suite, Config, TestRun } from "../types";
-import {
-  sep1TomlSuite,
-  sep24TomlSuite,
-  sep31TomlSuite,
-} from "../tests/sep1/tests";
+import { default as sep1Suites } from "../tests/sep1/tests";
 import { default as sep24Suites } from "../tests/sep24/tests";
 import { default as sep10Suites } from "../tests/sep10/tests";
 import { makeFailure } from "./failure";
@@ -59,7 +55,7 @@ export async function* runSuite(
 export function getSuites(config: Config): Suite[] {
   let suites: Suite[] = [];
   if (config.seps.includes(1)) {
-    suites.push(sep1TomlSuite);
+    suites.push(sep1Suites[0]);
   }
   if (config.seps.includes(10)) {
     console.log("SEP-10 tests selected");
@@ -74,11 +70,10 @@ export function getSuites(config: Config): Suite[] {
     }
   }
   if (config.seps.includes(24)) {
-    suites.push(sep24TomlSuite);
     suites = suites.concat(sep24Suites);
   }
   if (config.seps.includes(31)) {
-    suites.push(sep31TomlSuite);
+    suites.push(sep1Suites[1]);
   }
   return filterBySearchStrings(suites, config);
 }
