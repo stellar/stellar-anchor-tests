@@ -32,33 +32,30 @@ export interface Result {
   actual?: string | number | object;
 }
 
-export interface Test {
-  assertion: string;
-  successMessage: string;
-  failureModes: Record<string, Failure>;
-  before?: (config: Config, suite: Suite) => Promise<Result | void>;
-  run(config: Config, suite: Suite): Promise<Result>;
-  after?: (config: Config, suite: Suite) => Promise<Result | void>;
+export interface Context {
+  expects: { [key: string]: any };
+  provides: { [key: string]: any };
 }
 
-export interface Suite {
-  name: string;
-  tests: Test[];
-  sep?: SEP;
-  context?: any;
+export interface Test {
+  assertion: string;
+  failureModes: Record<string, Failure>;
+  context: Context;
+  sep: SEP;
+  group: string;
+  dependencies?: Test[];
+  before?: (config: Config) => Promise<Result | void>;
+  run(config: Config): Promise<Result>;
+  after?: (config: Config) => Promise<Result | void>;
 }
 
 export interface TestRun {
   test: Test;
   result: Result;
-  suite: Suite;
 }
 
 export interface Stats {
   total: number;
   passed: number;
   failed: number;
-  sep?: SEP;
-  name?: string;
-  suiteStats?: Stats[];
 }

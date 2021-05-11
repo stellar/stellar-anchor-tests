@@ -18,20 +18,6 @@ function printColoredTextStats(
   startTime: number,
   endTime: number,
 ) {
-  let suitesPassed = 0;
-  if (stats.suiteStats) {
-    for (const suiteStat of stats.suiteStats) {
-      if (suiteStat.failed === 0) suitesPassed += 1;
-    }
-    let testSuitesLine = "Test Suites: ";
-    if (stats.suiteStats.length !== suitesPassed)
-      testSuitesLine +=
-        c.red(`${stats.suiteStats.length - suitesPassed} failed`) + ", ";
-    if (suitesPassed !== 0)
-      testSuitesLine += c.green(`${suitesPassed} passed`) + ", ";
-    testSuitesLine += `${stats.suiteStats.length} total`;
-    console.log(testSuitesLine);
-  }
   let testsLine = "Tests:       ";
   if (stats.failed !== 0) testsLine += c.red(`${stats.failed} failed`) + ", ";
   if (stats.passed !== 0) testsLine += c.green(`${stats.passed} passed`) + ", ";
@@ -45,10 +31,10 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
   let color = testRun.result.failure ? c.red.bold : c.green.bold;
   let symbol = testRun.result.failure ? c.symbols.cross : c.symbols.check;
   let header = `${symbol} `;
-  if (testRun.suite) {
-    if (testRun.suite.sep)
-      header += `SEP-${testRun.suite.sep} ${c.symbols.pointer} `;
-    header += `${testRun.suite.name} ${c.symbols.pointer} `;
+  if (testRun.test.group) {
+    if (testRun.test.sep)
+      header += `SEP-${testRun.test.sep} ${c.symbols.pointer} `;
+    header += `${testRun.test.group} ${c.symbols.pointer} `;
   }
   header += `${testRun.test.assertion}`;
   console.log(color(header));
@@ -66,11 +52,6 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
       console.log(`Expected: ${testRun.result.expected}`);
       console.log(`Received: '${testRun.result.actual}'\n`);
     }
-    console.groupEnd(); // description group
-  } else if (verbose) {
-    console.log(c.bold("\nDescription:\n"));
-    console.group(); // description group
-    console.log(testRun.test.successMessage + "\n");
     console.groupEnd(); // description group
   }
   if (verbose && testRun.result.networkCalls.length) {

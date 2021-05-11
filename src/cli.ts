@@ -5,7 +5,7 @@ import fetch from "node-fetch";
 import { parse } from "toml";
 import { Networks } from "stellar-sdk";
 
-import { run } from "./helpers/run";
+import { run } from "./helpers/test";
 import { getStats } from "./helpers/stats";
 import { Config, SEP, TestRun } from "./types";
 import { printTestRun, printStats } from "./helpers/console";
@@ -20,12 +20,12 @@ const args = yargs
       description:
         "The home domain of the anchor. The anchor's TOML file should be present at <home-domain>/.well-known/stellar.toml. Prepends 'https://' if no protocol is specified.",
     },
-    currency: {
-      alias: "c",
+    "asset-code": {
+      alias: "a",
       requiresArg: true,
       type: "string",
       description:
-        "The currency to use for testing. Must match one of the CURRENCIES listed in the TOML file.",
+        "The asset code to use for testing. Must match one of the CURRENCIES listed in the TOML file.",
     },
     seps: {
       alias: "s",
@@ -73,7 +73,7 @@ const args = yargs
     seps: args.seps as SEP[],
   };
   if (args._.length) config.searchStrings = args._.map(String);
-  if (args.currency) config.currency = args.currency as string;
+  if (args.assetcode) config.assetCode = args.assetCode as string;
   if (args.verbose) config.verbose = args.verbose as boolean;
   let tomlObj;
   try {
