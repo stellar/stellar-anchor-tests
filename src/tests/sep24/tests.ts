@@ -2,124 +2,76 @@ import fetch from "node-fetch";
 import { Request } from "node-fetch";
 import { validate } from "jsonschema";
 
-import { Suite, Test, Result, NetworkCall, Config, Failure } from "../../types";
+import { Test, Result, NetworkCall, Config } from "../../types";
 import { makeFailure, genericFailures } from "../../helpers/failure";
-import { noTomlFailure, checkTomlObj } from "../../helpers/sep1";
 import { infoSchema } from "../../schemas/sep24";
+import { tomlExists } from "../sep1/tests";
 
-const sep24TomlSuite: Suite = {
-  sep: 24,
-  name: "Toml Tests",
-  tests: [],
-  context: {
-    tomlObj: undefined,
-  },
-};
-
-const infoSuite: Suite = {
-  sep: 24,
-  name: "Info Tests",
-  tests: [],
-  context: {
-    tomlObj: undefined,
-    transferServerUrl: undefined,
-    infoObj: undefined,
-    attemptedGetInfo: undefined,
-  },
-};
-
-/*const depositSuite: Suite = {
-  sep: 24,
-  name: "Deposit Tests",
-  tests: [],
-  context: {
-    assetCode: undefined,
-    assetEnabled: undefined,
-    clientKeypair: undefined,
-    tomlObj: undefined,
-    token: undefined,
-  }
-}*/
-
-const transferServerUrlFailures: Record<string, Failure> = {
-  TRANSFER_SERVER_NOT_FOUND: {
-    name: "TRANSFER_SERVER_SEP0024 not found",
-    text(_args: any): string {
-      return "The stellar.toml file does not have a valid TRANSFER_SERVER_SEP0024 URL";
-    },
-  },
-  NO_HTTPS: {
-    name: "no https",
-    text(_args: any): string {
-      return "The transfer server URL must use HTTPS";
-    },
-  },
-  ENDS_WITH_SLASH: {
-    name: "ends with slash",
-    text(_args: any): string {
-      return "The transfer server URL cannot end with a '/'";
-    },
-  },
-};
+const tomlTestsGroup = "TOML tests";
+const infoTestsGroup = "/info tests";
+//const depositTestsGroup = "/deposit tests";
+const tests: Test[] = [];
 
 const validTransferServerUrl: Test = {
   assertion: "has a valid transfer server URL",
-  successMessage: "has a valid transfer server URL",
+  sep: 24,
+  group: tomlTestsGroup,
+  dependencies: [tomlExists],
   failureModes: {
-    NO_TOML: noTomlFailure,
-    ...transferServerUrlFailures,
+    TRANSFER_SERVER_NOT_FOUND: {
+      name: "TRANSFER_SERVER_SEP0024 not found",
+      text(_args: any): string {
+        return "The stellar.toml file does not have a valid TRANSFER_SERVER_SEP0024 URL";
+      },
+    },
+    NO_HTTPS: {
+      name: "no https",
+      text(_args: any): string {
+        return "The transfer server URL must use HTTPS";
+      },
+    },
+    ENDS_WITH_SLASH: {
+      name: "ends with slash",
+      text(_args: any): string {
+        return "The transfer server URL cannot end with a '/'";
+      },
+    },
   },
-  before: checkTomlObj,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      tomlObj: undefined,
+    },
+    provides: {
+      transferServerUrl: undefined,
+    },
+  },
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    suite.context.transferServerUrl =
-      suite.context.tomlObj.TRANSFER_SERVER_SEP0024 ||
-      suite.context.tomlObj.TRANSFER_SERVER;
-    if (!suite.context.transferServerUrl) {
-      result.failure = makeFailure(
-        transferServerUrlFailures.TRANSFER_SERVER_NOT_FOUND,
-      );
+    this.context.provides.transferServerUrl =
+      this.context.expects.tomlObj.TRANSFER_SERVER_SEP0024 ||
+      this.context.expects.tomlObj.TRANSFER_SERVER;
+    if (!this.context.provides.transferServerUrl) {
+      result.failure = makeFailure(this.failureModes.TRANSFER_SERVER_NOT_FOUND);
       return result;
     }
-    if (!suite.context.transferServerUrl.startsWith("https")) {
-      result.failure = makeFailure(transferServerUrlFailures.NO_HTTPS);
+    if (!this.context.provides.transferServerUrl.startsWith("https")) {
+      result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;
     }
-    if (suite.context.tomlObj.WEB_AUTH_ENDPOINT.slice(-1) === "/") {
-      result.failure = makeFailure(transferServerUrlFailures.ENDS_WITH_SLASH);
+    if (this.context.provides.transferServerUrl.slice(-1) === "/") {
+      result.failure = makeFailure(this.failureModes.ENDS_WITH_SLASH);
       return result;
     }
     return result;
   },
 };
-sep24TomlSuite.tests.push(validTransferServerUrl);
-
-const checkTomlAndTransferServer = async (
-  config: Config,
-  suite: Suite,
-): Promise<Result | void> => {
-  const tomlResult = await checkTomlObj(config, suite);
-  if (tomlResult) return tomlResult;
-  const transferServerResult = await validTransferServerUrl.run(config, suite);
-  if (transferServerResult.failure) {
-    if (
-      transferServerResult.failure.name !==
-      transferServerUrlFailures.ENDS_WITH_SLASH.name
-    ) {
-      return transferServerResult;
-    }
-    suite.context.transferServerUrl = suite.context.transferServerUrl.slice(
-      0,
-      -1,
-    );
-  }
-};
+tests.push(validTransferServerUrl);
 
 const isCompliantWithSchema: Test = {
   assertion: "response is compliant with the schema",
-  successMessage: "the response body is compliant with the schema",
+  sep: 24,
+  group: infoTestsGroup,
   failureModes: {
-    NO_TOML: noTomlFailure,
     INVALID_SCHEMA: {
       name: "invalid schema",
       text(args: any): string {
@@ -131,15 +83,20 @@ const isCompliantWithSchema: Test = {
         );
       },
     },
-    ...transferServerUrlFailures,
     ...genericFailures,
   },
-  before: checkTomlAndTransferServer,
-  async run(_config: Config, suite: Suite): Promise<Result> {
-    suite.context.attemptedGetInfo = true;
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+    },
+    provides: {
+      infoObj: undefined,
+    },
+  },
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const infoCall: NetworkCall = {
-      request: new Request(suite.context.transferServerUrl + "/info"),
+      request: new Request(this.context.expects.transferServerUrl + "/info"),
     };
     result.networkCalls.push(infoCall);
     try {
@@ -148,7 +105,6 @@ const isCompliantWithSchema: Test = {
       result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
         url: infoCall.request.url,
       });
-      suite.context.infoRequestFailed = true;
       return result;
     }
     if (infoCall.response.status !== 200) {
@@ -158,7 +114,6 @@ const isCompliantWithSchema: Test = {
       });
       result.expected = 200;
       result.actual = infoCall.response.status;
-      suite.context.infoRequestFailed = true;
       return result;
     }
     if (infoCall.response.headers.get("Content-Type") !== "application/json") {
@@ -166,11 +121,13 @@ const isCompliantWithSchema: Test = {
         method: infoCall.request.method,
         url: infoCall.request.method,
       });
-      suite.context.infoRequestFailed = true;
       return result;
     }
-    suite.context.infoObj = await infoCall.response.clone().json();
-    const validationResult = validate(suite.context.infoObj, infoSchema);
+    this.context.provides.infoObj = await infoCall.response.clone().json();
+    const validationResult = validate(
+      this.context.provides.infoObj,
+      infoSchema,
+    );
     if (validationResult.errors.length > 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
         errors: validationResult.errors.join("\n"),
@@ -179,11 +136,13 @@ const isCompliantWithSchema: Test = {
     return result;
   },
 };
-infoSuite.tests.push(isCompliantWithSchema);
+tests.push(isCompliantWithSchema);
 
 const containsConfiguredAssetCode: Test = {
   assertion: "contains configured asset code",
-  successMessage: "contains configured asset code",
+  sep: 24,
+  group: infoTestsGroup,
+  dependencies: [tomlExists, isCompliantWithSchema],
   failureModes: {
     CONFIGURED_ASSET_CODE_NOT_FOUND: {
       name: "configured asset code not found",
@@ -209,22 +168,17 @@ const containsConfiguredAssetCode: Test = {
         return "unable to fetch JSON";
       },
     },
-    ...transferServerUrlFailures,
     ...genericFailures,
   },
-  before: checkTomlAndTransferServer,
-  async run(config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      infoObj: undefined,
+    },
+    provides: {},
+  },
+  async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    let getInfoResult;
-    if (!suite.context.attemptedGetInfo) {
-      getInfoResult = await isCompliantWithSchema.run(config, suite);
-    }
-    if (!suite.context.infoObj) {
-      result.failure = makeFailure(this.failureModes.NO_INFO);
-      if (getInfoResult) result.networkCalls = getInfoResult.networkCalls;
-      return result;
-    }
-    const depositAssets = suite.context.infoObj.deposit;
+    const depositAssets = this.context.expects.infoObj.deposit;
     if (!config.assetCode) {
       for (const assetCode in depositAssets) {
         if (depositAssets[assetCode].enabled) {
@@ -254,6 +208,6 @@ const containsConfiguredAssetCode: Test = {
     return result;
   },
 };
-infoSuite.tests.push(containsConfiguredAssetCode);
+tests.push(containsConfiguredAssetCode);
 
-export default [sep24TomlSuite, infoSuite];
+export default tests;

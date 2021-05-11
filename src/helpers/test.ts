@@ -1,7 +1,9 @@
-//import { Networks } from "stellar-sdk";
+import { Networks } from "stellar-sdk";
 
 import { Test, Config, TestRun, Failure } from "../types";
 import { default as sep1Tests } from "../tests/sep1/tests";
+import { default as sep10Tests } from "../tests/sep10/tests";
+import { default as sep24Tests } from "../tests/sep24/tests";
 import { makeFailure } from "./failure";
 
 export async function* run(config: Config): AsyncGenerator<TestRun> {
@@ -16,7 +18,7 @@ export function getTests(config: Config): Test[] {
   if (config.seps.includes(1)) {
     tests = tests.concat(sep1Tests);
   }
-  /*if (config.seps.includes(10)) {
+  if (config.seps.includes(10)) {
     if (config.networkPassphrase === Networks.PUBLIC) {
       // signer support tests not yet supported on pubnet
       const filteredSep10Suites = sep10Tests.filter(
@@ -29,7 +31,7 @@ export function getTests(config: Config): Test[] {
   }
   if (config.seps.includes(24)) {
     tests = tests.concat(sep24Tests);
-  }*/
+  }
   return filterBySearchStrings(tests, config.searchStrings as string[]);
 }
 

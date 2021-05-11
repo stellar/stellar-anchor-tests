@@ -9,17 +9,9 @@ import { Request } from "node-fetch";
 import { decode } from "jsonwebtoken";
 import { validate } from "jsonschema";
 
-import { Result, Failure, NetworkCall, Config, Suite } from "../types";
+import { Result, Failure, NetworkCall } from "../types";
 import { makeFailure } from "./failure";
 import { jwtSchema } from "../schemas/sep10";
-import { noTomlFailure } from "./sep1";
-
-export const invalidWebAuthEndpointFailure: Failure = {
-  name: "invalid WEB_AUTH_ENDPOINT",
-  text(_args: any): string {
-    return "The TOML file's WEB_AUTH_ENDPOINT was either not present or invalid";
-  },
-};
 
 export const friendbotFailureModes: Record<string, Failure> = {
   FRIENDBOT_CONNECTION_ERROR: {
@@ -65,70 +57,6 @@ export const friendBot = async (
   }
 };
 
-export const getWebAuthEndpointFailureModes: Record<string, Failure> = {
-  NO_TOML: noTomlFailure,
-  NOT_FOUND: {
-    name: "not found",
-    text(_args: any): string {
-      return "The TOML file does not have a WEB_AUTH_ENDPOINT attribute";
-    },
-  },
-  NO_HTTPS: {
-    name: "no https",
-    text(_args: any): string {
-      return "The WEB_AUTH_ENDPOINT must use HTTPS";
-    },
-  },
-  ENDS_WITH_SLASH: {
-    name: "ends with slash",
-    text(_args: any): string {
-      return "WEB_AUTH_ENDPOINT cannot end with a '/'";
-    },
-  },
-};
-
-export const testWebAuthEndpoint = async (
-  _config: Config,
-  suite: Suite,
-): Promise<Result> => {
-  const result: Result = { networkCalls: [] };
-  if (!suite.context.tomlObj.WEB_AUTH_ENDPOINT) {
-    result.failure = makeFailure(
-      getWebAuthEndpointFailureModes.WEB_AUTH_ENDPOINT_NOT_FOUND,
-    );
-    return result;
-  }
-  if (!suite.context.tomlObj.WEB_AUTH_ENDPOINT.startsWith("https")) {
-    result.failure = makeFailure(getWebAuthEndpointFailureModes.NO_HTTPS);
-    return result;
-  }
-  if (suite.context.tomlObj.WEB_AUTH_ENDPOINT.slice(-1) === "/") {
-    result.failure = makeFailure(
-      getWebAuthEndpointFailureModes.ENDS_WITH_SLASH,
-    );
-    return result;
-  }
-  return result;
-};
-
-export const checkWebAuthEndpoint = async (
-  config: Config,
-  suite: Suite,
-): Promise<Result | void> => {
-  const result = await testWebAuthEndpoint(config, suite);
-  if (!result.failure) return;
-  if (
-    result.failure.name !== getWebAuthEndpointFailureModes.ENDS_WITH_SLASH.name
-  ) {
-    result.failure = invalidWebAuthEndpointFailure;
-    return result;
-  }
-  suite.context.tomlObj.WEB_AUTH_ENDPOINT = suite.context.tomlObj.WEB_AUTH_ENDPOINT.slice(
-    0,
-    -1,
-  );
-};
-
 export const getChallengeFailureModes: Record<string, Failure> = {
   NO_TOML: {
     name: "no TOML file",
@@ -142,7 +70,6 @@ export const getChallengeFailureModes: Record<string, Failure> = {
       return "No WEB_AUTH_ENDPOINT in TOML file";
     },
   },
-  INVALID_WEB_AUTH_ENDPOINT: invalidWebAuthEndpointFailure,
   CONNECTION_ERROR: {
     name: "connection error",
     text(args: any): string {

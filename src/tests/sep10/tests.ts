@@ -11,15 +11,10 @@ import fetch from "node-fetch";
 import { Request } from "node-fetch";
 import { URL } from "url";
 
-import { Test, Config, Suite, Result, NetworkCall } from "../../types";
+import { Test, Config, Result, NetworkCall } from "../../types";
 import { makeFailure } from "../../helpers/failure";
-import { noTomlFailure, checkTomlObj } from "../../helpers/sep1";
 import { loadAccount, submitTransaction } from "../../helpers/horizon";
 import {
-  invalidWebAuthEndpointFailure,
-  getWebAuthEndpointFailureModes,
-  testWebAuthEndpoint,
-  checkWebAuthEndpoint,
   getChallenge,
   getChallengeFailureModes,
   postChallengeFailureModes,
@@ -27,57 +22,77 @@ import {
   friendBot,
   friendbotFailureModes,
 } from "../../helpers/sep10";
+import { tomlExists } from "../sep1/tests";
 
-const tomlSuite: Suite = {
-  name: "SEP-10 TOML tests",
-  sep: 10,
-  tests: [],
-  context: {
-    tomlObj: undefined,
-  },
-};
-
-const getAuthSuite: Suite = {
-  name: "GET /auth",
-  sep: 10,
-  tests: [],
-  context: {
-    tomlObj: undefined,
-  },
-};
-
-const postAuthSuite: Suite = {
-  name: "POST /auth",
-  sep: 10,
-  tests: [],
-  context: {
-    tomlObj: undefined,
-  },
-};
-
-const accountSignerSupportSuite: Suite = {
-  name: "Account Signer Support",
-  sep: 10,
-  tests: [],
-  context: {
-    tomlObj: undefined,
-  },
-};
+const tomlTests = "TOML Tests";
+const getAuthGroup = "GET /auth";
+const postAuthGroup = "POST /auth";
+const signerSupportGroup = "Account Signer Support";
+const tests: Test[] = [];
 
 const hasWebAuthEndpoint: Test = {
   assertion: "has a valid WEB_AUTH_ENDPOINT in the TOML file",
-  successMessage: "has a valid WEB_AUTH_ENDPOINT in the TOML file",
-  failureModes: getWebAuthEndpointFailureModes,
-  before: checkTomlObj,
-  run: testWebAuthEndpoint,
+  sep: 10,
+  group: tomlTests,
+  dependencies: [tomlExists],
+  failureModes: {
+    NOT_FOUND: {
+      name: "not found",
+      text(_args: any): string {
+        return "The TOML file does not have a WEB_AUTH_ENDPOINT attribute";
+      },
+    },
+    NO_HTTPS: {
+      name: "no https",
+      text(_args: any): string {
+        return "The WEB_AUTH_ENDPOINT must use HTTPS";
+      },
+    },
+    ENDS_WITH_SLASH: {
+      name: "ends with slash",
+      text(_args: any): string {
+        return "WEB_AUTH_ENDPOINT cannot end with a '/'";
+      },
+    },
+  },
+  context: {
+    expects: {
+      tomlObj: undefined,
+    },
+    provides: {
+      webAuthEndpoint: undefined,
+    },
+  },
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    if (!this.context.expects.tomlObj.WEB_AUTH_ENDPOINT) {
+      result.failure = makeFailure(this.failureModes.NOT_FOUND);
+      return result;
+    }
+    if (!this.context.expects.tomlObj.WEB_AUTH_ENDPOINT.startsWith("https")) {
+      result.failure = makeFailure(this.failureModes.NO_HTTPS);
+      return result;
+    }
+    this.context.provides.webAuthEndpoint = this.context.expects.tomlObj.WEB_AUTH_ENDPOINT;
+    if (this.context.expects.tomlObj.WEB_AUTH_ENDPOINT.slice(-1) === "/") {
+      this.context.provides.webAuthEndpoint = this.context.provides.webAuthEndpoint.slice(
+        0,
+        -1,
+      );
+      result.failure = makeFailure(this.failureModes.ENDS_WITH_SLASH);
+      return result;
+    }
+    return result;
+  },
 };
-tomlSuite.tests.push(hasWebAuthEndpoint);
+tests.push(hasWebAuthEndpoint);
 
 const hasSigningKey: Test = {
   assertion: "has valid SIGNING_KEY",
-  successMessage: "the TOML file has a valid SIGNING_KEY",
+  sep: 10,
+  group: tomlTests,
+  dependencies: [tomlExists],
   failureModes: {
-    NO_TOML: noTomlFailure,
     SIGNING_KEY_NOT_FOUND: {
       name: "SIGNING_KEY not found",
       text(_args: any): string {
@@ -98,39 +113,36 @@ const hasSigningKey: Test = {
       },
     },
   },
-  before: checkTomlObj,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      tomlObj: undefined,
+    },
+    provides: {},
+  },
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    if (!suite.context.tomlObj.SIGNING_KEY) {
+    if (!this.context.expects.tomlObj.SIGNING_KEY) {
       result.failure = makeFailure(this.failureModes.SIGNING_KEY_NOT_FOUND);
       return result;
     }
     try {
-      Keypair.fromPublicKey(suite.context.tomlObj.SIGNING_KEY).publicKey();
+      Keypair.fromPublicKey(
+        this.context.expects.tomlObj.SIGNING_KEY,
+      ).publicKey();
     } catch {
       result.failure = makeFailure(this.failureModes.INVALID_SIGNING_KEY);
     }
     return result;
   },
 };
-tomlSuite.tests.push(hasSigningKey);
-
-const checkTomlAndWebAuthEndpoint = async (
-  config: Config,
-  suite: Suite,
-): Promise<Result | void> => {
-  let result = await checkTomlObj(config, suite);
-  if (result) return result;
-  result = await checkWebAuthEndpoint(config, suite);
-  if (result) return result;
-};
+tests.push(hasSigningKey);
 
 const returnsValidChallengeResponse: Test = {
   assertion: "returns a valid GET /auth response",
-  successMessage: "returns a valid GET /auth response",
+  sep: 10,
+  group: getAuthGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
   failureModes: {
-    NO_TOML: noTomlFailure,
-    INVALID_WEB_AUTH_ENDPOINT: invalidWebAuthEndpointFailure,
     CONNECTION_ERROR: {
       name: "connection error",
       text(args: any): string {
@@ -303,13 +315,19 @@ const returnsValidChallengeResponse: Test = {
       },
     },
   },
-  before: checkTomlAndWebAuthEndpoint,
-  async run(config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
+  async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const getAuthCall: NetworkCall = {
       request: new Request(
-        suite.context.tomlObj.WEB_AUTH_ENDPOINT +
+        this.context.expects.webAuthEndpoint +
           `?account=${clientKeypair.publicKey()}`,
       ),
     };
@@ -377,12 +395,12 @@ const returnsValidChallengeResponse: Test = {
     try {
       challenge = TransactionBuilder.fromXDR(
         responseBody.transaction,
-        suite.context.tomlObj.NETWORK_PASSPHRASE,
+        this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       );
     } catch {
       result.failure = makeFailure(this.failureModes.DESERIALIZATION_FAILED, {
         transaction: responseBody.transaction,
-        networkPassphrase: suite.context.tomlObj.NETWORK_PASSPHRASE,
+        networkPassphrase: this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       });
       return result;
     }
@@ -394,11 +412,11 @@ const returnsValidChallengeResponse: Test = {
       result.expected = "0";
       result.actual = challenge.sequence;
       return result;
-    } else if (challenge.source !== suite.context.tomlObj.SIGNING_KEY) {
+    } else if (challenge.source !== this.context.expects.tomlObj.SIGNING_KEY) {
       result.failure = makeFailure(
         this.failureModes.SOURCE_ACCOUNT_NOT_SIGNING_KEY,
       );
-      result.expected = suite.context.tomlObj.SIGNING_KEY;
+      result.expected = this.context.expects.tomlObj.SIGNING_KEY;
       result.actual = challenge.source;
       return result;
     } else if (!challenge.timeBounds || !challenge.timeBounds.maxTime) {
@@ -438,14 +456,14 @@ const returnsValidChallengeResponse: Test = {
           this.failureModes.INCLUDES_NON_MANAGE_DATA_OP,
         );
         return result;
-      } else if (op.source !== suite.context.tomlObj.SIGNING_KEY) {
+      } else if (op.source !== this.context.expects.tomlObj.SIGNING_KEY) {
         result.failure = makeFailure(this.failureModes.INVALID_OP_SOURCE);
-        result.expected = suite.context.tomlObj.SIGNING_KEY;
+        result.expected = this.context.expects.tomlObj.SIGNING_KEY;
         result.actual = op.source;
         return result;
       } else if (op.name === "web_auth_domain") {
         const expectedWebAuthDomain = new URL(
-          suite.context.tomlObj.WEB_AUTH_ENDPOINT,
+          this.context.expects.webAuthEndpoint,
         ).host;
         if (!op.value || op.value.compare(Buffer.from(expectedWebAuthDomain))) {
           result.failure = makeFailure(
@@ -466,21 +484,26 @@ const returnsValidChallengeResponse: Test = {
       result.failure = makeFailure(this.failureModes.UNEXPECTED_SIGNATURES);
       return result;
     }
-    if (!Utils.verifyTxSignedBy(challenge, suite.context.tomlObj.SIGNING_KEY)) {
+    if (
+      !Utils.verifyTxSignedBy(
+        challenge,
+        this.context.expects.tomlObj.SIGNING_KEY,
+      )
+    ) {
       result.failure = makeFailure(this.failureModes.INVALID_SERVER_SIGNATURE);
       return result;
     }
     return result;
   },
 };
-getAuthSuite.tests.push(returnsValidChallengeResponse);
+tests.push(returnsValidChallengeResponse);
 
 const noAccount: Test = {
   assertion: "rejects requests with no 'account' parameter",
-  successMessage: "rejects requests with no 'account' parameter",
+  sep: 10,
+  group: getAuthGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
   failureModes: {
-    NO_TOML: noTomlFailure,
-    INVALID_WEB_AUTH_ENDPOINT: invalidWebAuthEndpointFailure,
     CONNECTION_ERROR: {
       name: "connection error",
       text(args: any): string {
@@ -510,11 +533,17 @@ const noAccount: Test = {
       },
     },
   },
-  before: checkTomlAndWebAuthEndpoint,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const getAuthCall: NetworkCall = {
-      request: new Request(suite.context.tomlObj.WEB_AUTH_ENDPOINT),
+      request: new Request(this.context.expects.webAuthEndpoint),
     };
     result.networkCalls.push(getAuthCall);
     try {
@@ -552,18 +581,26 @@ const noAccount: Test = {
     return result;
   },
 };
-getAuthSuite.tests.push(noAccount);
+tests.push(noAccount);
 
 const invalidAccount: Test = {
   assertion: "rejects requests with an invalid 'account' parameter",
-  successMessage: "rejects requests with an invalid 'account' parameter",
+  sep: 10,
+  group: getAuthGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
   failureModes: noAccount.failureModes,
-  before: checkTomlAndWebAuthEndpoint,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const getAuthCall: NetworkCall = {
       request: new Request(
-        suite.context.tomlObj.WEB_AUTH_ENDPOINT + "?account=invalid-account",
+        this.context.expects.webAuthEndpoint + "?account=invalid-account",
       ),
     };
     result.networkCalls.push(getAuthCall);
@@ -602,43 +639,62 @@ const invalidAccount: Test = {
     return result;
   },
 };
-getAuthSuite.tests.push(invalidAccount);
+tests.push(invalidAccount);
 
 const returnsValidJwt: Test = {
   assertion: "returns a valid JWT",
-  successMessage: "returns a valid JWT",
+  sep: 10,
+  group: postAuthGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
+  context: {
+    expects: {
+      tomlObj: undefined,
+    },
+    provides: {},
+  },
   failureModes: postChallengeFailureModes,
-  before: checkTomlObj,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
-    await postChallenge(clientKeypair, suite.context.tomlObj, result);
+    await postChallenge(clientKeypair, this.context.expects.tomlObj, result);
     return result;
   },
 };
-postAuthSuite.tests.push(returnsValidJwt);
+tests.push(returnsValidJwt);
 
 const acceptsJson: Test = {
   assertion: "accepts JSON requests",
-  successMessage: "accepts JSON requests",
+  sep: 10,
+  group: postAuthGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
+  context: {
+    expects: {
+      tomlObj: undefined,
+    },
+    provides: {},
+  },
   failureModes: postChallengeFailureModes,
-  before: checkTomlAndWebAuthEndpoint,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
-    await postChallenge(clientKeypair, suite.context.tomlObj, result, true);
+    await postChallenge(
+      clientKeypair,
+      this.context.expects.tomlObj,
+      result,
+      true,
+    );
     return result;
   },
 };
-postAuthSuite.tests.push(acceptsJson);
+tests.push(acceptsJson);
 
 const postAuthBadRequest = async (
   result: Result,
-  tomlObj: any,
+  webAuthEndpoint: string,
   requestBody: any,
   failureText: string,
 ): Promise<Result> => {
-  const postAuthRequest = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
+  const postAuthRequest = new Request(webAuthEndpoint, {
     method: "POST",
     body: JSON.stringify(requestBody),
     headers: { "Content-Type": "application/json" },
@@ -670,7 +726,9 @@ const postAuthBadRequest = async (
 
 const failsWithNoBody: Test = {
   assertion: "fails with no 'transaction' key in the body",
-  successMessage: "fails with no 'transaction' key in the body",
+  sep: 10,
+  group: postAuthGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
   failureModes: {
     CONNECTION_ERROR: getChallengeFailureModes.CONNECTION_ERROR,
     POST_AUTH_UNEXPECTED_STATUS_CODE: {
@@ -683,22 +741,29 @@ const failsWithNoBody: Test = {
       },
     },
   },
-  before: checkTomlAndWebAuthEndpoint,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     return await postAuthBadRequest(
       result,
-      suite.context.tomlObj,
+      this.context.expects.webAuthEndpoint,
       {},
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
 };
-postAuthSuite.tests.push(failsWithNoBody);
+tests.push(failsWithNoBody);
 
 const failsWithNoClientSignature: Test = {
   assertion: "fails if the challenge is not signed by the client",
-  successMessage: "fails if the challenge is not signed by the client",
+  sep: 10,
+  group: postAuthGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
   failureModes: {
     POST_AUTH_UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",
@@ -711,29 +776,37 @@ const failsWithNoClientSignature: Test = {
     },
     ...getChallengeFailureModes,
   },
-  before: checkTomlAndWebAuthEndpoint,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const challenge = await getChallenge(
       clientKeypair,
-      suite.context.tomlObj,
+      this.context.expects.tomlObj,
       result,
     );
     if (!challenge) return result;
     return await postAuthBadRequest(
       result,
-      suite.context.tomlObj,
+      this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
 };
-postAuthSuite.tests.push(failsWithNoClientSignature);
+tests.push(failsWithNoClientSignature);
 
 const failsWithInvalidTransactionValue: Test = {
   assertion: "fails if the 'transaction' value is invalid",
-  successMessage: "fails if the 'transaction' value is invalid",
+  sep: 10,
+  group: postAuthGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
   failureModes: {
     CONNECTION_ERROR: getChallengeFailureModes.CONNECTION_ERROR,
     POST_AUTH_UNEXPECTED_STATUS_CODE: {
@@ -746,22 +819,29 @@ const failsWithInvalidTransactionValue: Test = {
       },
     },
   },
-  before: checkTomlAndWebAuthEndpoint,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     return await postAuthBadRequest(
       result,
-      suite.context.tomlObj,
+      this.context.expects.webAuthEndpoint,
       { transaction: { "not a transaction string": true } },
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
 };
-postAuthSuite.tests.push(failsWithInvalidTransactionValue);
+tests.push(failsWithInvalidTransactionValue);
 
 export const failsIfChallengeNotSignedByServer: Test = {
   assertion: "fails if the challenge is not signed by SIGNING_KEY",
-  successMessage: "fails if the challenge is not signed by SIGNING_KEY",
+  sep: 10,
+  group: postAuthGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
   failureModes: {
     CONNECTION_ERROR: getChallengeFailureModes.CONNECTION_ERROR,
     POST_AUTH_UNEXPECTED_STATUS_CODE: {
@@ -774,8 +854,14 @@ export const failsIfChallengeNotSignedByServer: Test = {
       },
     },
   },
-  before: checkTomlAndWebAuthEndpoint,
-  async run(config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
+  async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const anchorHost = new URL(config.homeDomain).host;
@@ -784,24 +870,25 @@ export const failsIfChallengeNotSignedByServer: Test = {
       clientKeypair.publicKey(),
       anchorHost,
       15,
-      suite.context.tomlObj.NETWORK_PASSPHRASE,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       anchorHost,
     );
     return await postAuthBadRequest(
       result,
-      suite.context.tomlObj,
+      this.context.expects.webAuthEndpoint,
       { transaction: challengeXdr },
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
 };
-postAuthSuite.tests.push(failsIfChallengeNotSignedByServer);
+tests.push(failsIfChallengeNotSignedByServer);
 
 const extraClientSigners: Test = {
   assertion:
     "fails if a challenge for a nonexistent account has extra client signatures",
-  successMessage:
-    "fails if a challenge for a nonexistent account has extra client signatures",
+  sep: 10,
+  group: postAuthGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
   failureModes: {
     POST_AUTH_UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",
@@ -811,13 +898,19 @@ const extraClientSigners: Test = {
     },
     ...getChallengeFailureModes,
   },
-  before: checkWebAuthEndpoint,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const challenge = await getChallenge(
       clientKeypair,
-      suite.context.tomlObj,
+      this.context.expects.tomlObj,
       result,
     );
     if (!challenge) return result;
@@ -825,19 +918,27 @@ const extraClientSigners: Test = {
     challenge.sign(Keypair.random());
     return await postAuthBadRequest(
       result,
-      suite.context.tomlObj,
+      this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
 };
-postAuthSuite.tests.push(extraClientSigners);
+tests.push(extraClientSigners);
 
 const failsIfWeighBelowMediumThreshold: Test = {
   assertion:
     "fails if the challenge signature weight is less than the account's medium threshold",
-  successMessage:
-    "fails if the challenge signature weight is less than the account's medium threshold",
+  sep: 10,
+  group: signerSupportGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
   failureModes: {
     POST_AUTH_UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",
@@ -851,8 +952,7 @@ const failsIfWeighBelowMediumThreshold: Test = {
     ...getChallengeFailureModes,
     ...friendbotFailureModes,
   },
-  before: checkTomlAndWebAuthEndpoint,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     await friendBot(clientKeypair.publicKey(), result);
@@ -880,24 +980,26 @@ const failsIfWeighBelowMediumThreshold: Test = {
     if (!horizonResponse) return result;
     const challenge = await getChallenge(
       clientKeypair,
-      suite.context.tomlObj,
+      this.context.expects.tomlObj,
       result,
     );
     if (!challenge) return result;
     challenge.sign(clientKeypair);
     return await postAuthBadRequest(
       result,
-      suite.context.tomlObj,
+      this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
       this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
     );
   },
 };
-accountSignerSupportSuite.tests.push(failsIfWeighBelowMediumThreshold);
+tests.push(failsIfWeighBelowMediumThreshold);
 
 const signedByNonMasterSigner: Test = {
   assertion: "succeeds with a signature from a non-master signer",
-  successMessage: "succeeds with a signature from a non-master signer",
+  sep: 10,
+  group: signerSupportGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
   failureModes: {
     ...postChallengeFailureModes,
     UNEXPECTED_STATUS_CODE: {
@@ -910,8 +1012,14 @@ const signedByNonMasterSigner: Test = {
       },
     },
   },
-  before: checkTomlAndWebAuthEndpoint,
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const clientSignerKeypair = Keypair.random();
@@ -941,14 +1049,14 @@ const signedByNonMasterSigner: Test = {
     if (result.failure) return result;
     const challenge = await getChallenge(
       clientKeypair,
-      suite.context.tomlObj,
+      this.context.expects.tomlObj,
       result,
     );
     if (!challenge) return result;
     challenge.sign(clientSignerKeypair);
     await postChallenge(
       clientKeypair,
-      suite.context.tomlObj,
+      this.context.expects.tomlObj,
       result,
       false,
       challenge,
@@ -956,12 +1064,20 @@ const signedByNonMasterSigner: Test = {
     return result;
   },
 };
-accountSignerSupportSuite.tests.push(signedByNonMasterSigner);
+tests.push(signedByNonMasterSigner);
 
 const failsWithDuplicateSignatures: Test = {
   assertion: "fails for challenges signed more than once by the same signer",
-  successMessage:
-    "fails for challenges signed more than once by the same signer",
+  sep: 10,
+  group: signerSupportGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
   failureModes: {
     ...postChallengeFailureModes,
     UNEXPECTED_STATUS_CODE: {
@@ -977,7 +1093,7 @@ const failsWithDuplicateSignatures: Test = {
       },
     },
   },
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const clientSignerKeypair = Keypair.random();
@@ -1007,7 +1123,7 @@ const failsWithDuplicateSignatures: Test = {
     if (result.failure) return result;
     const challenge = await getChallenge(
       clientKeypair,
-      suite.context.tomlObj,
+      this.context.expects.tomlObj,
       result,
     );
     if (!challenge) return result;
@@ -1015,20 +1131,28 @@ const failsWithDuplicateSignatures: Test = {
     challenge.sign(clientSignerKeypair);
     await postAuthBadRequest(
       result,
-      suite.context.tomlObj,
+      this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
       this.failureModes.UNEXPECTED_STATUS_CODE.text(),
     );
     return result;
   },
 };
-accountSignerSupportSuite.tests.push(failsWithDuplicateSignatures);
+tests.push(failsWithDuplicateSignatures);
 
 const multipleNonMasterSigners: Test = {
   assertion:
     "returns a token for challenges with sufficient signatures from multiple non-master signers",
-  successMessage:
-    "returns a token for challenges with sufficient signatures from multiple non-master signers",
+  sep: 10,
+  group: signerSupportGroup,
+  dependencies: [tomlExists, hasWebAuthEndpoint],
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+    },
+    provides: {},
+  },
   failureModes: {
     ...postChallengeFailureModes,
     UNEXPECTED_STATUS_CODE: {
@@ -1041,7 +1165,7 @@ const multipleNonMasterSigners: Test = {
       },
     },
   },
-  async run(_config: Config, suite: Suite): Promise<Result> {
+  async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const clientSignerKeypair = Keypair.random();
@@ -1080,7 +1204,7 @@ const multipleNonMasterSigners: Test = {
     if (result.failure) return result;
     const challenge = await getChallenge(
       clientKeypair,
-      suite.context.tomlObj,
+      this.context.expects.tomlObj,
       result,
     );
     if (!challenge) return result;
@@ -1088,7 +1212,7 @@ const multipleNonMasterSigners: Test = {
     challenge.sign(clientSigner2Keypair);
     await postChallenge(
       clientKeypair,
-      suite.context.tomlObj,
+      this.context.expects.tomlObj,
       result,
       false,
       challenge,
@@ -1096,11 +1220,6 @@ const multipleNonMasterSigners: Test = {
     return result;
   },
 };
-accountSignerSupportSuite.tests.push(multipleNonMasterSigners);
+tests.push(multipleNonMasterSigners);
 
-export default [
-  tomlSuite,
-  getAuthSuite,
-  postAuthSuite,
-  accountSignerSupportSuite,
-];
+export default tests;

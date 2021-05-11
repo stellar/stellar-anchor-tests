@@ -11,7 +11,7 @@ import { makeFailure } from "../../helpers/failure";
 const group = "TOML Tests";
 const tests: Test[] = [];
 
-const tomlExists: Test = {
+export const tomlExists: Test = {
   assertion: "the TOML file exists at ./well-known/stellar.toml",
   sep: 1,
   group: group,
