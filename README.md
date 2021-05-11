@@ -65,5 +65,5 @@ const config: Config = {
   for await (const result of run(config)) {
     console.dir(request);
   }
-})
+})()
 ```
