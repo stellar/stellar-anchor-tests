@@ -1,18 +1,21 @@
-import fetch from "node-fetch";
 import { Request } from "node-fetch";
 import { validate } from "jsonschema";
+import { Keypair } from "stellar-sdk";
 
 import { Test, Result, NetworkCall, Config } from "../../types";
 import { makeFailure, genericFailures } from "../../helpers/failure";
+import { makeRequest } from "../../helpers/request";
 import { infoSchema } from "../../schemas/sep24";
 import { tomlExists } from "../sep1/tests";
 
 const tomlTestsGroup = "TOML tests";
 const infoTestsGroup = "/info tests";
-//const depositTestsGroup = "/deposit tests";
+const depositTestsGroup = "/deposit tests";
 const tests: Test[] = [];
 
-const validTransferServerUrl: Test = {
+const depositEndpoint = "/transactions/deposit/interactive";
+
+const hasTransferServerUrl: Test = {
   assertion: "has a valid transfer server URL",
   sep: 24,
   group: tomlTestsGroup,
@@ -65,7 +68,7 @@ const validTransferServerUrl: Test = {
     return result;
   },
 };
-tests.push(validTransferServerUrl);
+tests.push(hasTransferServerUrl);
 
 const isCompliantWithSchema: Test = {
   assertion: "response is compliant with the schema",
@@ -99,31 +102,15 @@ const isCompliantWithSchema: Test = {
       request: new Request(this.context.expects.transferServerUrl + "/info"),
     };
     result.networkCalls.push(infoCall);
-    try {
-      infoCall.response = await fetch(infoCall.request.clone());
-    } catch {
-      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
-        url: infoCall.request.url,
-      });
+    this.context.provides.infoObj = await makeRequest(
+      infoCall,
+      200,
+      result,
+      "application/json",
+    );
+    if (result.failure) {
       return result;
     }
-    if (infoCall.response.status !== 200) {
-      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE, {
-        method: infoCall.request.method,
-        url: infoCall.request.method,
-      });
-      result.expected = 200;
-      result.actual = infoCall.response.status;
-      return result;
-    }
-    if (infoCall.response.headers.get("Content-Type") !== "application/json") {
-      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE, {
-        method: infoCall.request.method,
-        url: infoCall.request.method,
-      });
-      return result;
-    }
-    this.context.provides.infoObj = await infoCall.response.clone().json();
     const validationResult = validate(
       this.context.provides.infoObj,
       infoSchema,
@@ -209,5 +196,43 @@ const containsConfiguredAssetCode: Test = {
   },
 };
 tests.push(containsConfiguredAssetCode);
+
+const depositRequiresToken: Test = {
+  assertion: "requires a SEP-10 JWT",
+  sep: 24,
+  group: depositTestsGroup,
+  dependencies: [hasTransferServerUrl, containsConfiguredAssetCode],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const postDepositCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + depositEndpoint,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            account: Keypair.random().publicKey(),
+            asset_code: config.assetCode,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    };
+    result.networkCalls.push(postDepositCall);
+    makeRequest(postDepositCall, 403, result);
+    return result;
+  },
+};
+tests.push(depositRequiresToken);
 
 export default tests;
