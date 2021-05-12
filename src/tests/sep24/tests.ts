@@ -12,9 +12,11 @@ import { hasWebAuthEndpoint, returnsValidJwt } from "../sep10/tests";
 const tomlTestsGroup = "TOML tests";
 const infoTestsGroup = "/info tests";
 const depositTestsGroup = "/deposit tests";
+const withdrawTestsGroup = "/withdraw tests";
 const tests: Test[] = [];
 
 const depositEndpoint = "/transactions/deposit/interactive";
+const withdrawEndpoint = "/transactions/withdraw/interactive";
 
 const hasTransferServerUrl: Test = {
   assertion: "has a valid transfer server URL",
@@ -149,12 +151,6 @@ const assetCodeEnabledForDeposit: Test = {
       name: "no enabled assets",
       text(_args: any): string {
         return "There are no enabled assets in the /info response";
-      },
-    },
-    NO_INFO: {
-      name: "unable to parse or fetch /info JSON",
-      text(_args: any): string {
-        return "unable to fetch JSON";
       },
     },
     ...genericFailures,
@@ -431,7 +427,7 @@ const depositRejectsUnsupportedAssetCode: Test = {
 };
 tests.push(depositRejectsUnsupportedAssetCode);
 
-const returnsProperSchemaForValidRequest: Test = {
+const returnsProperSchemaForValidDepositRequest: Test = {
   assertion: "returns a proper schema for valid requests",
   sep: 24,
   group: depositTestsGroup,
@@ -479,6 +475,271 @@ const returnsProperSchemaForValidRequest: Test = {
     return result;
   },
 };
-tests.push(returnsProperSchemaForValidRequest);
+tests.push(returnsProperSchemaForValidDepositRequest);
+
+const assetCodeEnabledForWithdraw: Test = {
+  assertion: "configured asset code is enabled for withdraw",
+  sep: 24,
+  group: withdrawTestsGroup,
+  dependencies: [tomlExists, isCompliantWithSchema],
+  failureModes: {
+    CONFIGURED_ASSET_CODE_NOT_FOUND: {
+      name: "configured asset code not found",
+      text(args: any): string {
+        return `${args.assetCode} is not present in the /info response`;
+      },
+    },
+    CONFIGURED_ASSET_CODE_NOT_ENABLED: {
+      name: "configured asset code not enabled",
+      text(args: any): string {
+        return `${args.assetCode} is not enabled for SEP-24`;
+      },
+    },
+    NO_ASSET_CODES: {
+      name: "no enabled assets",
+      text(_args: any): string {
+        return "There are no enabled assets in the /info response";
+      },
+    },
+    ...genericFailures,
+  },
+  context: {
+    expects: {
+      infoObj: undefined,
+    },
+    provides: {},
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const withdrawAssets = this.context.expects.infoObj.withdraw;
+    if (!config.assetCode) {
+      for (const assetCode in withdrawAssets) {
+        if (withdrawAssets[assetCode].enabled) {
+          config.assetCode = assetCode;
+          break;
+        }
+      }
+      if (!config.assetCode) {
+        result.failure = makeFailure(this.failureModes.NO_ASSET_CODES);
+        return result;
+      }
+    } else {
+      if (!withdrawAssets[config.assetCode]) {
+        result.failure = makeFailure(
+          this.failureModes.CONFIGURED_ASSET_CODE_NOT_FOUND,
+          { assetCode: config.assetCode },
+        );
+        return result;
+      } else if (!withdrawAssets[config.assetCode].enabled) {
+        result.failure = makeFailure(
+          this.failureModes.CONFIGURED_ASSET_CODE_NOT_ENABLED,
+          { assetCode: config.assetCode },
+        );
+        return result;
+      }
+    }
+    return result;
+  },
+};
+tests.push(assetCodeEnabledForWithdraw);
+
+const withdrawRequiresToken: Test = {
+  assertion: "requires a SEP-10 JWT",
+  sep: 24,
+  group: withdrawTestsGroup,
+  dependencies: [hasTransferServerUrl, assetCodeEnabledForWithdraw],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const postWithdrawCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + withdrawEndpoint,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            account: Keypair.random().publicKey(),
+            asset_code: config.assetCode,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      ),
+    };
+    result.networkCalls.push(postWithdrawCall);
+    await makeRequest(postWithdrawCall, 403, result);
+    return result;
+  },
+};
+tests.push(withdrawRequiresToken);
+
+const withdrawRequiresAssetCode: Test = {
+  assertion: "requires 'asset_code' parameter",
+  sep: 24,
+  group: withdrawTestsGroup,
+  dependencies: [
+    tomlExists,
+    hasWebAuthEndpoint,
+    returnsValidJwt,
+    hasTransferServerUrl,
+    assetCodeEnabledForWithdraw,
+  ],
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+      token: undefined,
+      clientKeypair: undefined,
+      transferServerUrl: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    NO_ERROR_RESPONSE_ATTRIBUTE: {
+      name: "no 'error' attribute in response",
+      text(_args: any): string {
+        return (
+          "400 Bad Request response bodies should include a " +
+          "human-readable 'error' message"
+        );
+      },
+    },
+    ...genericFailures,
+  },
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const postWithdrawCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + withdrawEndpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+          body: JSON.stringify({
+            account: this.context.expects.clientKeypair.publicKey(),
+          }),
+        },
+      ),
+    };
+    result.networkCalls.push(postWithdrawCall);
+    const errorResponse = await makeRequest(
+      postWithdrawCall,
+      400,
+      result,
+      "application/json",
+    );
+    if (result.failure || !errorResponse) return result;
+    if (!errorResponse.error) {
+      result.failure = makeFailure(
+        this.failureModes.NO_ERROR_RESPONSE_ATTRIBUTE,
+      );
+    }
+    return result;
+  },
+};
+tests.push(withdrawRequiresAssetCode);
+
+const withdrawRejectsUnsupportedAssetCode: Test = {
+  assertion: "rejects unsupported 'asset_code' parameter",
+  sep: 24,
+  group: withdrawTestsGroup,
+  dependencies: withdrawRequiresAssetCode.dependencies,
+  context: withdrawRequiresAssetCode.context,
+  failureModes: withdrawRequiresAssetCode.failureModes,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const postWithdrawCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + withdrawEndpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+          body: JSON.stringify({
+            asset_code: "NOT_SUPPORTED",
+            account: this.context.expects.clientKeypair.publicKey(),
+          }),
+        },
+      ),
+    };
+    result.networkCalls.push(postWithdrawCall);
+    const errorResponse = await makeRequest(
+      postWithdrawCall,
+      400,
+      result,
+      "application/json",
+    );
+    if (result.failure || !errorResponse) return result;
+    if (!errorResponse.error) {
+      result.failure = makeFailure(
+        this.failureModes.NO_ERROR_RESPONSE_ATTRIBUTE,
+      );
+    }
+    return result;
+  },
+};
+tests.push(withdrawRejectsUnsupportedAssetCode);
+
+const returnsProperSchemaForValidWithdrawRequest: Test = {
+  assertion: "returns a proper schema for valid requests",
+  sep: 24,
+  group: withdrawTestsGroup,
+  dependencies: withdrawRequiresAssetCode.dependencies,
+  context: {
+    expects: withdrawRequiresAssetCode.context.expects,
+    provides: {
+      withdrawTransactionId: undefined,
+    },
+  },
+  failureModes: withdrawRequiresAssetCode.failureModes,
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const postWithdrawCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + withdrawEndpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+          body: JSON.stringify({
+            asset_code: config.assetCode,
+            account: this.context.expects.clientKeypair.publicKey(),
+          }),
+        },
+      ),
+    };
+    result.networkCalls.push(postWithdrawCall);
+    const responseBody = await makeRequest(
+      postWithdrawCall,
+      200,
+      result,
+      "application/json",
+    );
+    if (!responseBody) return result;
+    const validatorResult = validate(responseBody, successResponseSchema);
+    if (validatorResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validatorResult.errors.join("\n"),
+      });
+    }
+    this.context.provides.withdrawTransactionId = responseBody.id;
+    return result;
+  },
+};
+tests.push(returnsProperSchemaForValidWithdrawRequest);
 
 export default tests;
