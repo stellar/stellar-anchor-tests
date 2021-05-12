@@ -313,7 +313,10 @@ function filterBySearchStrings(tests: Test[], searchStrings: string[]): Test[] {
   return filteredTests;
 }
 
-function containsTest(_tests: Test[], _test: Test): boolean {
+function containsTest(tests: Test[], test: Test): boolean {
+  for (const t of tests) {
+    if (testString(t) === testString(test)) return true;
+  }
   return false;
 }
 

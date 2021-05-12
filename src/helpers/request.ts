@@ -38,6 +38,8 @@ export async function makeRequest(
       method: networkCall.request.method,
       url: networkCall.request.method,
     });
+    result.expected = contentType;
+    if (responseContentType) result.actual = responseContentType;
     return result;
   }
   if (responseContentType.includes(contentType)) {
