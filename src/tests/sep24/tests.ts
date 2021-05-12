@@ -230,7 +230,7 @@ const depositRequiresToken: Test = {
       ),
     };
     result.networkCalls.push(postDepositCall);
-    makeRequest(postDepositCall, 403, result);
+    await makeRequest(postDepositCall, 403, result);
     return result;
   },
 };

@@ -12,6 +12,7 @@ import { Request } from "node-fetch";
 import { URL } from "url";
 
 import { Test, Config, Result, NetworkCall } from "../../types";
+import { makeRequest } from "../../helpers/request";
 import { makeFailure } from "../../helpers/failure";
 import { loadAccount, submitTransaction } from "../../helpers/horizon";
 import {
@@ -333,31 +334,13 @@ const returnsValidChallengeResponse: Test = {
     };
     result.networkCalls.push(getAuthCall);
     const timeBeforeCall = Math.floor(Date.now() / 1000);
-    try {
-      getAuthCall.response = await fetch(getAuthCall.request.clone());
-    } catch {
-      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
-        url: result.networkCalls[0].request.url,
-      });
-      return result;
-    }
+    const responseBody = await makeRequest(
+      getAuthCall,
+      200,
+      result,
+      "application/json",
+    );
     const timeAfterCall = Math.floor(Date.now() / 1000);
-    if (getAuthCall.response.status !== 200) {
-      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE);
-      result.expected = 200;
-      result.actual = getAuthCall.response.status;
-      return result;
-    }
-    const getAuthContentType = getAuthCall.response.headers.get("Content-Type");
-    if (!getAuthContentType || getAuthContentType !== "application/json") {
-      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
-      if (getAuthContentType) {
-        result.expected = "application/json";
-        result.actual = getAuthContentType;
-      }
-      return result;
-    }
-    const responseBody = await getAuthCall.response.clone().json();
     if (!responseBody.transaction) {
       result.failure = makeFailure(this.failureModes.NO_TRANSACTION);
       return result;
@@ -429,7 +412,6 @@ const returnsValidChallengeResponse: Test = {
       result.failure = makeFailure(this.failureModes.MIN_TIME_TOO_LATE);
       return result;
     } else if (challenge.operations[0].type !== "manageData") {
-      console.log(challenge.operations[0]);
       result.failure = makeFailure(this.failureModes.FIRST_OP_NOT_MANAGE_DATA);
       return result;
     } else if (
@@ -546,28 +528,12 @@ const noAccount: Test = {
       request: new Request(this.context.expects.webAuthEndpoint),
     };
     result.networkCalls.push(getAuthCall);
-    try {
-      getAuthCall.response = await fetch(getAuthCall.request.clone());
-    } catch {
-      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
-        url: getAuthCall.request.url,
-      });
-      return result;
-    }
-    if (getAuthCall.response.status !== 400) {
-      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE);
-      result.expected = 400;
-      result.actual = getAuthCall.response.status;
-      return result;
-    }
-    const getAuthContentType = getAuthCall.response.headers.get("Content-Type");
-    if (!getAuthContentType || getAuthContentType !== "application/json") {
-      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
-      result.expected = "application/json";
-      if (getAuthContentType) result.actual = getAuthContentType;
-      return result;
-    }
-    const responseBody = await getAuthCall.response.clone().json();
+    const responseBody = await makeRequest(
+      getAuthCall,
+      400,
+      result,
+      "application/json",
+    );
     if (
       !responseBody.error ||
       !(
@@ -604,28 +570,12 @@ const invalidAccount: Test = {
       ),
     };
     result.networkCalls.push(getAuthCall);
-    try {
-      getAuthCall.response = await fetch(getAuthCall.request.clone());
-    } catch {
-      result.failure = makeFailure(this.failureModes.CONNECTION_ERROR, {
-        url: getAuthCall.request.url,
-      });
-      return result;
-    }
-    if (getAuthCall.response.status !== 400) {
-      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE);
-      result.expected = 400;
-      result.actual = getAuthCall.response.status;
-      return result;
-    }
-    const getAuthContentType = getAuthCall.response.headers.get("Content-Type");
-    if (!getAuthContentType || getAuthContentType !== "application/json") {
-      result.failure = makeFailure(this.failureModes.BAD_CONTENT_TYPE);
-      result.expected = "application/json";
-      if (getAuthContentType) result.actual = getAuthContentType;
-      return result;
-    }
-    const responseBody = await getAuthCall.response.clone().json();
+    const responseBody = await makeRequest(
+      getAuthCall,
+      400,
+      result,
+      "application/json",
+    );
     if (
       !responseBody.error ||
       !(
