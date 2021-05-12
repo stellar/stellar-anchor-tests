@@ -74,6 +74,7 @@ const isCompliantWithSchema: Test = {
   assertion: "response is compliant with the schema",
   sep: 24,
   group: infoTestsGroup,
+  dependencies: [tomlExists, hasTransferServerUrl],
   failureModes: {
     INVALID_SCHEMA: {
       name: "invalid schema",
