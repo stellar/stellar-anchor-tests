@@ -31,7 +31,7 @@ const postAuthGroup = "POST /auth";
 const signerSupportGroup = "Account Signer Support";
 const tests: Test[] = [];
 
-const hasWebAuthEndpoint: Test = {
+export const hasWebAuthEndpoint: Test = {
   assertion: "has a valid WEB_AUTH_ENDPOINT in the TOML file",
   sep: 10,
   group: tomlTests,
@@ -591,7 +591,7 @@ const invalidAccount: Test = {
 };
 tests.push(invalidAccount);
 
-const returnsValidJwt: Test = {
+export const returnsValidJwt: Test = {
   assertion: "returns a valid JWT",
   sep: 10,
   group: postAuthGroup,
@@ -599,14 +599,23 @@ const returnsValidJwt: Test = {
   context: {
     expects: {
       tomlObj: undefined,
+      webAuthEndpoint: undefined,
     },
-    provides: {},
+    provides: {
+      token: undefined,
+      clientKeypair: undefined,
+    },
   },
   failureModes: postChallengeFailureModes,
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    const clientKeypair = Keypair.random();
-    await postChallenge(clientKeypair, this.context.expects.tomlObj, result);
+    this.context.provides.clientKeypair = Keypair.random();
+    this.context.provides.token = await postChallenge(
+      this.context.provides.clientKeypair,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
+      result,
+    );
     return result;
   },
 };
@@ -629,7 +638,8 @@ const acceptsJson: Test = {
     const clientKeypair = Keypair.random();
     await postChallenge(
       clientKeypair,
-      this.context.expects.tomlObj,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
       true,
     );
@@ -738,7 +748,8 @@ const failsWithNoClientSignature: Test = {
     const clientKeypair = Keypair.random();
     const challenge = await getChallenge(
       clientKeypair,
-      this.context.expects.tomlObj,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
     );
     if (!challenge) return result;
@@ -787,7 +798,7 @@ const failsWithInvalidTransactionValue: Test = {
 };
 tests.push(failsWithInvalidTransactionValue);
 
-export const failsIfChallengeNotSignedByServer: Test = {
+const failsIfChallengeNotSignedByServer: Test = {
   assertion: "fails if the challenge is not signed by SIGNING_KEY",
   sep: 10,
   group: postAuthGroup,
@@ -860,7 +871,8 @@ const extraClientSigners: Test = {
     const clientKeypair = Keypair.random();
     const challenge = await getChallenge(
       clientKeypair,
-      this.context.expects.tomlObj,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
     );
     if (!challenge) return result;
@@ -930,7 +942,8 @@ const failsIfWeighBelowMediumThreshold: Test = {
     if (!horizonResponse) return result;
     const challenge = await getChallenge(
       clientKeypair,
-      this.context.expects.tomlObj,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
     );
     if (!challenge) return result;
@@ -999,14 +1012,16 @@ const signedByNonMasterSigner: Test = {
     if (result.failure) return result;
     const challenge = await getChallenge(
       clientKeypair,
-      this.context.expects.tomlObj,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
     );
     if (!challenge) return result;
     challenge.sign(clientSignerKeypair);
     await postChallenge(
       clientKeypair,
-      this.context.expects.tomlObj,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
       false,
       challenge,
@@ -1073,7 +1088,8 @@ const failsWithDuplicateSignatures: Test = {
     if (result.failure) return result;
     const challenge = await getChallenge(
       clientKeypair,
-      this.context.expects.tomlObj,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
     );
     if (!challenge) return result;
@@ -1154,7 +1170,8 @@ const multipleNonMasterSigners: Test = {
     if (result.failure) return result;
     const challenge = await getChallenge(
       clientKeypair,
-      this.context.expects.tomlObj,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
     );
     if (!challenge) return result;
@@ -1162,7 +1179,8 @@ const multipleNonMasterSigners: Test = {
     challenge.sign(clientSigner2Keypair);
     await postChallenge(
       clientKeypair,
-      this.context.expects.tomlObj,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
       false,
       challenge,

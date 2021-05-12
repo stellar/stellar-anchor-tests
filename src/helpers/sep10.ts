@@ -172,19 +172,17 @@ export const postChallengeFailureModes: Record<string, Failure> = {
 
 export async function getChallenge(
   clientKeypair: Keypair,
-  tomlObj: any,
+  webAuthEndpoint: string,
+  networkPassphrase: string,
   result: Result,
 ): Promise<Transaction | void> {
-  if (!tomlObj) {
-    result.failure = makeFailure(getChallengeFailureModes.NO_TOML);
-    return;
-  } else if (!tomlObj.WEB_AUTH_ENDPOINT) {
+  if (!webAuthEndpoint) {
     result.failure = makeFailure(getChallengeFailureModes.NO_WEB_AUTH_ENDPOINT);
     return;
   }
   const getAuthCall: NetworkCall = {
     request: new Request(
-      tomlObj.WEB_AUTH_ENDPOINT + `?account=${clientKeypair.publicKey()}`,
+      webAuthEndpoint + `?account=${clientKeypair.publicKey()}`,
     ),
   };
   result.networkCalls.push(getAuthCall);
@@ -220,14 +218,14 @@ export async function getChallenge(
   try {
     challenge = TransactionBuilder.fromXDR(
       responseBody.transaction,
-      tomlObj.NETWORK_PASSPHRASE,
+      networkPassphrase,
     );
   } catch {
     result.failure = makeFailure(
       getChallengeFailureModes.DESERIALIZATION_FAILED,
       {
         transaction: responseBody.transaction,
-        networkPassphrase: tomlObj.NETWORK_PASSPHRASE,
+        networkPassphrase: networkPassphrase,
       },
     );
     return;
@@ -248,7 +246,8 @@ export async function getChallenge(
 
 export async function postChallenge(
   clientKeypair: Keypair,
-  tomlObj: any,
+  webAuthEndpoint: string,
+  networkPassphrase: string,
   result: Result,
   useJson: boolean = false,
   challenge?: Transaction,
@@ -256,7 +255,8 @@ export async function postChallenge(
   if (!challenge) {
     challenge = (await getChallenge(
       clientKeypair,
-      tomlObj,
+      webAuthEndpoint,
+      networkPassphrase,
       result,
     )) as Transaction;
     challenge.sign(clientKeypair);
@@ -264,13 +264,13 @@ export async function postChallenge(
   if (!challenge) return;
   let request: Request;
   if (useJson) {
-    request = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
+    request = new Request(webAuthEndpoint, {
       method: "POST",
       body: JSON.stringify({ transaction: challenge.toXDR() }),
       headers: { "Content-Type": "application/json" },
     });
   } else {
-    request = new Request(tomlObj.WEB_AUTH_ENDPOINT, {
+    request = new Request(webAuthEndpoint, {
       method: "POST",
       body: `transaction=${encodeURIComponent(challenge.toXDR())}`,
       headers: { "Content-Type": "application/x-www-form-urlencoded" },

@@ -1,4 +1,4 @@
-const depositAndWithdrawSchema = {
+const depositAndWithdrawInfoSchema = {
   type: "object",
   patternProperties: {
     ".*": {
@@ -19,8 +19,8 @@ const depositAndWithdrawSchema = {
 export const infoSchema = {
   type: "object",
   properties: {
-    deposit: depositAndWithdrawSchema,
-    withdraw: depositAndWithdrawSchema,
+    deposit: depositAndWithdrawInfoSchema,
+    withdraw: depositAndWithdrawInfoSchema,
     fee: {
       type: "object",
       properties: {
@@ -31,4 +31,23 @@ export const infoSchema = {
     },
   },
   required: ["deposit", "withdraw", "fee"],
+};
+
+export const successResponseSchema = {
+  type: "object",
+  properties: {
+    type: {
+      type: "string",
+      pattern: "interactive_customer_info_needed",
+    },
+    url: {
+      type: "string",
+      format: "uri",
+    },
+    id: {
+      type: "string",
+    },
+  },
+  required: ["type", "url", "id"],
+  additionalProperties: false,
 };

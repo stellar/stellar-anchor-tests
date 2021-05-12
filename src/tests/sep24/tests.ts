@@ -5,8 +5,9 @@ import { Keypair } from "stellar-sdk";
 import { Test, Result, NetworkCall, Config } from "../../types";
 import { makeFailure, genericFailures } from "../../helpers/failure";
 import { makeRequest } from "../../helpers/request";
-import { infoSchema } from "../../schemas/sep24";
+import { infoSchema, successResponseSchema } from "../../schemas/sep24";
 import { tomlExists } from "../sep1/tests";
+import { hasWebAuthEndpoint, returnsValidJwt } from "../sep10/tests";
 
 const tomlTestsGroup = "TOML tests";
 const infoTestsGroup = "/info tests";
@@ -126,10 +127,10 @@ const isCompliantWithSchema: Test = {
 };
 tests.push(isCompliantWithSchema);
 
-const containsConfiguredAssetCode: Test = {
-  assertion: "contains configured asset code",
+const assetCodeEnabledForDeposit: Test = {
+  assertion: "configured asset code is enabled for deposit",
   sep: 24,
-  group: infoTestsGroup,
+  group: depositTestsGroup,
   dependencies: [tomlExists, isCompliantWithSchema],
   failureModes: {
     CONFIGURED_ASSET_CODE_NOT_FOUND: {
@@ -196,13 +197,13 @@ const containsConfiguredAssetCode: Test = {
     return result;
   },
 };
-tests.push(containsConfiguredAssetCode);
+tests.push(assetCodeEnabledForDeposit);
 
 const depositRequiresToken: Test = {
   assertion: "requires a SEP-10 JWT",
   sep: 24,
   group: depositTestsGroup,
-  dependencies: [hasTransferServerUrl, containsConfiguredAssetCode],
+  dependencies: [hasTransferServerUrl, assetCodeEnabledForDeposit],
   context: {
     expects: {
       transferServerUrl: undefined,
@@ -235,5 +236,249 @@ const depositRequiresToken: Test = {
   },
 };
 tests.push(depositRequiresToken);
+
+const depositRequiresAssetCode: Test = {
+  assertion: "requires 'asset_code' parameter",
+  sep: 24,
+  group: depositTestsGroup,
+  dependencies: [
+    tomlExists,
+    hasWebAuthEndpoint,
+    returnsValidJwt,
+    hasTransferServerUrl,
+    assetCodeEnabledForDeposit,
+  ],
+  context: {
+    expects: {
+      tomlObj: undefined,
+      webAuthEndpoint: undefined,
+      token: undefined,
+      clientKeypair: undefined,
+      transferServerUrl: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    NO_ERROR_RESPONSE_ATTRIBUTE: {
+      name: "no 'error' attribute in response",
+      text(_args: any): string {
+        return (
+          "400 Bad Request response bodies should include a " +
+          "human-readable 'error' message"
+        );
+      },
+    },
+    ...genericFailures,
+  },
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const postDepositCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + depositEndpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+          body: JSON.stringify({
+            account: this.context.expects.clientKeypair.publicKey(),
+          }),
+        },
+      ),
+    };
+    result.networkCalls.push(postDepositCall);
+    const errorResponse = await makeRequest(
+      postDepositCall,
+      400,
+      result,
+      "application/json",
+    );
+    if (result.failure || !errorResponse) return result;
+    if (!errorResponse.error) {
+      result.failure = makeFailure(
+        this.failureModes.NO_ERROR_RESPONSE_ATTRIBUTE,
+      );
+    }
+    return result;
+  },
+};
+tests.push(depositRequiresAssetCode);
+
+const depositRequiresAccount: Test = {
+  assertion: "requires 'account' parameter",
+  sep: 24,
+  group: depositTestsGroup,
+  dependencies: depositRequiresAssetCode.dependencies,
+  context: depositRequiresAssetCode.context,
+  failureModes: depositRequiresAssetCode.failureModes,
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const postDepositCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + depositEndpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+          body: JSON.stringify({ asset_code: config.assetCode }),
+        },
+      ),
+    };
+    result.networkCalls.push(postDepositCall);
+    const errorResponse = await makeRequest(
+      postDepositCall,
+      400,
+      result,
+      "application/json",
+    );
+    if (result.failure || !errorResponse) return result;
+    if (!errorResponse.error) {
+      result.failure = makeFailure(
+        this.failureModes.NO_ERROR_RESPONSE_ATTRIBUTE,
+      );
+    }
+    return result;
+  },
+};
+tests.push(depositRequiresAccount);
+
+const depositRejectsInvalidAccount: Test = {
+  assertion: "rejects invalid 'account' parameter",
+  sep: 24,
+  group: depositTestsGroup,
+  dependencies: depositRequiresAssetCode.dependencies,
+  context: depositRequiresAssetCode.context,
+  failureModes: depositRequiresAssetCode.failureModes,
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const postDepositCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + depositEndpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+          body: JSON.stringify({
+            asset_code: config.assetCode,
+            account: "not a valid account",
+          }),
+        },
+      ),
+    };
+    result.networkCalls.push(postDepositCall);
+    const errorResponse = await makeRequest(
+      postDepositCall,
+      400,
+      result,
+      "application/json",
+    );
+    if (result.failure || !errorResponse) return result;
+    if (!errorResponse.error) {
+      result.failure = makeFailure(
+        this.failureModes.NO_ERROR_RESPONSE_ATTRIBUTE,
+      );
+    }
+    return result;
+  },
+};
+tests.push(depositRejectsInvalidAccount);
+
+const depositRejectsUnsupportedAssetCode: Test = {
+  assertion: "rejects unsupported 'asset_code' parameter",
+  sep: 24,
+  group: depositTestsGroup,
+  dependencies: depositRequiresAssetCode.dependencies,
+  context: depositRequiresAssetCode.context,
+  failureModes: depositRequiresAssetCode.failureModes,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const postDepositCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + depositEndpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+          body: JSON.stringify({
+            asset_code: "NOT_SUPPORTED",
+            account: this.context.expects.clientKeypair.publicKey(),
+          }),
+        },
+      ),
+    };
+    result.networkCalls.push(postDepositCall);
+    const errorResponse = await makeRequest(
+      postDepositCall,
+      400,
+      result,
+      "application/json",
+    );
+    if (result.failure || !errorResponse) return result;
+    if (!errorResponse.error) {
+      result.failure = makeFailure(
+        this.failureModes.NO_ERROR_RESPONSE_ATTRIBUTE,
+      );
+    }
+    return result;
+  },
+};
+tests.push(depositRejectsUnsupportedAssetCode);
+
+const returnsProperSchemaForValidRequest: Test = {
+  assertion: "returns a proper schema for valid requests",
+  sep: 24,
+  group: depositTestsGroup,
+  dependencies: depositRequiresAssetCode.dependencies,
+  context: {
+    expects: depositRequiresAssetCode.context.expects,
+    provides: {
+      depositTransactionId: undefined,
+    },
+  },
+  failureModes: depositRequiresAssetCode.failureModes,
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const postDepositCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + depositEndpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+          body: JSON.stringify({
+            asset_code: config.assetCode,
+            account: this.context.expects.clientKeypair.publicKey(),
+          }),
+        },
+      ),
+    };
+    result.networkCalls.push(postDepositCall);
+    const responseBody = await makeRequest(
+      postDepositCall,
+      200,
+      result,
+      "application/json",
+    );
+    if (!responseBody) return result;
+    const validatorResult = validate(responseBody, successResponseSchema);
+    if (validatorResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validatorResult.errors.join("\n"),
+      });
+    }
+    this.context.provides.depositTransactionId = responseBody.id;
+    return result;
+  },
+};
+tests.push(returnsProperSchemaForValidRequest);
 
 export default tests;
