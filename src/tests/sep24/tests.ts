@@ -5,18 +5,27 @@ import { Keypair } from "stellar-sdk";
 import { Test, Result, NetworkCall, Config } from "../../types";
 import { makeFailure, genericFailures } from "../../helpers/failure";
 import { makeRequest } from "../../helpers/request";
-import { infoSchema, successResponseSchema } from "../../schemas/sep24";
+import {
+  infoSchema,
+  successResponseSchema,
+  getTransactionSchema,
+  transactionsSchema,
+} from "../../schemas/sep24";
 import { tomlExists } from "../sep1/tests";
 import { hasWebAuthEndpoint, returnsValidJwt } from "../sep10/tests";
 
 const tomlTestsGroup = "TOML tests";
-const infoTestsGroup = "/info tests";
-const depositTestsGroup = "/deposit tests";
-const withdrawTestsGroup = "/withdraw tests";
+const infoTestsGroup = "/info";
+const depositTestsGroup = "/deposit";
+const withdrawTestsGroup = "/withdraw";
+const transactionsTestGroup = "/transactions";
+const transactionTestGroup = "/transaction";
 const tests: Test[] = [];
 
 const depositEndpoint = "/transactions/deposit/interactive";
 const withdrawEndpoint = "/transactions/withdraw/interactive";
+const transactionsEndpoint = "/transactions";
+const transactionEndpoint = "/transaction";
 
 const hasTransferServerUrl: Test = {
   assertion: "has a valid transfer server URL",
@@ -438,7 +447,20 @@ const returnsProperSchemaForValidDepositRequest: Test = {
       depositTransactionId: undefined,
     },
   },
-  failureModes: depositRequiresAssetCode.failureModes,
+  failureModes: {
+    INVALID_SCHEMA: {
+      name: "invalid schema",
+      text(args: any): string {
+        return (
+          "The response body returned does not comply with the schema defined for the /deposit endpoint:\n\n" +
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#deposit-and-withdraw-shared-responses\n\n" +
+          "The errors returned from the schema validation:\n\n" +
+          `${args.errors}`
+        );
+      },
+    },
+    ...genericFailures,
+  },
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const postDepositCall: NetworkCall = {
@@ -703,7 +725,20 @@ const returnsProperSchemaForValidWithdrawRequest: Test = {
       withdrawTransactionId: undefined,
     },
   },
-  failureModes: withdrawRequiresAssetCode.failureModes,
+  failureModes: {
+    INVALID_SCHEMA: {
+      name: "invalid schema",
+      text(args: any): string {
+        return (
+          "The response body returned does not comply with the schema defined for the /withdraw endpoint:\n\n" +
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#deposit-and-withdraw-shared-responses\n\n" +
+          "The errors returned from the schema validation:\n\n" +
+          `${args.errors}`
+        );
+      },
+    },
+    ...genericFailures,
+  },
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const postWithdrawCall: NetworkCall = {
@@ -741,5 +776,485 @@ const returnsProperSchemaForValidWithdrawRequest: Test = {
   },
 };
 tests.push(returnsProperSchemaForValidWithdrawRequest);
+
+const transactionRequiresToken: Test = {
+  assertion: "requires a JWT",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [hasTransferServerUrl, returnsValidJwt],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+    },
+    provides: {},
+  },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const transactionCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + transactionEndpoint,
+      ),
+    };
+    result.networkCalls.push(transactionCall);
+    makeRequest(transactionCall, 403, result);
+    return result;
+  },
+};
+tests.push(transactionRequiresToken);
+
+const transactionIsPresentAfterDepositRequest: Test = {
+  assertion: "has a record on /transaction after a deposit request",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [
+    hasTransferServerUrl,
+    returnsValidJwt,
+    returnsProperSchemaForValidDepositRequest,
+  ],
+  context: {
+    expects: {
+      token: undefined,
+      transferServerUrl: undefined,
+      depositTransactionId: undefined,
+    },
+    provides: {
+      depositTransactionObj: undefined,
+    },
+  },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const getTransactionCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl +
+          transactionEndpoint +
+          `?id=${this.context.expects.depositTransactionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+        },
+      ),
+    };
+    result.networkCalls.push(getTransactionCall);
+    this.context.provides.depositTransactionObj = await makeRequest(
+      getTransactionCall,
+      200,
+      result,
+      "application/json",
+    );
+    return result;
+  },
+};
+tests.push(transactionIsPresentAfterDepositRequest);
+
+const transactionIsPresentAfterWithdrawRequest: Test = {
+  assertion: "has a record on /transaction after a withdraw request",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [
+    hasTransferServerUrl,
+    returnsValidJwt,
+    returnsProperSchemaForValidWithdrawRequest,
+  ],
+  context: {
+    expects: {
+      token: undefined,
+      transferServerUrl: undefined,
+      withdrawTransactionId: undefined,
+    },
+    provides: {
+      withdrawTransactionObj: undefined,
+    },
+  },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const getTransactionCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl +
+          transactionEndpoint +
+          `?id=${this.context.expects.withdrawTransactionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+        },
+      ),
+    };
+    result.networkCalls.push(getTransactionCall);
+    this.context.provides.withdrawTransactionObj = await makeRequest(
+      getTransactionCall,
+      200,
+      result,
+      "application/json",
+    );
+    return result;
+  },
+};
+tests.push(transactionIsPresentAfterWithdrawRequest);
+
+const hasProperDepositTransactionSchema: Test = {
+  assertion: "has proper deposit transaction schema on /transaction",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [
+    returnsProperSchemaForValidDepositRequest,
+    transactionIsPresentAfterDepositRequest,
+  ],
+  context: {
+    expects: {
+      depositTransactionId: undefined,
+      depositTransactionObj: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_SCHEMA: {
+      name: "invalid schema",
+      text(args: any): string {
+        return (
+          "The response body returned does not comply with the schema defined for the /transaction endpoint:\n\n" +
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#single-historical-transaction\n\n" +
+          "The errors returned from the schema validation:\n\n" +
+          `${args.errors}`
+        );
+      },
+    },
+    ...genericFailures,
+  },
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const validationResult = validate(
+      this.context.expects.depositTransactionObj,
+      getTransactionSchema(true),
+    );
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+    }
+    return result;
+  },
+};
+tests.push(hasProperDepositTransactionSchema);
+
+const hasProperWithdrawTransactionSchema: Test = {
+  assertion: "has proper withdraw transaction schema on /transaction",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [
+    returnsProperSchemaForValidWithdrawRequest,
+    transactionIsPresentAfterWithdrawRequest,
+  ],
+  context: {
+    expects: {
+      withdrawTransactionId: undefined,
+      withdrawTransactionObj: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_SCHEMA: {
+      name: "invalid schema",
+      text(args: any): string {
+        return (
+          "The response body returned does not comply with the schema defined for the /transaction endpoint:\n\n" +
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#single-historical-transaction\n\n" +
+          "The errors returned from the schema validation:\n\n" +
+          `${args.errors}`
+        );
+      },
+    },
+    ...genericFailures,
+  },
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const validationResult = validate(
+      this.context.expects.depositTransactionObj,
+      getTransactionSchema(false),
+    );
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+    }
+    return result;
+  },
+};
+tests.push(hasProperWithdrawTransactionSchema);
+
+const transactionsRequiresToken: Test = {
+  assertion: "requires a JWT",
+  sep: 24,
+  group: transactionsTestGroup,
+  dependencies: [hasTransferServerUrl, returnsValidJwt],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+    },
+    provides: {},
+  },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const transactionsCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl + transactionsEndpoint,
+      ),
+    };
+    result.networkCalls.push(transactionsCall);
+    makeRequest(transactionsCall, 403, result);
+    return result;
+  },
+};
+tests.push(transactionsRequiresToken);
+
+const transactionsIsPresentAfterDepositRequest: Test = {
+  assertion: "has a record on /transactions after a deposit request",
+  sep: 24,
+  group: transactionsTestGroup,
+  dependencies: [
+    hasTransferServerUrl,
+    assetCodeEnabledForDeposit,
+    returnsValidJwt,
+    returnsProperSchemaForValidDepositRequest,
+  ],
+  context: {
+    expects: {
+      token: undefined,
+      transferServerUrl: undefined,
+      depositTransactionId: undefined,
+    },
+    provides: {
+      depositTransactionsObj: undefined,
+    },
+  },
+  failureModes: {
+    TRANSACTION_NOT_FOUND: {
+      name: "transaction not found",
+      text(args: any): string {
+        return `A transaction record with id ${args.id} was not included in the response body.`;
+      },
+    },
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const getTransactionsCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl +
+          transactionsEndpoint +
+          `?asset_code=${config.assetCode}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+        },
+      ),
+    };
+    result.networkCalls.push(getTransactionsCall);
+    const transactionsBody = await makeRequest(
+      getTransactionsCall,
+      200,
+      result,
+      "application/json",
+    );
+    if (!transactionsBody) return result;
+    if (
+      !transactionsBody.transactions ||
+      !Array.isArray(transactionsBody.transactions)
+    ) {
+      result.failure = makeFailure(this.failureModes.TRANSACTION_NOT_FOUND, {
+        id: this.context.expects.depositTransactionId,
+      });
+      return result;
+    }
+    let transactionFound = false;
+    for (const t of transactionsBody.transactions) {
+      if (t.id === this.context.expects.depositTransactionId) {
+        transactionFound = true;
+        break;
+      }
+    }
+    if (!transactionFound) {
+      result.failure = makeFailure(this.failureModes.TRANSACTION_NOT_FOUND, {
+        id: this.context.expects.depositTransactionId,
+      });
+      return result;
+    }
+    this.context.provides.depositTransactionsObj = transactionsBody;
+    return result;
+  },
+};
+tests.push(transactionsIsPresentAfterDepositRequest);
+
+const transactionsIsPresentAfterWithdrawRequest: Test = {
+  assertion: "has a record on /transactions after a withdraw request",
+  sep: 24,
+  group: transactionsTestGroup,
+  dependencies: [
+    hasTransferServerUrl,
+    assetCodeEnabledForWithdraw,
+    returnsValidJwt,
+    returnsProperSchemaForValidWithdrawRequest,
+  ],
+  context: {
+    expects: {
+      token: undefined,
+      transferServerUrl: undefined,
+      withdrawTransactionId: undefined,
+    },
+    provides: {
+      withdrawTransactionsObj: undefined,
+    },
+  },
+  failureModes: {
+    TRANSACTION_NOT_FOUND: {
+      name: "transaction not found",
+      text(args: any): string {
+        return `A transaction record with id ${args.id} was not included in the response body.`;
+      },
+    },
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const getTransactionsCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl +
+          transactionsEndpoint +
+          `?asset_code=${config.assetCode}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+        },
+      ),
+    };
+    result.networkCalls.push(getTransactionsCall);
+    const transactionsBody = await makeRequest(
+      getTransactionsCall,
+      200,
+      result,
+      "application/json",
+    );
+    if (!transactionsBody) return result;
+    if (
+      !transactionsBody.transactions ||
+      !Array.isArray(transactionsBody.transactions)
+    ) {
+      result.failure = makeFailure(this.failureModes.TRANSACTION_NOT_FOUND, {
+        id: this.context.expects.withdrawTransactionId,
+      });
+      return result;
+    }
+    let transactionFound = false;
+    for (const t of transactionsBody.transactions) {
+      if (t.id === this.context.expects.withdrawTransactionId) {
+        transactionFound = true;
+        break;
+      }
+    }
+    if (!transactionFound) {
+      result.failure = makeFailure(this.failureModes.TRANSACTION_NOT_FOUND, {
+        id: this.context.expects.withdrawTransactionId,
+      });
+      return result;
+    }
+    this.context.provides.withdrawTransactionsObj = transactionsBody;
+    return result;
+  },
+};
+tests.push(transactionsIsPresentAfterWithdrawRequest);
+
+const hasProperDepositTransactionsSchema: Test = {
+  assertion: "has proper deposit transaction schema on /transactions",
+  sep: 24,
+  group: transactionsTestGroup,
+  dependencies: [
+    returnsProperSchemaForValidDepositRequest,
+    transactionsIsPresentAfterDepositRequest,
+  ],
+  context: {
+    expects: {
+      depositTransactionsObj: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_SCHEMA: {
+      name: "invalid schema",
+      text(args: any): string {
+        return (
+          "The response body returned does not comply with the schema defined for the /transactions endpoint:\n\n" +
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#transaction-history\n\n" +
+          "The errors returned from the schema validation:\n\n" +
+          `${args.errors}`
+        );
+      },
+    },
+    ...genericFailures,
+  },
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const validationResult = validate(
+      this.context.expects.depositTransactionsObj,
+      transactionsSchema,
+    );
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+    }
+    return result;
+  },
+};
+tests.push(hasProperDepositTransactionsSchema);
+
+const hasProperWithdrawTransactionsSchema: Test = {
+  assertion: "has proper withdraw transaction schema on /transactions",
+  sep: 24,
+  group: transactionsTestGroup,
+  dependencies: [
+    returnsProperSchemaForValidWithdrawRequest,
+    transactionsIsPresentAfterWithdrawRequest,
+  ],
+  context: {
+    expects: {
+      withdrawTransactionsObj: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_SCHEMA: {
+      name: "invalid schema",
+      text(args: any): string {
+        return (
+          "The response body returned does not comply with the schema defined for the /transactions endpoint:\n\n" +
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#transaction-history\n\n" +
+          "The errors returned from the schema validation:\n\n" +
+          `${args.errors}`
+        );
+      },
+    },
+    ...genericFailures,
+  },
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const validationResult = validate(
+      this.context.expects.withdrawTransactionsObj,
+      transactionsSchema,
+    );
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+    }
+    return result;
+  },
+};
+tests.push(hasProperWithdrawTransactionsSchema);
 
 export default tests;

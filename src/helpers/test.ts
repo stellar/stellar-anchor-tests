@@ -140,23 +140,22 @@ async function* runTestsRecur(
       chain.pop();
     }
     if (cycleDetected) {
-      const cycleDetectedFailureText =
-        "A dependency cycle was detected for test:\n\n" +
-        `SEP: ${test.sep}\n` +
-        `Group: ${test.group}\n` +
-        `Assertion: ${test.assertion}`;
       const cycleDetectedFailure: Failure = {
         name: "dependency cycle detected",
-        text(_args: any): string {
-          return cycleDetectedFailureText;
+        text(args: any): string {
+          return (
+            "A dependency cycle was detected for test:\n\n" +
+            `SEP: ${args.test.sep}\n` +
+            `Group: ${args.test.group}\n` +
+            `Assertion: ${args.test.assertion}`
+          );
         },
-        message: cycleDetectedFailureText,
       };
       yield {
         test: test,
         result: {
           networkCalls: [],
-          failure: cycleDetectedFailure,
+          failure: makeFailure(cycleDetectedFailure, { test: test }),
         },
       };
     } else if (failedDependency) {
@@ -165,9 +164,9 @@ async function* runTestsRecur(
         text(args: any): string {
           return (
             `A prior test dependency failed:\n\n` +
-            `SEP: ${args.test.sep}\n` +
-            `Group: ${args.test.group}\n` +
-            `Assertion: ${args.test.assertion}`
+            `SEP: ${args.testRun.test.sep}\n` +
+            `Group: ${args.testRun.test.group}\n` +
+            `Assertion: ${args.testRun.test.assertion}`
           );
         },
       };
