@@ -42,7 +42,7 @@ export async function makeRequest(
     if (responseContentType) result.actual = responseContentType;
     return result;
   }
-  if (responseContentType.includes(contentType)) {
+  if (responseContentType.includes("application/json")) {
     return await networkCall.response.clone().json();
   } else {
     return await networkCall.response.clone().text();

@@ -985,6 +985,130 @@ const hasProperWithdrawTransactionSchema: Test = {
 };
 tests.push(hasProperWithdrawTransactionSchema);
 
+const hasValidMoreInfoUrl: Test = {
+  assertion: "has a valid 'more_info_url'",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [hasProperDepositTransactionSchema],
+  context: {
+    expects: {
+      depositTransactionObj: undefined,
+    },
+    provides: {},
+  },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const getMoreInfoCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.depositTransactionObj.transaction.more_info_url,
+      ),
+    };
+    await makeRequest(getMoreInfoCall, 200, result, "text/html");
+    return result;
+  },
+};
+tests.push(hasValidMoreInfoUrl);
+
+const returns404ForBadId: Test = {
+  assertion: "returns 404 for a nonexistent transaction ID",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [hasTransferServerUrl, returnsValidJwt],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+      token: undefined,
+    },
+    provides: {},
+  },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const getTransactionCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl +
+          transactionEndpoint +
+          "?id=9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+        {
+          headers: {
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+        },
+      ),
+    };
+    await makeRequest(getTransactionCall, 404, result);
+    return result;
+  },
+};
+tests.push(returns404ForBadId);
+
+const returns404ForBadExternalId: Test = {
+  assertion: "returns 404 for a nonexistent external transaction ID",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [hasTransferServerUrl, returnsValidJwt],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+      token: undefined,
+    },
+    provides: {},
+  },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const getTransactionCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl +
+          transactionEndpoint +
+          "?external_transaction_id=9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+        {
+          headers: {
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+        },
+      ),
+    };
+    await makeRequest(getTransactionCall, 404, result);
+    return result;
+  },
+};
+tests.push(returns404ForBadExternalId);
+
+const returns404ForBadStellarId: Test = {
+  assertion: "returns 404 for a nonexistent Stellar transaction ID",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [hasTransferServerUrl, returnsValidJwt],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+      token: undefined,
+    },
+    provides: {},
+  },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    const getTransactionCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.transferServerUrl +
+          transactionEndpoint +
+          "?stellar_transaction_id=021581089cb614be94b0ac5dc71cadf23a1cd96a2584152268de505ee2e5e999",
+        {
+          headers: {
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+        },
+      ),
+    };
+    await makeRequest(getTransactionCall, 404, result);
+    return result;
+  },
+};
+tests.push(returns404ForBadStellarId);
+
 const transactionsRequiresToken: Test = {
   assertion: "requires a JWT",
   sep: 24,
