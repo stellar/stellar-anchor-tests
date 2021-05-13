@@ -629,6 +629,7 @@ const acceptsJson: Test = {
   context: {
     expects: {
       tomlObj: undefined,
+      webAuthEndpoint: undefined,
     },
     provides: {},
   },

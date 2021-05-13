@@ -259,9 +259,9 @@ export async function postChallenge(
       networkPassphrase,
       result,
     )) as Transaction;
+    if (!challenge) return;
     challenge.sign(clientKeypair);
   }
-  if (!challenge) return;
   let request: Request;
   if (useJson) {
     request = new Request(webAuthEndpoint, {
