@@ -3,6 +3,7 @@ import { Networks } from "stellar-sdk";
 import { Test, Config, TestRun, Failure } from "../types";
 import { default as sep1Tests } from "../tests/sep1/tests";
 import { default as sep10Tests } from "../tests/sep10/tests";
+import { default as sep12Tests } from "../tests/sep12/tests";
 import { default as sep24Tests } from "../tests/sep24/tests";
 import { makeFailure } from "./failure";
 
@@ -276,6 +277,9 @@ function getTopLevelTests(config: Config): Test[] {
     } else {
       tests = tests.concat(sep10Tests);
     }
+  }
+  if (config.seps.includes(12)) {
+    tests = tests.concat(sep12Tests);
   }
   if (config.seps.includes(24)) {
     tests = tests.concat(sep24Tests);

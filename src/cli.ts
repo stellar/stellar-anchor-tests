@@ -1,16 +1,20 @@
 #!/usr/bin/env node
 import yargs from "yargs";
+import fs from "fs";
+import path from "path";
 import { URL } from "url";
 import fetch from "node-fetch";
 import { parse } from "toml";
 import { Networks } from "stellar-sdk";
+import { validate } from "jsonschema";
 
 import { run } from "./helpers/test";
 import { getStats } from "./helpers/stats";
 import { Config, SEP, TestRun } from "./types";
 import { printTestRun, printStats } from "./helpers/console";
+import sepConfigSchema from "./schemas/sepConfig";
 
-const args = yargs
+const command = yargs
   .options({
     "home-domain": {
       alias: "h",
@@ -42,6 +46,12 @@ const args = yargs
       description:
         "Display the each request and response used in each failed test.",
     },
+    "sep-config": {
+      type: "string",
+      requiresArg: true,
+      description:
+        "A relative or absolute file path to JSON file containing the configuration required for SEP 6, 12, & 31.",
+    },
   })
   .check((argv: any) => {
     if (!argv.homeDomain.startsWith("http")) {
@@ -63,11 +73,22 @@ const args = yargs
         if (![1, 6, 10, 12, 24, 31].includes(sep))
           throw "error: invalid --sep value provided. Choices: 1, 6, 10, 12, 24, 31.";
       }
+      if (
+        (argv.seps.includes(6) ||
+          argv.seps.includes(12) ||
+          argv.seps.includes(31)) &&
+        !argv.sepConfig
+      ) {
+        throw "error: SEP 6, 12, & 31 require a configuration file (--sep-config)";
+      }
     }
     return true;
-  }).argv;
+  });
+
+let args = command.argv;
 
 (async () => {
+  console.dir(args);
   const config: Config = {
     homeDomain: args.homeDomain as string,
     seps: args.seps as SEP[],
@@ -75,6 +96,43 @@ const args = yargs
   if (args._.length) config.searchStrings = args._.map(String);
   if (args.assetcode) config.assetCode = args.assetCode as string;
   if (args.verbose) config.verbose = args.verbose as boolean;
+  if (args.sepConfig) {
+    if (!path.isAbsolute(args.sepConfig as string)) {
+      args.sepConfig = path.resolve(args.sepConfig as string);
+    }
+    if (!fs.existsSync(args.sepConfig as string)) {
+      yargs.showHelp();
+      console.error(
+        "\nerror: the file specified with --sep-config does not exist",
+      );
+      process.exit(1);
+      return;
+    }
+    let sepConfigObj: any;
+    try {
+      sepConfigObj = JSON.parse(
+        fs.readFileSync(args.sepConfig as string).toString(),
+      );
+    } catch {
+      yargs.showHelp();
+      console.error(
+        "\nerror: --sep-config JSON file contents could not be parsed",
+      );
+      process.exit(1);
+      return;
+    }
+    const validationResult = validate(sepConfigObj, sepConfigSchema);
+    if (validationResult.errors.length !== 0) {
+      yargs.showHelp();
+      console.error(
+        "\nerror: --sep-config JSON file contents does not comply with the schema:\n\n" +
+          `${validationResult.errors.join("\n")}`,
+      );
+      process.exit(1);
+      return;
+    }
+    config.sepConfig = sepConfigObj;
+  }
   let tomlObj;
   try {
     const tomlResponse = await fetch(

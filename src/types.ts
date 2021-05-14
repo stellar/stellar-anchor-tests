@@ -2,7 +2,6 @@ import { Networks } from "stellar-sdk";
 import { Request, Response } from "node-fetch";
 
 export type SEP = 1 | 6 | 10 | 12 | 24 | 31;
-export type SepConfig = { [key in SEP]: object };
 
 export interface Config {
   homeDomain: string;
@@ -12,6 +11,14 @@ export interface Config {
   searchStrings?: string[];
   sepConfig?: SepConfig;
   networkPassphrase?: Networks.TESTNET | Networks.PUBLIC;
+}
+
+export interface SepConfig {
+  12?: SEP12Config;
+}
+
+export interface SEP12Config {
+  customers: any[];
 }
 
 export interface NetworkCall {
