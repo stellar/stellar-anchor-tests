@@ -32,6 +32,7 @@ export async function* run(config: Config): AsyncGenerator<TestRun> {
  * cycle is when a test depends, directly or indirectly, on itself.
  */
 export function getTests(config: Config): Test[] {
+  checkConfig(config);
   const topLevelTests = getTopLevelTests(config);
   return getAllTestsRecur(topLevelTests, [], new Set());
 }
@@ -81,6 +82,7 @@ export async function* runTests(
   tests: Test[],
   config: Config,
 ): AsyncGenerator<TestRun> {
+  checkConfig(config);
   for await (const testRun of runTestsRecur(tests, config, [], {}, new Set())) {
     yield testRun;
   }
@@ -195,21 +197,25 @@ async function* runTestsRecur(
         };
         continue;
       }
-      yield await runTest(test, config);
+      const testRun = await runTest(test, config);
       ranTests.add(testString(test));
-      const providedContextFailure = updateWithProvidedContext(
-        globalContext,
-        test,
-      );
-      if (providedContextFailure) {
-        yield {
-          test: test,
-          result: {
-            networkCalls: [],
-            failure: expectedContextFailure,
-          },
-        };
+      if (!testRun.result.failure) {
+        const providedContextFailure = updateWithProvidedContext(
+          globalContext,
+          test,
+        );
+        if (providedContextFailure) {
+          yield {
+            test: test,
+            result: {
+              networkCalls: [],
+              failure: providedContextFailure,
+            },
+          };
+          continue;
+        }
       }
+      yield testRun;
     }
   }
 }
@@ -361,7 +367,7 @@ function updateWithProvidedContext(
           text(args: any): string {
             return (
               `The following test was expected to provide context '${key}':\n\n` +
-              `SEP: ${args.test.SEP}\n` +
+              `SEP: ${args.test.sep}\n` +
               `Group: ${args.test.group}\n` +
               `Assertion: ${args.test.assertion}`
             );
@@ -378,3 +384,6 @@ function updateWithProvidedContext(
 function testString(test: Test): string {
   return `${test.sep}-${test.group}-${test.assertion}`;
 }
+
+// TODO
+function checkConfig(_config: Config) {}

@@ -47,6 +47,7 @@ const command = yargs
         "Display the each request and response used in each failed test.",
     },
     "sep-config": {
+      alias: "c",
       type: "string",
       requiresArg: true,
       description:
@@ -88,7 +89,6 @@ const command = yargs
 let args = command.argv;
 
 (async () => {
-  console.dir(args);
   const config: Config = {
     homeDomain: args.homeDomain as string,
     seps: args.seps as SEP[],

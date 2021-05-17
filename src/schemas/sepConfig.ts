@@ -20,11 +20,32 @@ export const sep12ConfigSchema = {
   required: ["customers"],
 };
 
+export const sep31ConfigSchema = {
+  type: "object",
+  properties: {
+    sendingAnchorClientSecret: {
+      type: "string",
+    },
+    sendingClientName: {
+      type: "string",
+    },
+    receivingClientName: {
+      type: "string",
+    },
+  },
+  required: [
+    "sendingAnchorClientSecret",
+    "sendingClientName",
+    "receivingClientName",
+  ],
+  additionalProperties: false,
+};
+
 export default {
   type: "object",
   properties: {
     "12": sep12ConfigSchema,
+    "31": sep31ConfigSchema,
   },
-  required: ["12"],
   additionalProperties: false,
 };

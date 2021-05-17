@@ -15,10 +15,17 @@ export interface Config {
 
 export interface SepConfig {
   12?: SEP12Config;
+  31?: SEP31Config;
 }
 
 export interface SEP12Config {
-  customers: any[];
+  customers: Record<string, any>;
+}
+
+export interface SEP31Config {
+  sendingAnchorClientSecret: string;
+  sendingClientName: string;
+  receivingClientName: string;
 }
 
 export interface NetworkCall {

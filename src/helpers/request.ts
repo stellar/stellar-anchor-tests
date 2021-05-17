@@ -10,7 +10,7 @@ import { makeFailure, genericFailures } from "./failure";
  */
 export async function makeRequest(
   networkCall: NetworkCall,
-  expectedStatus: number,
+  expectedStatus: number | number[],
   result: Result,
   contentType?: string,
 ): Promise<any> {
@@ -22,7 +22,13 @@ export async function makeRequest(
     });
     return;
   }
-  if (networkCall.response.status !== expectedStatus) {
+  let statusCondition: boolean;
+  if (typeof expectedStatus === "number") {
+    statusCondition = networkCall.response.status !== expectedStatus;
+  } else {
+    statusCondition = !expectedStatus.includes(networkCall.response.status);
+  }
+  if (statusCondition) {
     result.failure = makeFailure(genericFailures.UNEXPECTED_STATUS_CODE, {
       url: networkCall.request.url,
       method: networkCall.request.method,

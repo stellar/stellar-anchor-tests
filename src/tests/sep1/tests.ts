@@ -150,7 +150,7 @@ const validFileSize: Test = {
 };
 tests.push(validFileSize);
 
-const hasNetworkPassphrase: Test = {
+export const hasNetworkPassphrase: Test = {
   assertion: "has a valid network passphrase",
   group: group,
   sep: 1,
