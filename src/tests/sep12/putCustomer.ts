@@ -155,7 +155,7 @@ export const canCreateCustomer: Test = {
 };
 tests.push(canCreateCustomer);
 
-const differentMemosSameAccount: Test = {
+export const differentMemosSameAccount: Test = {
   assertion: "memos differentiate customers registered by the same account",
   sep: 12,
   group: putCustomerGroup,
@@ -167,6 +167,7 @@ const differentMemosSameAccount: Test = {
       tomlObj: undefined,
     },
     provides: {
+      sendingAnchorClientKeypair: undefined,
       sendingAnchorToken: undefined,
       sendingCustomerId: undefined,
       sendingCustomerMemo: undefined,

@@ -78,6 +78,7 @@ export async function checkConfig(config: Config) {
     for (const customerName in config.sepConfig["12"].customers) {
       const customerData = config.sepConfig["12"].customers[customerName];
       for (const binaryField of binaryFields) {
+        if (!customerData[binaryField]) continue;
         if (typeof customerData[binaryField] !== "string") {
           throw new ConfigError(
             "unrecognized type for binary customer field: " +

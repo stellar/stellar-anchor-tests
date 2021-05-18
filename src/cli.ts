@@ -89,7 +89,7 @@ let args = command.argv;
     seps: args.seps as SEP[],
   };
   if (args._.length) config.searchStrings = args._.map(String);
-  if (args.assetcode) config.assetCode = args.assetCode as string;
+  if (args.assetCode) config.assetCode = args.assetCode as string;
   if (args.verbose) config.verbose = args.verbose as boolean;
   if (args.sepConfig) {
     if (!path.isAbsolute(args.sepConfig as string)) {

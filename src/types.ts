@@ -26,6 +26,7 @@ export interface SEP31Config {
   sendingAnchorClientSecret: string;
   sendingClientName: string;
   receivingClientName: string;
+  transactionFields?: any;
 }
 
 export interface NetworkCall {

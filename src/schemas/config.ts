@@ -33,6 +33,9 @@ export const sep31ConfigSchema = {
     receivingClientName: {
       type: "string",
     },
+    transactionFields: {
+      type: "object",
+    },
   },
   required: [
     "sendingAnchorClientSecret",
