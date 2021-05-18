@@ -3,16 +3,11 @@ import yargs from "yargs";
 import fs from "fs";
 import path from "path";
 import { URL } from "url";
-import fetch from "node-fetch";
-import { parse } from "toml";
-import { Networks } from "stellar-sdk";
-import { validate } from "jsonschema";
 
 import { run } from "./helpers/test";
 import { getStats } from "./helpers/stats";
 import { Config, SEP, TestRun } from "./types";
 import { printTestRun, printStats } from "./helpers/console";
-import sepConfigSchema from "./schemas/sepConfig";
 
 const command = yargs
   .options({
@@ -80,7 +75,7 @@ const command = yargs
           argv.seps.includes(31)) &&
         !argv.sepConfig
       ) {
-        throw "error: SEP 6, 12, & 31 require a configuration file (--sep-config)";
+        throw "error: SEP 6, 12, & 31 require a configuration file (--sep-config, -c)";
       }
     }
     return true;
@@ -121,42 +116,20 @@ let args = command.argv;
       process.exit(1);
       return;
     }
-    const validationResult = validate(sepConfigObj, sepConfigSchema);
-    if (validationResult.errors.length !== 0) {
-      yargs.showHelp();
-      console.error(
-        "\nerror: --sep-config JSON file contents does not comply with the schema:\n\n" +
-          `${validationResult.errors.join("\n")}`,
-      );
-      process.exit(1);
-      return;
-    }
     config.sepConfig = sepConfigObj;
-  }
-  let tomlObj;
-  try {
-    const tomlResponse = await fetch(
-      config.homeDomain + "/.well-known/stellar.toml",
-    );
-    tomlObj = parse(await tomlResponse.text());
-  } catch {}
-  if (tomlObj) {
-    if (
-      ![Networks.PUBLIC, Networks.TESTNET].includes(tomlObj.NETWORK_PASSPHRASE)
-    ) {
-      console.error(
-        "error: NETWORK_PASSPHRASE is not one of the accepted values:\n\n" +
-          `'${Networks.TESTNET}'\n'${Networks.PUBLIC}\n'`,
-      );
-      return;
-    }
-    config.networkPassphrase = tomlObj.NETWORK_PASSPHRASE;
   }
   const startTime = Date.now();
   const testRuns: TestRun[] = [];
-  for await (const testRun of run(config)) {
-    testRuns.push(testRun);
-    await printTestRun(testRun, config.verbose as boolean);
+  try {
+    for await (const testRun of run(config)) {
+      testRuns.push(testRun);
+      await printTestRun(testRun, config.verbose as boolean);
+    }
+  } catch (e) {
+    yargs.showHelp();
+    console.error(`\n${e.name}: ${e.message}`);
+    process.exit(1);
+    return;
   }
   const endTime = Date.now();
   console.log(); // add new line between results and stats

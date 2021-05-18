@@ -1,3 +1,4 @@
+import { Networks } from "stellar-sdk";
 import { sep9Fields } from "./sep12";
 
 export const sep12ConfigSchema = {
@@ -41,11 +42,45 @@ export const sep31ConfigSchema = {
   additionalProperties: false,
 };
 
-export default {
+export const sepConfigSchema = {
   type: "object",
   properties: {
     "12": sep12ConfigSchema,
     "31": sep31ConfigSchema,
+  },
+  additionalProperties: false,
+};
+
+export const configSchema = {
+  type: "object",
+  properties: {
+    homeDomain: {
+      type: "string",
+      format: "uri",
+    },
+    seps: {
+      type: "array",
+      items: {
+        enum: [1, 6, 10, 12, 24, 31],
+      },
+    },
+    verbose: {
+      type: "boolean",
+    },
+    assetCode: {
+      type: "string",
+    },
+    searchStrings: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
+    networkPassphrase: {
+      type: "string",
+      enum: [Networks.PUBLIC, Networks.TESTNET],
+    },
+    sepConfig: sepConfigSchema,
   },
   additionalProperties: false,
 };

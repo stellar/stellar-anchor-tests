@@ -36,6 +36,13 @@ export const sep9Fields = [
   "type",
 ];
 
+export const binaryFields = [
+  "photo_id_front",
+  "photo_id_back",
+  "notary_approval_of_photo_id",
+  "photo_proof_residence",
+];
+
 export const sep12ConfigSchema = {
   type: "object",
   properties: {
@@ -50,7 +57,7 @@ export const sep12ConfigSchema = {
           },
         },
       },
-      minProperties: 1,
+      minProperties: 4,
     },
   },
   required: ["customers"],

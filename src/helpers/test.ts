@@ -6,6 +6,7 @@ import { default as sep10Tests } from "../tests/sep10/tests";
 import { default as sep12Tests } from "../tests/sep12/tests";
 import { default as sep24Tests } from "../tests/sep24/tests";
 import { makeFailure } from "./failure";
+import { checkConfig } from "./config";
 
 /*
  * Top-level entry point for running tests.
@@ -31,8 +32,8 @@ export async function* run(config: Config): AsyncGenerator<TestRun> {
  * The function will raise an exception if a cycle is detected. A
  * cycle is when a test depends, directly or indirectly, on itself.
  */
-export function getTests(config: Config): Test[] {
-  checkConfig(config);
+export async function getTests(config: Config): Promise<Test[]> {
+  await checkConfig(config);
   const topLevelTests = getTopLevelTests(config);
   return getAllTestsRecur(topLevelTests, [], new Set());
 }
@@ -82,7 +83,7 @@ export async function* runTests(
   tests: Test[],
   config: Config,
 ): AsyncGenerator<TestRun> {
-  checkConfig(config);
+  await checkConfig(config);
   for await (const testRun of runTestsRecur(tests, config, [], {}, new Set())) {
     yield testRun;
   }
@@ -384,6 +385,3 @@ function updateWithProvidedContext(
 function testString(test: Test): string {
   return `${test.sep}-${test.group}-${test.assertion}`;
 }
-
-// TODO
-function checkConfig(_config: Config) {}
