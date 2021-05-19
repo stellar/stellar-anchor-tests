@@ -15,7 +15,7 @@ export const sep12ConfigSchema = {
           },
         },
       },
-      minProperties: 1,
+      minProperties: 4,
     },
   },
   required: ["customers"],
@@ -45,9 +45,46 @@ export const sep31ConfigSchema = {
   additionalProperties: false,
 };
 
+export const sep6ConfigSchema = {
+  type: "object",
+  properties: {
+    deposit: {
+      type: "object",
+      properties: {
+        transactionFields: {
+          type: "object",
+        },
+      },
+      required: ["transactionFields"],
+      additionalProperties: false,
+    },
+    withdraw: {
+      type: "object",
+      properties: {
+        types: {
+          type: "object",
+          additionalProperties: {
+            type: "object",
+            properties: {
+              transactionFields: {
+                type: "object",
+              },
+            },
+            additionalProperties: false,
+          },
+        },
+      },
+      additionalProperties: false,
+    },
+  },
+  required: ["deposit", "withdraw"],
+  additionalProperties: false,
+};
+
 export const sepConfigSchema = {
   type: "object",
   properties: {
+    "6": sep6ConfigSchema,
     "12": sep12ConfigSchema,
     "31": sep31ConfigSchema,
   },

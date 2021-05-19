@@ -17,7 +17,7 @@ const hasValidInfoSchema: Test = {
       directPaymentServerUrl: undefined,
     },
     provides: {
-      infoObj: undefined,
+      sep31InfoObj: undefined,
     },
   },
   failureModes: {
@@ -43,7 +43,7 @@ const hasValidInfoSchema: Test = {
       ),
     };
     result.networkCalls.push(getInfoCall);
-    this.context.provides.infoObj = await makeRequest(
+    this.context.provides.sep31InfoObj = await makeRequest(
       getInfoCall,
       200,
       result,
@@ -71,7 +71,7 @@ export const hasExpectedAssetEnabled: Test = {
   dependencies: [hasValidInfoSchema],
   context: {
     expects: {
-      infoObj: undefined,
+      sep31InfoObj: undefined,
     },
     provides: {},
   },
@@ -89,7 +89,7 @@ export const hasExpectedAssetEnabled: Test = {
       throw "improperly configured";
     const result: Result = { networkCalls: [] };
     if (
-      !Object.keys(this.context.expects.infoObj.receive).includes(
+      !Object.keys(this.context.expects.sep31InfoObj.receive).includes(
         config.assetCode,
       )
     ) {
@@ -109,7 +109,7 @@ const hasExpectedTransactionFields: Test = {
   dependencies: [hasValidInfoSchema],
   context: {
     expects: {
-      infoObj: undefined,
+      sep31InfoObj: undefined,
     },
     provides: {},
   },

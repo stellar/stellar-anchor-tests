@@ -72,7 +72,7 @@ export async function checkConfig(config: Config) {
   if (config.seps.includes(12)) {
     if (!config.sepConfig["12"]) {
       throw new ConfigError(
-        "SEP-12 configuration is required to run SEP-12 tests.",
+        "SEP 12 configuration is required to run SEP 6, 12, or 31 tests.",
       );
     }
     for (const customerName in config.sepConfig["12"].customers) {
@@ -96,6 +96,22 @@ export async function checkConfig(config: Config) {
         }
         customerData[binaryField] = createReadStream(customerData[binaryField]);
       }
+    }
+  }
+  if (config.seps.includes(6)) {
+    if (!config.sepConfig["6"]) {
+      throw new ConfigError(
+        "SEP 6 configuration is required to run SEP-6 tests.",
+      );
+    }
+    if (
+      !config.sepConfig["12"] ||
+      !config.sepConfig["12"].customers ||
+      Object.keys(config.sepConfig["12"].customers).length < 1
+    ) {
+      throw new ConfigError(
+        "One customer record in SEP-12's configuration is required to run SEP-6 tests.",
+      );
     }
   }
 }

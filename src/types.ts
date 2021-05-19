@@ -14,6 +14,7 @@ export interface Config {
 }
 
 export interface SepConfig {
+  6?: SEP6Config;
   12?: SEP12Config;
   31?: SEP31Config;
 }
@@ -27,6 +28,15 @@ export interface SEP31Config {
   sendingClientName: string;
   receivingClientName: string;
   transactionFields?: any;
+}
+
+export interface SEP6Config {
+  deposit: {
+    transactionFields?: any;
+  };
+  withdraw: {
+    types?: Record<string, { transactionFields: any }>;
+  };
 }
 
 export interface NetworkCall {

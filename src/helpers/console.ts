@@ -48,9 +48,9 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
     console.log(c.bold("Description:\n"));
     console.group(); // description group
     console.log(testRun.result.failure.message + "\n");
-    if (testRun.result.expected && testRun.result.actual) {
+    if (testRun.result.expected || testRun.result.actual) {
       console.log(`Expected: ${testRun.result.expected}`);
-      console.log(`Received: '${testRun.result.actual}'\n`);
+      console.log(`Received: ${testRun.result.actual}\n`);
     }
     console.groupEnd(); // description group
   }
