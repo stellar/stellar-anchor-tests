@@ -19,7 +19,7 @@ import {
 
 const tests: Test[] = [];
 const depositTestsGroup = "GET /deposit";
-const depositEndpoint = "/deposit";
+export const depositEndpoint = "/deposit";
 
 const depositRequiresToken: Test = {
   assertion:
@@ -54,7 +54,10 @@ const depositRequiresToken: Test = {
     this.context.provides.authRequired = Boolean(
       depositInfo.authentication_required,
     );
-    if (!this.context.provides.authRequired) return result;
+    if (!this.context.provides.authRequired) {
+      result.skipped = true;
+      return result;
+    }
     const callParams = new URLSearchParams({
       account: Keypair.random().publicKey(),
       asset_code: config.assetCode,
@@ -154,7 +157,10 @@ const depositRequiresAccount: Test = {
   failureModes: depositRequiresAssetCode.failureModes,
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    if (this.context.expects.authRequired) return result;
+    if (!this.context.provides.authRequired) {
+      result.skipped = true;
+      return result;
+    }
     const callParams = new URLSearchParams({
       asset_code: config.assetCode,
     });
@@ -193,7 +199,10 @@ const depositRejectsInvalidAccount: Test = {
   failureModes: depositRequiresAssetCode.failureModes,
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    if (this.context.expects.authRequired) return result;
+    if (!this.context.provides.authRequired) {
+      result.skipped = true;
+      return result;
+    }
     const callParams = new URLSearchParams({
       asset_code: config.assetCode,
       account: "invalid account",
@@ -368,7 +377,7 @@ export const returnsProperSchemaForKnownAccounts: Test = {
   context: {
     expects: depositRequiresAssetCode.context.expects,
     provides: {
-      sep6TransactionId: undefined,
+      sep6DepositTransactionId: undefined,
     },
   },
   failureModes: {
@@ -435,7 +444,7 @@ export const returnsProperSchemaForKnownAccounts: Test = {
       });
       return result;
     }
-    this.context.provides.sep6TransactionId = responseBody.id || null;
+    this.context.provides.sep6DepositTransactionId = responseBody.id || null;
     return result;
   },
 };

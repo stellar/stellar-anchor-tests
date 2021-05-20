@@ -1,11 +1,15 @@
 import { Request } from "node-fetch";
 import { validate } from "jsonschema";
 import { Keypair } from "stellar-sdk";
+import { URLSearchParams } from "url";
 
 import { Test, Result, NetworkCall, Config } from "../../types";
 import { makeFailure, genericFailures } from "../../helpers/failure";
 import { makeRequest } from "../../helpers/request";
-import { successResponseSchema, transactionsSchema } from "../../schemas/sep24";
+import {
+  depositSuccessResponseSchema,
+  transactionsSchema,
+} from "../../schemas/sep6";
 import { tomlExists } from "../sep1/tests";
 import { postChallenge, postChallengeFailureModes } from "../../helpers/sep10";
 import { hasWebAuthEndpoint, returnsValidJwt } from "../sep10/tests";
@@ -15,14 +19,13 @@ import {
   assetCodeEnabledForWithdraw,
 } from "./info";
 import {
-  returnsProperSchemaForValidDepositRequest,
-  invalidDepositSchema,
   depositEndpoint,
+  returnsProperSchemaForKnownAccounts as returnsProperDepositSchemaForKnownAccounts,
 } from "./deposit";
-import { returnsProperSchemaForValidWithdrawRequest } from "./withdraw";
+import { returnsProperSchemaForKnownAccounts as returnsProperWithdrawSchemaForKnownAccounts } from "./withdraw";
 import { hasProperWithdrawTransactionSchema } from "./transaction";
 
-const transactionsTestGroup = "/transactions";
+const transactionsTestGroup = "GET /transactions";
 const tests: Test[] = [];
 
 const transactionsEndpoint = "/transactions";
@@ -32,7 +35,7 @@ const invalidTransactionsSchema = {
   text(args: any): string {
     return (
       "The response body returned does not comply with the schema defined for the /transactions endpoint:\n\n" +
-      "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#transaction-history\n\n" +
+      "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history\n\n" +
       "The errors returned from the schema validation:\n\n" +
       `${args.errors}`
     );
@@ -41,21 +44,30 @@ const invalidTransactionsSchema = {
 
 const transactionsRequiresToken: Test = {
   assertion: "requires a JWT",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
-  dependencies: [hasTransferServerUrl, returnsValidJwt],
+  dependencies: [
+    hasTransferServerUrl,
+    returnsValidJwt,
+    returnsProperDepositSchemaForKnownAccounts,
+  ],
   context: {
     expects: {
-      transferServerUrl: undefined,
+      sep6DepositTransactionId: undefined,
+      sep6TransferServerUrl: undefined,
     },
     provides: {},
   },
   failureModes: genericFailures,
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
+    if (this.context.expects.sep6DepositTransactionId === null) {
+      result.skipped = true;
+      return result;
+    }
     const transactionsCall = {
       request: new Request(
-        this.context.expects.transferServerUrl + transactionsEndpoint,
+        this.context.expects.sep6TransferServerUrl + transactionsEndpoint,
       ),
     };
     result.networkCalls.push(transactionsCall);
@@ -67,22 +79,23 @@ tests.push(transactionsRequiresToken);
 
 const transactionsIsPresentAfterDepositRequest: Test = {
   assertion: "has a record on /transactions after a deposit request",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [
     hasTransferServerUrl,
     assetCodeEnabledForDeposit,
     returnsValidJwt,
-    returnsProperSchemaForValidDepositRequest,
+    returnsProperDepositSchemaForKnownAccounts,
   ],
   context: {
     expects: {
       token: undefined,
-      transferServerUrl: undefined,
-      depositTransactionId: undefined,
+      clientKeypair: undefined,
+      sep6TransferServerUrl: undefined,
+      sep6DepositTransactionId: undefined,
     },
     provides: {
-      depositTransactionsObj: undefined,
+      sep6DepositTransactionsObj: undefined,
     },
   },
   failureModes: {
@@ -96,11 +109,17 @@ const transactionsIsPresentAfterDepositRequest: Test = {
   },
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
+    if (this.context.expects.sep6DepositTransactionId === null) {
+      result.skipped = true;
+      return result;
+    }
     const getTransactionsCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl +
+        this.context.expects.sep6TransferServerUrl +
           transactionsEndpoint +
-          `?asset_code=${config.assetCode}`,
+          `?asset_code=${
+            config.assetCode
+          }&account=${this.context.expects.clientKeypair.publicKey()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -121,24 +140,24 @@ const transactionsIsPresentAfterDepositRequest: Test = {
       !Array.isArray(transactionsBody.transactions)
     ) {
       result.failure = makeFailure(this.failureModes.TRANSACTION_NOT_FOUND, {
-        id: this.context.expects.depositTransactionId,
+        id: this.context.expects.sep6DepositTransactionId,
       });
       return result;
     }
     let transactionFound = false;
     for (const t of transactionsBody.transactions) {
-      if (t.id === this.context.expects.depositTransactionId) {
+      if (t.id === this.context.expects.sep6DepositTransactionId) {
         transactionFound = true;
         break;
       }
     }
     if (!transactionFound) {
       result.failure = makeFailure(this.failureModes.TRANSACTION_NOT_FOUND, {
-        id: this.context.expects.depositTransactionId,
+        id: this.context.expects.sep6DepositTransactionId,
       });
       return result;
     }
-    this.context.provides.depositTransactionsObj = transactionsBody;
+    this.context.provides.sep6DepositTransactionsObj = transactionsBody;
     return result;
   },
 };
@@ -146,22 +165,23 @@ tests.push(transactionsIsPresentAfterDepositRequest);
 
 const transactionsIsPresentAfterWithdrawRequest: Test = {
   assertion: "has a record on /transactions after a withdraw request",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [
     hasTransferServerUrl,
     assetCodeEnabledForWithdraw,
     returnsValidJwt,
-    returnsProperSchemaForValidWithdrawRequest,
+    returnsProperWithdrawSchemaForKnownAccounts,
   ],
   context: {
     expects: {
       token: undefined,
-      transferServerUrl: undefined,
-      withdrawTransactionId: undefined,
+      clientKeypair: undefined,
+      sep6TransferServerUrl: undefined,
+      sep6WithdrawTransactionId: undefined,
     },
     provides: {
-      withdrawTransactionsObj: undefined,
+      sep6WithdrawTransactionsObj: undefined,
     },
   },
   failureModes: {
@@ -175,11 +195,17 @@ const transactionsIsPresentAfterWithdrawRequest: Test = {
   },
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
+    if (this.context.expects.sep6WithdrawTransactionId === null) {
+      result.skipped = true;
+      return result;
+    }
     const getTransactionsCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl +
+        this.context.expects.sep6TransferServerUrl +
           transactionsEndpoint +
-          `?asset_code=${config.assetCode}`,
+          `?asset_code=${
+            config.assetCode
+          }&account=${this.context.expects.clientKeypair.publicKey()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -200,24 +226,24 @@ const transactionsIsPresentAfterWithdrawRequest: Test = {
       !Array.isArray(transactionsBody.transactions)
     ) {
       result.failure = makeFailure(this.failureModes.TRANSACTION_NOT_FOUND, {
-        id: this.context.expects.withdrawTransactionId,
+        id: this.context.expects.sep6WithdrawTransactionId,
       });
       return result;
     }
     let transactionFound = false;
     for (const t of transactionsBody.transactions) {
-      if (t.id === this.context.expects.withdrawTransactionId) {
+      if (t.id === this.context.expects.sep6WithdrawTransactionId) {
         transactionFound = true;
         break;
       }
     }
     if (!transactionFound) {
       result.failure = makeFailure(this.failureModes.TRANSACTION_NOT_FOUND, {
-        id: this.context.expects.withdrawTransactionId,
+        id: this.context.expects.sep6WithdrawTransactionId,
       });
       return result;
     }
-    this.context.provides.withdrawTransactionsObj = transactionsBody;
+    this.context.provides.sep6WithdrawTransactionsObj = transactionsBody;
     return result;
   },
 };
@@ -225,15 +251,16 @@ tests.push(transactionsIsPresentAfterWithdrawRequest);
 
 const hasProperDepositTransactionsSchema: Test = {
   assertion: "has proper deposit transaction schema on /transactions",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [
-    returnsProperSchemaForValidDepositRequest,
+    returnsProperDepositSchemaForKnownAccounts,
     transactionsIsPresentAfterDepositRequest,
   ],
   context: {
     expects: {
-      depositTransactionsObj: undefined,
+      sep6DepositTransactionId: undefined,
+      sep6DepositTransactionsObj: undefined,
     },
     provides: {},
   },
@@ -243,8 +270,12 @@ const hasProperDepositTransactionsSchema: Test = {
   },
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
+    if (this.context.expects.sep6DepositTransactionId === null) {
+      result.skipped = true;
+      return result;
+    }
     const validationResult = validate(
-      this.context.expects.depositTransactionsObj,
+      this.context.expects.sep6DepositTransactionsObj,
       transactionsSchema,
     );
     if (validationResult.errors.length !== 0) {
@@ -259,15 +290,16 @@ tests.push(hasProperDepositTransactionsSchema);
 
 const hasProperWithdrawTransactionsSchema: Test = {
   assertion: "has proper withdraw transaction schema on /transactions",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [
-    returnsProperSchemaForValidWithdrawRequest,
+    returnsProperWithdrawSchemaForKnownAccounts,
     transactionsIsPresentAfterWithdrawRequest,
   ],
   context: {
     expects: {
-      withdrawTransactionsObj: undefined,
+      sep6WithdrawTransactionId: undefined,
+      sep6WithdrawTransactionsObj: undefined,
     },
     provides: {},
   },
@@ -277,8 +309,12 @@ const hasProperWithdrawTransactionsSchema: Test = {
   },
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
+    if (this.context.expects.sep6WithdrawTransactionId === null) {
+      result.skipped = true;
+      return result;
+    }
     const validationResult = validate(
-      this.context.expects.withdrawTransactionsObj,
+      this.context.expects.sep6WithdrawTransactionsObj,
       transactionsSchema,
     );
     if (validationResult.errors.length !== 0) {
@@ -293,7 +329,7 @@ tests.push(hasProperWithdrawTransactionsSchema);
 
 const returnsEmptyListForNewAccount: Test = {
   assertion: "returns an empty list for accounts with no transactions",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [
     tomlExists,
@@ -305,7 +341,7 @@ const returnsEmptyListForNewAccount: Test = {
   context: {
     expects: {
       tomlObj: undefined,
-      transferServerUrl: undefined,
+      sep6TransferServerUrl: undefined,
       webAuthEndpoint: undefined,
     },
     provides: {},
@@ -336,9 +372,11 @@ const returnsEmptyListForNewAccount: Test = {
     if (!token) return result;
     const getTransactionsCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl +
+        this.context.expects.sep6TransferServerUrl +
           transactionsEndpoint +
-          `?asset_code=${config.assetCode}`,
+          `?asset_code=${
+            config.assetCode
+          }&account=${clientKeypair.publicKey()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -372,16 +410,17 @@ tests.push(returnsEmptyListForNewAccount);
 const honorsLimitParam: Test = {
   assertion:
     "returns proper number of transactions when 'limit' parameter is given",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [
     hasTransferServerUrl,
     returnsValidJwt,
-    returnsProperSchemaForValidDepositRequest,
+    returnsProperDepositSchemaForKnownAccounts,
   ],
   context: {
     expects: {
-      transferServerUrl: undefined,
+      sep6DepositTransactionId: undefined,
+      sep6TransferServerUrl: undefined,
       token: undefined,
       clientKeypair: undefined,
     },
@@ -407,31 +446,39 @@ const honorsLimitParam: Test = {
         );
       },
     },
-    DEPOSIT_INVALID_SCHEMA: invalidDepositSchema,
+    DEPOSIT_INVALID_SCHEMA:
+      returnsProperDepositSchemaForKnownAccounts.failureModes.INVALID_SCHEMA,
     TRANSACTIONS_INVALID_SCHEMA: invalidTransactionsSchema,
     ...genericFailures,
   },
   async run(config: Config): Promise<Result> {
+    if (!config.sepConfig || !config.sepConfig["6"])
+      throw { message: "improperly configured" };
     const result: Result = { networkCalls: [] };
-    const postDepositCall: NetworkCall = {
+    if (!this.context.expects.sep6DepositTransactionId === null) {
+      result.skipped = true;
+      return result;
+    }
+    let callParams = new URLSearchParams({
+      asset_code: config.assetCode,
+      account: this.context.expects.clientKeypair.publicKey(),
+      ...config.sepConfig["6"].deposit.transactionFields,
+    });
+    const getDepositCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl + depositEndpoint,
+        this.context.expects.sep6TransferServerUrl +
+          depositEndpoint +
+          `?${callParams.toString()}`,
         {
-          method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${this.context.expects.token}`,
           },
-          body: JSON.stringify({
-            asset_code: config.assetCode,
-            account: this.context.expects.clientKeypair.publicKey(),
-          }),
         },
       ),
     };
-    result.networkCalls.push(postDepositCall);
+    result.networkCalls.push(getDepositCall);
     const depositResponseBody = await makeRequest(
-      postDepositCall,
+      getDepositCall,
       200,
       result,
       "application/json",
@@ -439,7 +486,7 @@ const honorsLimitParam: Test = {
     if (!depositResponseBody) return result;
     const validatorResult = validate(
       depositResponseBody,
-      successResponseSchema,
+      depositSuccessResponseSchema,
     );
     if (validatorResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.DEPOSIT_INVALID_SCHEMA, {
@@ -449,9 +496,11 @@ const honorsLimitParam: Test = {
     }
     const getTransactionsCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl +
+        this.context.expects.sep6TransferServerUrl +
           transactionsEndpoint +
-          `?asset_code=${config.assetCode}&limit=1`,
+          `?asset_code=${
+            config.assetCode
+          }&limit=1&account=${this.context.expects.clientKeypair.publicKey()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -497,7 +546,7 @@ tests.push(honorsLimitParam);
 
 const transactionsAreInDescendingOrder: Test = {
   assertion: "transactions are returned in descending order of creation",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [
     hasTransferServerUrl,
@@ -507,7 +556,7 @@ const transactionsAreInDescendingOrder: Test = {
   ],
   context: {
     expects: {
-      transferServerUrl: undefined,
+      sep6TransferServerUrl: undefined,
       token: undefined,
       clientKeypair: undefined,
     },
@@ -524,7 +573,8 @@ const transactionsAreInDescendingOrder: Test = {
         );
       },
     },
-    DEPOSIT_INVALID_SCHEMA: invalidDepositSchema,
+    DEPOSIT_INVALID_SCHEMA:
+      returnsProperDepositSchemaForKnownAccounts.failureModes.INVALID_SCHEMA,
     TRANSACTIONS_INVALID_SCHEMA: invalidTransactionsSchema,
     MISSING_TRANSACTIONS: {
       name: "missing transactions",
@@ -544,26 +594,29 @@ const transactionsAreInDescendingOrder: Test = {
     ...genericFailures,
   },
   async run(config: Config): Promise<Result> {
+    if (!config.sepConfig || !config.sepConfig["6"])
+      throw { message: "improperly configured" };
     const result: Result = { networkCalls: [] };
-    const postDepositCall: NetworkCall = {
+    const callParams = new URLSearchParams({
+      asset_code: config.assetCode,
+      account: this.context.expects.clientKeypair.publicKey(),
+      ...config.sepConfig["6"].deposit.transactionFields,
+    });
+    const getDepositCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl + depositEndpoint,
+        this.context.expects.sep6TransferServerUrl +
+          depositEndpoint +
+          `?${callParams.toString()}`,
         {
-          method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${this.context.expects.token}`,
           },
-          body: JSON.stringify({
-            asset_code: config.assetCode,
-            account: this.context.expects.clientKeypair.publicKey(),
-          }),
         },
       ),
     };
-    result.networkCalls.push(postDepositCall);
+    result.networkCalls.push(getDepositCall);
     const depositResponseBody = await makeRequest(
-      postDepositCall,
+      getDepositCall,
       200,
       result,
       "application/json",
@@ -571,7 +624,7 @@ const transactionsAreInDescendingOrder: Test = {
     if (!depositResponseBody) return result;
     const validatorResult = validate(
       depositResponseBody,
-      successResponseSchema,
+      depositSuccessResponseSchema,
     );
     if (validatorResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.DEPOSIT_INVALID_SCHEMA, {
@@ -581,9 +634,11 @@ const transactionsAreInDescendingOrder: Test = {
     }
     const getTransactionsCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl +
+        this.context.expects.sep6TransferServerUrl +
           transactionsEndpoint +
-          `?asset_code=${config.assetCode}`,
+          `?asset_code=${
+            config.assetCode
+          }&account=${this.context.expects.clientKeypair.publicKey()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -640,7 +695,7 @@ tests.push(transactionsAreInDescendingOrder);
 const honorsNoOlderThanParam: Test = {
   assertion:
     "returns proper transactions when 'no_older_than' parameter is given",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [
     hasTransferServerUrl,
@@ -651,8 +706,9 @@ const honorsNoOlderThanParam: Test = {
   ],
   context: {
     expects: {
-      transferServerUrl: undefined,
+      sep6TransferServerUrl: undefined,
       token: undefined,
+      clientKeypair: undefined,
     },
     provides: {},
   },
@@ -701,9 +757,11 @@ const honorsNoOlderThanParam: Test = {
     const result: Result = { networkCalls: [] };
     const getTransactionsCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl +
+        this.context.expects.sep6TransferServerUrl +
           transactionsEndpoint +
-          `?asset_code=${config.assetCode}`,
+          `?asset_code=${
+            config.assetCode
+          }&account=${this.context.expects.clientKeypair.publicKey()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -737,9 +795,11 @@ const honorsNoOlderThanParam: Test = {
       ];
     const getTransactionsOlderThanCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl +
+        this.context.expects.sep6TransferServerUrl +
           transactionsEndpoint +
-          `?asset_code=${config.assetCode}&no_older_than=${notEarliestTransaction.started_at}`,
+          `?asset_code=${config.assetCode}&no_older_than=${
+            notEarliestTransaction.started_at
+          }&account=${this.context.expects.clientKeypair.publicKey()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -789,7 +849,7 @@ tests.push(honorsNoOlderThanParam);
 
 const honorsWithdrawTransactionKind: Test = {
   assertion: "only returns withdraw transactions when kind=withdrawal",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [
     hasTransferServerUrl,
@@ -799,8 +859,9 @@ const honorsWithdrawTransactionKind: Test = {
   ],
   context: {
     expects: {
-      transferServerUrl: undefined,
+      sep6TransferServerUrl: undefined,
       token: undefined,
+      clientKeypair: undefined,
     },
     provides: {},
   },
@@ -824,9 +885,11 @@ const honorsWithdrawTransactionKind: Test = {
     const result: Result = { networkCalls: [] };
     const getWithdrawTransactionsCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl +
+        this.context.expects.sep6TransferServerUrl +
           transactionsEndpoint +
-          `?asset_code=${config.assetCode}&kind=withdrawal`,
+          `?asset_code=${
+            config.assetCode
+          }&kind=withdrawal&account=${this.context.expects.clientKeypair.publicKey()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -844,6 +907,7 @@ const honorsWithdrawTransactionKind: Test = {
     if (!withdrawTransactions) return result;
     const validationResult = validate(withdrawTransactions, transactionsSchema);
     if (validationResult.errors.length !== 0) {
+      console.dir(validationResult.errors);
       result.failure = makeFailure(
         this.failureModes.INVALID_TRANSACTIONS_SCHMEA,
         { errors: validationResult.errors.join("\n") },
@@ -867,7 +931,7 @@ tests.push(honorsWithdrawTransactionKind);
 
 const honorsDepositTransactionKind: Test = {
   assertion: "only returns deposit transactions when kind=deposit",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [
     hasTransferServerUrl,
@@ -877,8 +941,9 @@ const honorsDepositTransactionKind: Test = {
   ],
   context: {
     expects: {
-      transferServerUrl: undefined,
+      sep6TransferServerUrl: undefined,
       token: undefined,
+      clientKeypair: undefined,
     },
     provides: {},
   },
@@ -902,9 +967,11 @@ const honorsDepositTransactionKind: Test = {
     const result: Result = { networkCalls: [] };
     const getDepositTransactionsCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl +
+        this.context.expects.sep6TransferServerUrl +
           transactionsEndpoint +
-          `?asset_code=${config.assetCode}&kind=deposit`,
+          `?asset_code=${
+            config.assetCode
+          }&kind=deposit&account=${this.context.expects.clientKeypair.publicKey()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -922,6 +989,7 @@ const honorsDepositTransactionKind: Test = {
     if (!depositTransactions) return result;
     const validationResult = validate(depositTransactions, transactionsSchema);
     if (validationResult.errors.length !== 0) {
+      console.dir(validationResult.errors);
       result.failure = makeFailure(
         this.failureModes.INVALID_TRANSACTIONS_SCHMEA,
         { errors: validationResult.errors.join("\n") },
@@ -945,13 +1013,14 @@ tests.push(honorsDepositTransactionKind);
 
 const rejectsBadAssetCode: Test = {
   assertion: "rejects requests with a bad 'asset_code' parameter",
-  sep: 24,
+  sep: 6,
   group: transactionsTestGroup,
   dependencies: [hasTransferServerUrl, returnsValidJwt],
   context: {
     expects: {
-      transferServerUrl: undefined,
+      sep6TransferServerUrl: undefined,
       token: undefined,
+      clientKeypair: undefined,
     },
     provides: {},
   },
@@ -960,9 +1029,9 @@ const rejectsBadAssetCode: Test = {
     const result: Result = { networkCalls: [] };
     const getTransactionsCall: NetworkCall = {
       request: new Request(
-        this.context.expects.transferServerUrl +
+        this.context.expects.sep6TransferServerUrl +
           transactionsEndpoint +
-          "?asset_code=BADCODE",
+          `?asset_code=BADCODE&account=${this.context.expects.clientKeypair.publicKey()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,

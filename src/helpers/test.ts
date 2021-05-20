@@ -117,6 +117,7 @@ async function* runTestsRecur(
     } else if (ranTests.has(testString(test))) {
       continue;
     }
+    let skippedDependency: TestRun | undefined = undefined;
     let failedDependency: TestRun | undefined = undefined;
     let cycleDetected = false;
     if (test.dependencies) {
@@ -130,7 +131,9 @@ async function* runTestsRecur(
           ranTests,
         )) {
           yield testRun;
-          if (testRun.result.failure) {
+          if (testRun.result.skipped) {
+            skippedDependency = testRun;
+          } else if (testRun.result.failure) {
             failedDependency = testRun;
             break;
           }
@@ -162,6 +165,14 @@ async function* runTestsRecur(
         result: {
           networkCalls: [],
           failure: makeFailure(cycleDetectedFailure, { test: test }),
+        },
+      };
+    } else if (skippedDependency) {
+      yield {
+        test: test,
+        result: {
+          networkCalls: [],
+          skipped: true,
         },
       };
     } else if (failedDependency) {

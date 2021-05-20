@@ -54,7 +54,10 @@ const withdrawRequiresToken: Test = {
     this.context.provides.authRequired = Boolean(
       withdrawInfo.authentication_required,
     );
-    if (!this.context.provides.authRequired) return result;
+    if (!this.context.provides.authRequired) {
+      result.skipped = true;
+      return result;
+    }
     const withdrawType = Object.keys(withdrawInfo.types)[0];
     const withdrawTypeFields =
       withdrawInfo.types[withdrawType].transactionFields || {};
@@ -174,7 +177,10 @@ const withdrawRequiresAccount: Test = {
       // checked in assetCodeEnabledForWithdraw
       throw { message: "improperly configured" };
     const result: Result = { networkCalls: [] };
-    if (this.context.expects.authRequired) return result;
+    if (!this.context.provides.authRequired) {
+      result.skipped = true;
+      return result;
+    }
     const withdrawInfo = this.context.expects.sep6InfoObj.withdraw[
       config.assetCode
     ];
@@ -224,7 +230,10 @@ const withdrawRejectsInvalidAccount: Test = {
       // checked in assetCodeEnabledForWithdraw
       throw { message: "improperly configured" };
     const result: Result = { networkCalls: [] };
-    if (this.context.expects.authRequired) return result;
+    if (!this.context.provides.authRequired) {
+      result.skipped = true;
+      return result;
+    }
     const headers = this.context.expects.authRequired
       ? {
           headers: {
@@ -420,7 +429,7 @@ export const returnsProperSchemaForUnknownAccounts: Test = {
 };
 tests.push(returnsProperSchemaForUnknownAccounts);
 
-const returnsProperSchemaForKnownAccounts: Test = {
+export const returnsProperSchemaForKnownAccounts: Test = {
   assertion:
     "returns a success or customer info status response for valid requests from KYC'ed accounts",
   sep: 6,
@@ -431,7 +440,7 @@ const returnsProperSchemaForKnownAccounts: Test = {
   context: {
     expects: withdrawRequiresAssetCode.context.expects,
     provides: {
-      sep6TransactionId: undefined,
+      sep6WithdrawTransactionId: undefined,
     },
   },
   failureModes: {
@@ -511,7 +520,7 @@ const returnsProperSchemaForKnownAccounts: Test = {
       });
       return result;
     }
-    this.context.provides.sep6TransactionId = responseBody.id || null;
+    this.context.provides.sep6WithdrawTransactionId = responseBody.id || null;
     if (getWithdrawCall.response.status === 200) {
       try {
         Keypair.fromPublicKey(responseBody.account_id);
