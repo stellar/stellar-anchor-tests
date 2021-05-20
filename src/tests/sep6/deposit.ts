@@ -14,6 +14,7 @@ import { assetCodeEnabledForDeposit, isCompliantWithSchema } from "./info";
 import {
   needsInfoResponseSchema,
   depositSuccessResponseSchema,
+  customerInfoStatusSchema,
 } from "../../schemas/sep6";
 
 const tests: Test[] = [];
@@ -356,9 +357,9 @@ export const returnsProperSchemaForUnknownAccounts: Test = {
 };
 tests.push(returnsProperSchemaForUnknownAccounts);
 
-const returnsProperSchemaForKnownAccounts: Test = {
+export const returnsProperSchemaForKnownAccounts: Test = {
   assertion:
-    "returns a success response for valid requests from KYC'ed accounts",
+    "returns a success or customer info status response for valid requests from KYC'ed accounts",
   sep: 6,
   group: depositTestsGroup,
   dependencies: [canCreateCustomer].concat(
@@ -376,7 +377,8 @@ const returnsProperSchemaForKnownAccounts: Test = {
       text(args: any): string {
         return (
           "The response body returned does not comply with the schema defined for the /deposit endpoint:\n\n" +
-          `${args.reference}\n\n` +
+          `${args.success}\n` +
+          `${args.customerInfoStatus}\n\n` +
           "The errors returned from the schema validation:\n\n" +
           `${args.errors}`
         );
@@ -411,24 +413,29 @@ const returnsProperSchemaForKnownAccounts: Test = {
     result.networkCalls.push(getDepositCall);
     const responseBody = await makeRequest(
       getDepositCall,
-      200,
+      [200, 403],
       result,
       "application/json",
     );
-    if (!responseBody) return result;
-    const validatorResult = validate(
-      responseBody,
-      depositSuccessResponseSchema,
-    );
-    if (validatorResult.errors.length !== 0) {
+    if (!responseBody || !getDepositCall.response) return result;
+    let schema;
+    if (getDepositCall.response.status == 200) {
+      schema = depositSuccessResponseSchema;
+    } else {
+      schema = customerInfoStatusSchema;
+    }
+    const validationResult = validate(responseBody, schema);
+    if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
-        errors: validatorResult.errors.join("\n"),
-        reference:
+        errors: validationResult.errors.join("\n"),
+        success:
           "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#1-success-no-additional-information-needed",
+        customerInfoStatus:
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#3-customer-information-status",
       });
       return result;
     }
-    this.context.provides.sep6TransactionId = responseBody.id;
+    this.context.provides.sep6TransactionId = responseBody.id || null;
     return result;
   },
 };

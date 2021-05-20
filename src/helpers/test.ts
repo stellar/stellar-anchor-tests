@@ -343,7 +343,7 @@ function provideExpectedContext(
   test: Test,
 ): Failure | undefined {
   for (const key in test.context.expects) {
-    if (!globalContext[key]) {
+    if (globalContext[key] === undefined) {
       return makeFailure(
         {
           name: "missing expected context",
@@ -369,7 +369,7 @@ function updateWithProvidedContext(
   test: Test,
 ): Failure | undefined {
   for (const key in test.context.provides) {
-    if (!test.context.provides[key]) {
+    if (test.context.provides[key] === undefined) {
       return makeFailure(
         {
           name: "missing provided context",

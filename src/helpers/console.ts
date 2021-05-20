@@ -21,6 +21,8 @@ function printColoredTextStats(
   let testsLine = "Tests:       ";
   if (stats.failed !== 0) testsLine += c.red(`${stats.failed} failed`) + ", ";
   if (stats.passed !== 0) testsLine += c.green(`${stats.passed} passed`) + ", ";
+  if (stats.skipped !== 0)
+    testsLine += c.gray(`${stats.skipped} skipped`) + ", ";
   testsLine += `${stats.total} total`;
   console.log(testsLine);
   const secondsString = ((endTime - startTime) / 1000).toFixed(3);
@@ -28,13 +30,22 @@ function printColoredTextStats(
 }
 
 async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
-  let color = testRun.result.failure ? c.red.bold : c.green.bold;
-  let symbol = testRun.result.failure ? c.symbols.cross : c.symbols.check;
+  let color, symbol;
+  if (testRun.result.skipped) {
+    color = c.gray.bold;
+    symbol = c.symbols.pointer;
+  } else if (testRun.result.failure) {
+    color = c.red.bold;
+    symbol = c.symbols.cross;
+  } else {
+    color = c.green.bold;
+    symbol = c.symbols.check;
+  }
   let header = `${symbol} `;
   if (testRun.test.group) {
     if (testRun.test.sep)
-      header += `SEP-${testRun.test.sep} ${c.symbols.pointer} `;
-    header += `${testRun.test.group} ${c.symbols.pointer} `;
+      header += `SEP-${testRun.test.sep} ${c.symbols.pointerSmall} `;
+    header += `${testRun.test.group} ${c.symbols.pointerSmall} `;
   }
   header += `${testRun.test.assertion}`;
   console.log(color(header));

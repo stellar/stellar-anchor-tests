@@ -55,6 +55,7 @@ export interface Result {
   failure?: Failure;
   expected?: string | number | object;
   actual?: string | number | object;
+  skipped?: boolean;
 }
 
 export interface Context {
@@ -83,4 +84,5 @@ export interface Stats {
   total: number;
   passed: number;
   failed: number;
+  skipped: number;
 }

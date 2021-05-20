@@ -95,7 +95,7 @@ export const needsInfoResponseSchema = {
   properties: {
     type: {
       type: "string",
-      enum: ["non_interactive_customer_info_needed"],
+      pattern: "non_interactive_customer_info_needed",
     },
     fields: {
       type: "array",
@@ -105,6 +105,29 @@ export const needsInfoResponseSchema = {
       },
     },
   },
+};
+
+export const customerInfoStatusSchema = {
+  type: "object",
+  properties: {
+    type: {
+      type: "string",
+      pattern: "customer_info_status",
+    },
+    status: {
+      type: "string",
+      enum: ["pending", "denied"],
+    },
+    more_info_url: {
+      type: "string",
+      format: "uri",
+    },
+    eta: {
+      type: "number",
+    },
+  },
+  required: ["type", "status"],
+  additionalProperties: false,
 };
 
 export const depositSuccessResponseSchema = {
