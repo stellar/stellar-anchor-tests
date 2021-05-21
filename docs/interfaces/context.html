@@ -1,0 +1,246 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Context | Stellar Anchor Tests</title>
+	<meta name="description" content="Documentation for Stellar Anchor Tests">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="../index.html" class="title">Stellar Anchor Tests</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../modules.html">Stellar Anchor Tests</a>
+				</li>
+				<li>
+					<a href="context.html">Context</a>
+				</li>
+			</ul>
+			<h1>Interface Context</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>An object containing the data expected and provided by the test before and after <a href="test.html#run">Test.run</a> executes,
+							respectively. The data provided by a test is used (i.e. expected) by tests that include it in it&#39;s
+						<a href="test.html#dependencies">Test.dependencies</a> array.</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">Context</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="context.html#expects" class="tsd-kind-icon">expects</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="context.html#provides" class="tsd-kind-icon">provides</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="expects" class="tsd-anchor"></a>
+					<h3>expects</h3>
+					<div class="tsd-signature tsd-kind-icon">expects<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L235">src/types.ts:235</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Prior to the test running, every property defined in this object has a value of <code>undefined</code>. If a value
+							for each property was not provided by a prior test, the test fails. See <a href="../modules.html#runtests">runTests</a> for more information.</p>
+						</div>
+					</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="provides" class="tsd-anchor"></a>
+					<h3>provides</h3>
+					<div class="tsd-signature tsd-kind-icon">provides<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L241">src/types.ts:241</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Prior to the test running, every property defined in this object has a value of <code>undefined</code>. If a value
+							for any property is still <code>undefined</code> after the test run, the test fails. See <a href="../modules.html#runtests">runTests</a> for more information.</p>
+						</div>
+					</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-class">
+						<a href="../classes/configerror.html" class="tsd-kind-icon">Config<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="config.html" class="tsd-kind-icon">Config</a>
+					</li>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface">
+						<a href="context.html" class="tsd-kind-icon">Context</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="context.html#expects" class="tsd-kind-icon">expects</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="context.html#provides" class="tsd-kind-icon">provides</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+					<li class=" tsd-kind-interface">
+						<a href="failure.html" class="tsd-kind-icon">Failure</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="networkcall.html" class="tsd-kind-icon">Network<wbr>Call</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="result.html" class="tsd-kind-icon">Result</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="sep12config.html" class="tsd-kind-icon">Sep12<wbr>Config</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="sep31config.html" class="tsd-kind-icon">Sep31<wbr>Config</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="sep6config.html" class="tsd-kind-icon">Sep6<wbr>Config</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="sepconfig.html" class="tsd-kind-icon">Sep<wbr>Config</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="stats.html" class="tsd-kind-icon">Stats</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="test.html" class="tsd-kind-icon">Test</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="testrun.html" class="tsd-kind-icon">Test<wbr>Run</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="../modules.html#sep" class="tsd-kind-icon">SEP</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="../modules.html#gettests" class="tsd-kind-icon">get<wbr>Tests</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="../modules.html#run" class="tsd-kind-icon">run</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="../modules.html#runtests" class="tsd-kind-icon">run<wbr>Tests</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer>
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
