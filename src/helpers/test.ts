@@ -10,7 +10,7 @@ import { default as sep31Tests } from "../tests/sep31/tests";
 import { makeFailure } from "./failure";
 import { checkConfig } from "./config";
 
-/*
+/**
  * Top-level entry point for running tests.
  *
  * Gets the top level tests based on the SEPs and search strings specified
@@ -24,7 +24,7 @@ export async function* run(config: Config): AsyncGenerator<TestRun> {
   }
 }
 
-/*
+/**
  * Gets all tests that run() would run for a `config` passed.
  *
  * This is helpful if you want to use test objects prior to running.
@@ -78,20 +78,7 @@ function getAllTestsRecur(
   return allTests;
 }
 
-/*
- * Calls runTestsRecur() and yields results back to the caller.
- */
-export async function* runTests(
-  tests: Test[],
-  config: Config,
-): AsyncGenerator<TestRun> {
-  await checkConfig(config);
-  for await (const testRun of runTestsRecur(tests, config, [], {}, new Set())) {
-    yield testRun;
-  }
-}
-
-/*
+/**
  * Runs the tests passed, including dependencies, and yields them
  * back to the caller.
  *
@@ -104,6 +91,16 @@ export async function* runTests(
  * its dependencies fails, a relevant Faliure will be added to the
  * test's result and yielded and the test will not be run.
  */
+export async function* runTests(
+  tests: Test[],
+  config: Config,
+): AsyncGenerator<TestRun> {
+  await checkConfig(config);
+  for await (const testRun of runTestsRecur(tests, config, [], {}, new Set())) {
+    yield testRun;
+  }
+}
+
 async function* runTestsRecur(
   tests: Test[],
   config: Config,
@@ -242,19 +239,7 @@ async function* runTestsRecur(
  */
 async function runTest(test: Test, config: Config): Promise<TestRun> {
   try {
-    if (test.before) {
-      const beforeResult = await test.before(config);
-      if (beforeResult) {
-        return { test: test, result: beforeResult };
-      }
-    }
     const result = await test.run(config);
-    if (test.after) {
-      const afterResult = await test.after(config);
-      if (afterResult) {
-        return { test: test, result: afterResult };
-      }
-    }
     return { test: test, result: result };
   } catch (e) {
     const failure: Failure = {

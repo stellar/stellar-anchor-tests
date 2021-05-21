@@ -10,5 +10,13 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true
   },
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "name": "Stellar Anchor Tests",
+    "gitRevision": "master",
+    "gitRemote": "upstream",
+    "hideGenerator": true,
+    "out": "docs"
+  },
   "include": ["src"]
 }

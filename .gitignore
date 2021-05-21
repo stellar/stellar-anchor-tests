@@ -1,6 +1,7 @@
 node_modules
 lib
 config.json
+docs
 
 .DS_Store
 
