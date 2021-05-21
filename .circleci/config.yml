@@ -23,7 +23,7 @@ jobs:
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: dependencies-{{ checksum "package.json" }}
 
       # build
       - run: yarn build
