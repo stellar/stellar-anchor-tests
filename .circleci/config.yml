@@ -32,7 +32,7 @@ jobs:
           root: ~/repo
           paths: .
 
-  deploy:
+  publish:
     <<: *defaults
     steps:
       - attach_workspace:
@@ -47,13 +47,13 @@ jobs:
 
 workflows:
   version: 2
-  test-deploy:
+  publish:
     jobs:
       - build:
           filters:
             tags:
               only: /^v.*/
-      - deploy:
+      - publish:
           requires:
             - build
           filters:
