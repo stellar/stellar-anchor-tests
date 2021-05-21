@@ -213,7 +213,7 @@ export const differentMemosSameAccount: Test = {
       ) {
         // this configuration is checked prior to running tests
         // but to satisfy TypeScript we make these checks here.
-        throw "improperly configured";
+        throw { message: "improperly configured" };
       }
       sendingCustomerData =
         config.sepConfig["12"].customers[

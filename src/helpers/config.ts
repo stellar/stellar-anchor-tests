@@ -9,7 +9,7 @@ import { Config } from "../types";
 import { configSchema } from "../schemas/config";
 import { binaryFields } from "../schemas/sep12";
 
-class ConfigError extends Error {
+export class ConfigError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "ConfigError";

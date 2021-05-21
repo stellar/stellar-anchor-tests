@@ -11,11 +11,15 @@ import { makeFailure } from "./failure";
 import { checkConfig } from "./config";
 
 /**
- * Top-level entry point for running tests.
- *
- * Gets the top level tests based on the SEPs and search strings specified
+ * Gets tests based on the SEPs and search strings specified
  * in `config` and calls runTests, which ensures all depedencies are run
  * prior to each test. Each test run is yield'ed back to the caller.
+ *
+ * The function will raise an exception if a cycle is detected. A
+ * cycle is when a test depends, directly or indirectly, on itself.
+
+ * @param config  the [[Config]] object to pass to each [[Test.run]] method.
+ * @throws [[ConfigError]]  if the `config` is invalid in some way.
  */
 export async function* run(config: Config): AsyncGenerator<TestRun> {
   const tests = getTopLevelTests(config);
@@ -25,7 +29,7 @@ export async function* run(config: Config): AsyncGenerator<TestRun> {
 }
 
 /**
- * Gets all tests that run() would run for a `config` passed.
+ * Gets all tests that [[run]] would run for a given [[Config]] passed.
  *
  * This is helpful if you want to use test objects prior to running.
  * For example, the tests returned could be displayed in a UI prior
@@ -33,6 +37,9 @@ export async function* run(config: Config): AsyncGenerator<TestRun> {
  *
  * The function will raise an exception if a cycle is detected. A
  * cycle is when a test depends, directly or indirectly, on itself.
+ *
+ * @param config  the [[Config]] object to used to determine which tests to return.
+ * @throws [[ConfigError]]  if the `config` is invalid in some way.
  */
 export async function getTests(config: Config): Promise<Test[]> {
   await checkConfig(config);
@@ -83,13 +90,17 @@ function getAllTestsRecur(
  * back to the caller.
  *
  * Maintains a global context object. Expects each test to provide
- * the data defined in `Test.context.provides` to the global context
+ * the data defined in [[Context.provides]] to the global context
  * and ensures the global context has the data defined in each
- * `Test.context.expects`.
+ * [[Context.expects]].
  *
  * If a test directly or indirectly depends on itself or if one of
- * its dependencies fails, a relevant Faliure will be added to the
+ * its dependencies fails, a relevant [[Faliure]] will be added to the
  * test's result and yielded and the test will not be run.
+ *
+ * @param tests  the list of tests to run in order.
+ * @param config  the [[Config]] object to pass to each [[Test.run]] method.
+ * @throws [[ConfigError]]  if the `config` is invalid in some way.
  */
 export async function* runTests(
   tests: Test[],
