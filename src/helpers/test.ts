@@ -85,6 +85,36 @@ function getAllTestsRecur(
   return allTests;
 }
 
+class FailedDependencyError extends Error {
+  test: Test;
+
+  constructor(test: Test) {
+    super(
+      "A test dependency failed\n\n" +
+        `SEP: ${test.sep}\nGroup: ${test.group}\nAssertion: ${test.assertion}`,
+    );
+    this.name = "FailedDependencyError";
+    this.test = test;
+
+    Object.setPrototypeOf(this, FailedDependencyError.prototype);
+  }
+}
+
+class CyclicDependencyError extends Error {
+  test: Test;
+
+  constructor(test: Test) {
+    super(
+      "A dependency cycle was detected\n\n" +
+        `SEP: ${test.sep}\nGroup: ${test.group}\nAssertion: ${test.assertion}`,
+    );
+    this.name = "CyclicDependencyError";
+    this.test = test;
+
+    Object.setPrototypeOf(this, CyclicDependencyError.prototype);
+  }
+}
+
 /**
  * Runs the tests passed, including dependencies, and yields them
  * back to the caller.
@@ -107,7 +137,7 @@ export async function* runTests(
   config: Config,
 ): AsyncGenerator<TestRun> {
   await checkConfig(config);
-  for await (const testRun of runTestsRecur(tests, config, [], {}, new Set())) {
+  for await (const testRun of runTestsRecur(tests, config, [], {}, {})) {
     yield testRun;
   }
 }
@@ -117,17 +147,21 @@ async function* runTestsRecur(
   config: Config,
   chain: Test[],
   globalContext: { [key: string]: any },
-  ranTests: Set<string>,
+  ranTests: Record<string, TestRun>,
 ): AsyncGenerator<TestRun> {
   for (const test of tests) {
     if (containsTest(chain, test)) {
-      throw test;
-    } else if (ranTests.has(testString(test))) {
-      continue;
+      throw new CyclicDependencyError(test);
+    } else if (testString(test) in ranTests) {
+      if (!ranTests[testString(test)].result.failure) {
+        continue;
+      } else {
+        throw new FailedDependencyError(test);
+      }
     }
-    let skippedDependency: TestRun | undefined = undefined;
-    let failedDependency: TestRun | undefined = undefined;
-    let cycleDetected = false;
+    //let skippedDependency: TestRun | undefined = undefined;
+    let failedDependencyError: FailedDependencyError | undefined = undefined;
+    let cycleError: CyclicDependencyError | undefined = undefined;
     if (test.dependencies) {
       chain.push(test);
       try {
@@ -139,69 +173,53 @@ async function* runTestsRecur(
           ranTests,
         )) {
           yield testRun;
-          if (testRun.result.skipped) {
-            skippedDependency = testRun;
-          } else if (testRun.result.failure) {
-            failedDependency = testRun;
-            break;
+          if (testRun.result.failure) {
+            throw new FailedDependencyError(testRun.test);
           }
         }
-      } catch (cyclicTest) {
-        if (cyclicTest === test) {
-          cycleDetected = true;
+      } catch (error) {
+        if (error instanceof CyclicDependencyError) {
+          if (testString(error.test) === testString(test)) {
+            cycleError = error;
+          } else {
+            chain.pop();
+            throw error;
+          }
+        } else if (error instanceof FailedDependencyError) {
+          failedDependencyError = error;
         } else {
-          chain.pop();
-          throw cyclicTest;
+          // unexpected exception
+          throw error;
         }
       }
       chain.pop();
     }
-    if (cycleDetected) {
+    if (cycleError) {
       const cycleDetectedFailure: Failure = {
         name: "dependency cycle detected",
-        text(args: any): string {
-          return (
-            "A dependency cycle was detected for test:\n\n" +
-            `SEP: ${args.test.sep}\n` +
-            `Group: ${args.test.group}\n` +
-            `Assertion: ${args.test.assertion}`
-          );
+        text(_args: any): string {
+          return (cycleError as CyclicDependencyError).message;
         },
       };
       yield {
         test: test,
         result: {
           networkCalls: [],
-          failure: makeFailure(cycleDetectedFailure, { test: test }),
+          failure: makeFailure(cycleDetectedFailure),
         },
       };
-    } else if (skippedDependency) {
-      yield {
-        test: test,
-        result: {
-          networkCalls: [],
-          skipped: true,
-        },
-      };
-    } else if (failedDependency) {
+    } else if (failedDependencyError) {
       const failedDependencyFailure: Failure = {
         name: "failed dependency",
-        text(args: any): string {
-          return (
-            `A prior test dependency failed:\n\n` +
-            `SEP: ${args.testRun.test.sep}\n` +
-            `Group: ${args.testRun.test.group}\n` +
-            `Assertion: ${args.testRun.test.assertion}`
-          );
+        text(_args: any): string {
+          return (failedDependencyError as FailedDependencyError).message;
         },
       };
       yield {
         test: test,
         result: {
           networkCalls: [],
-          failure: makeFailure(failedDependencyFailure, {
-            testRun: failedDependency,
-          }),
+          failure: makeFailure(failedDependencyFailure),
         },
       };
     } else {
@@ -220,7 +238,7 @@ async function* runTestsRecur(
         continue;
       }
       const testRun = await runTest(test, config);
-      ranTests.add(testString(test));
+      ranTests[testString(test)] = testRun;
       if (!testRun.result.failure) {
         const providedContextFailure = updateWithProvidedContext(
           globalContext,
