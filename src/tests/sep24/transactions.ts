@@ -607,7 +607,7 @@ const transactionsAreInDescendingOrder: Test = {
       result.failure = makeFailure(
         this.failureModes.TRANSACTIONS_INVALID_SCHEMA,
         {
-          errors: validatorResult.errors.join("\n"),
+          errors: transactionsValidatorResult.errors.join("\n"),
         },
       );
       return result;

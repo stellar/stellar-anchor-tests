@@ -203,7 +203,7 @@ export async function getChallenge(
     return;
   }
   const getAuthContentType = getAuthCall.response.headers.get("Content-Type");
-  if (!getAuthContentType || getAuthContentType !== "application/json") {
+  if (!getAuthContentType || !getAuthContentType.includes("application/json")) {
     result.failure = makeFailure(getChallengeFailureModes.BAD_CONTENT_TYPE);
     result.expected = "application/json";
     if (getAuthContentType) result.actual = getAuthContentType;
@@ -299,7 +299,7 @@ export async function postChallenge(
   );
   if (
     !postAuthResponseContentType ||
-    postAuthResponseContentType !== "application/json"
+    !postAuthResponseContentType.includes("application/json")
   ) {
     result.failure = makeFailure(postChallengeFailureModes.BAD_CONTENT_TYPE);
     result.expected = "application/json";

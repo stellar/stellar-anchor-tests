@@ -534,6 +534,7 @@ const noAccount: Test = {
       result,
       "application/json",
     );
+    if (!responseBody) return result;
     if (
       !responseBody.error ||
       !(
@@ -576,6 +577,7 @@ const invalidAccount: Test = {
       result,
       "application/json",
     );
+    if (!responseBody) return result;
     if (
       !responseBody.error ||
       !(

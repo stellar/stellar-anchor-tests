@@ -104,8 +104,10 @@ export const transactionSchema = {
         claimable_balance_id: {
           type: ["string", "null"],
         },
+        kyc_verified: {
+          type: ["boolean", "null"],
+        },
       },
-      additionalProperties: false,
       required: [
         "id",
         "kind",

@@ -255,7 +255,6 @@ export const transactionSchema = {
           type: ["string", "null"],
         },
       },
-      additionalProperties: false,
       required: [
         "id",
         "kind",

@@ -94,7 +94,6 @@ export const getTransactionSchema = {
         "stellar_memo",
         "stellar_memo_type",
       ],
-      additionalProperties: false,
     },
   },
   required: ["transaction"],
