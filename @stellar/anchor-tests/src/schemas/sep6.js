@@ -1,0 +1,332 @@
+"use strict";
+exports.__esModule = true;
+exports.getTransactionSchema = exports.transactionsSchema = exports.transactionSchema = exports.withdrawSuccessResponseSchema = exports.depositSuccessResponseSchema = exports.customerInfoStatusSchema = exports.needsInfoResponseSchema = exports.infoSchema = void 0;
+var sep12_1 = require("./sep12");
+var fieldsSchema = {
+    type: "object",
+    additionalProperties: {
+        type: "object",
+        properties: {
+            description: {
+                type: "string"
+            },
+            optional: {
+                type: "boolean"
+            },
+            choices: {
+                type: "array"
+            }
+        },
+        required: ["description"],
+        additionalProperties: false
+    }
+};
+var depositInfoSchema = {
+    type: "object",
+    patternProperties: {
+        ".*": {
+            properties: {
+                enabled: { type: "boolean" },
+                fee_fixed: { type: "number" },
+                fee_minimum: { type: "number" },
+                fee_percent: { type: "number", range: [0, 100] },
+                min_amount: { type: "number" },
+                max_amount: { type: "number" },
+                authentication_required: { type: "boolean" },
+                fields: fieldsSchema
+            },
+            required: ["enabled"],
+            additionalProperties: false
+        }
+    }
+};
+var withdrawInfoSchema = {
+    type: "object",
+    patternProperties: {
+        ".*": {
+            properties: {
+                enabled: { type: "boolean" },
+                fee_fixed: { type: "number" },
+                fee_minimum: { type: "number" },
+                fee_percent: { type: "number", range: [0, 100] },
+                min_amount: { type: "number" },
+                max_amount: { type: "number" },
+                authentication_required: { type: "boolean" },
+                types: {
+                    additionalProperties: {
+                        type: "object",
+                        properties: {
+                            fields: fieldsSchema
+                        },
+                        required: ["fields"],
+                        additionalProperties: false
+                    }
+                }
+            },
+            required: ["enabled"],
+            additionalProperties: false
+        }
+    }
+};
+var otherFieldSchema = {
+    type: "object",
+    properties: {
+        enabled: { type: "boolean" },
+        authentication_required: { type: "boolean" }
+    },
+    required: ["enabled"]
+};
+exports.infoSchema = {
+    type: "object",
+    properties: {
+        deposit: depositInfoSchema,
+        withdraw: withdrawInfoSchema,
+        fee: otherFieldSchema,
+        transaction: otherFieldSchema,
+        transactions: otherFieldSchema
+    },
+    required: ["deposit", "withdraw", "fee", "transaction", "transactions"]
+};
+exports.needsInfoResponseSchema = {
+    type: "object",
+    properties: {
+        type: {
+            type: "string",
+            pattern: "non_interactive_customer_info_needed"
+        },
+        fields: {
+            type: "array",
+            items: {
+                type: "string",
+                "enum": sep12_1.sep9Fields
+            }
+        }
+    }
+};
+exports.customerInfoStatusSchema = {
+    type: "object",
+    properties: {
+        type: {
+            type: "string",
+            pattern: "customer_info_status"
+        },
+        status: {
+            type: "string",
+            "enum": ["pending", "denied"]
+        },
+        more_info_url: {
+            type: "string",
+            format: "uri"
+        },
+        eta: {
+            type: "number"
+        }
+    },
+    required: ["type", "status"],
+    additionalProperties: false
+};
+exports.depositSuccessResponseSchema = {
+    type: "object",
+    properties: {
+        how: {
+            type: "string"
+        },
+        id: {
+            type: "string"
+        },
+        eta: {
+            type: "number"
+        },
+        min_amount: {
+            type: "number"
+        },
+        max_amount: {
+            type: "number"
+        },
+        fee_fixed: {
+            type: "number"
+        },
+        fee_percent: {
+            type: "number",
+            range: [0, 100]
+        },
+        extra_info: {
+            type: "object"
+        }
+    },
+    required: ["how", "id"]
+};
+exports.withdrawSuccessResponseSchema = {
+    type: "object",
+    properties: {
+        account_id: {
+            type: "string"
+        },
+        memo_type: {
+            type: "string",
+            "enum": ["hash", "id", "text"]
+        },
+        memo: {
+            type: "string"
+        },
+        id: {
+            type: "string"
+        },
+        eta: {
+            type: "number"
+        },
+        min_amount: {
+            type: "number"
+        },
+        max_amount: {
+            type: "number"
+        },
+        fee_fixed: {
+            type: "number"
+        },
+        fee_percent: {
+            type: "number",
+            range: [0, 100]
+        },
+        extra_info: {
+            type: "object"
+        }
+    },
+    required: ["account_id", "id"],
+    additionalProperties: false
+};
+exports.transactionSchema = {
+    type: "object",
+    properties: {
+        transaction: {
+            type: "object",
+            properties: {
+                id: { type: "string" },
+                kind: { type: "string", pattern: "deposit|withdrawal" },
+                status: {
+                    type: "string",
+                    pattern: "completed|pending_external|pending_anchor|pending_stellar|pending_trust|pending_user|pending_user_transfer_start|incomplete|no_market|too_small|too_large|error"
+                },
+                more_info_url: {
+                    type: "string",
+                    format: "uri"
+                },
+                status_eta: {
+                    type: ["number", "null"]
+                },
+                amount_in: {
+                    type: ["string", "null"]
+                },
+                amount_out: {
+                    type: ["string", "null"]
+                },
+                amount_fee: {
+                    type: ["string", "null"]
+                },
+                started_at: {
+                    type: "string",
+                    format: "date-time"
+                },
+                completed_at: {
+                    type: ["string", "null"],
+                    format: "date-time"
+                },
+                stellar_transaction_id: {
+                    type: ["string", "null"]
+                },
+                external_transaction_id: {
+                    type: ["string", "null"]
+                },
+                message: {
+                    type: ["string", "null"]
+                },
+                refunded: {
+                    type: "boolean"
+                },
+                claimable_balance_id: {
+                    type: ["string", "null"]
+                }
+            },
+            required: [
+                "id",
+                "kind",
+                "status",
+                "amount_in",
+                "amount_out",
+                "amount_fee",
+                "started_at",
+                "completed_at",
+                "stellar_transaction_id",
+                "refunded",
+            ]
+        }
+    },
+    required: ["transaction"]
+};
+exports.transactionsSchema = {
+    type: "object",
+    properties: {
+        transactions: {
+            type: "array",
+            items: {
+                anyOf: [
+                    getTransactionSchema(true).properties.transaction,
+                    getTransactionSchema(false).properties.transaction,
+                ]
+            }
+        }
+    },
+    required: ["transactions"]
+};
+function getTransactionSchema(isDeposit) {
+    var schema = JSON.parse(JSON.stringify(exports.transactionSchema));
+    var requiredDepositParams = ["from", "to"];
+    var requiredWithdrawParams = [
+        "from",
+        "to",
+        "withdraw_memo",
+        "withdraw_memo_type",
+        "withdraw_anchor_account",
+    ];
+    var depositProperties = {
+        deposit_memo: {
+            type: ["string", "null"]
+        },
+        deposit_memo_type: {
+            type: ["string", "null"]
+        },
+        from: {
+            type: ["string", "null"]
+        },
+        to: {
+            type: ["string", "null"]
+        }
+    };
+    var withdrawProperties = {
+        withdraw_anchor_account: {
+            type: ["string", "null"]
+        },
+        withdraw_memo: {
+            type: ["string", "null"]
+        },
+        withdraw_memo_type: {
+            type: ["string", "null"]
+        },
+        from: {
+            type: ["string", "null"]
+        },
+        to: {
+            type: ["string", "null"]
+        }
+    };
+    if (isDeposit) {
+        schema.properties.transaction.required = schema.properties.transaction.required.concat(requiredDepositParams);
+        Object.assign(schema.properties.transaction.properties, depositProperties);
+    }
+    else {
+        schema.properties.transaction.required = schema.properties.transaction.required.concat(requiredWithdrawParams);
+        Object.assign(schema.properties.transaction.properties, withdrawProperties);
+    }
+    return schema;
+}
+exports.getTransactionSchema = getTransactionSchema;
