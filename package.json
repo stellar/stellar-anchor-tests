@@ -24,12 +24,9 @@
     "url": "https://github.com/stellar/stellar-anchor-tests/issues"
   },
   "devDependencies": {
-    "@stellar/prettier-config": "^1.0.1",
     "@stellar/tsconfig": "^1.0.2",
     "husky": "^6.0.0",
     "prettier": "^2.2.1",
-    "pretty-quick": "^3.1.0",
-    "typedoc": "^0.20.36",
-    "typescript": "^4.2.4"
+    "pretty-quick": "^3.1.0"
   }
 }
