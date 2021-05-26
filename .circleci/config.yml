@@ -26,7 +26,7 @@ jobs:
           key: dependencies-{{ checksum "package.json" }}
 
       # build
-      - run: yarn build
+      - run: yarn build:anchor-tests
 
       - persist_to_workspace:
           root: ~/repo
@@ -39,8 +39,7 @@ jobs:
           at: ~/repo
       - run:
           name: Authenticate with registry
-          command:
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
       - run:
           name: Publish package
           command: npm publish --access public
