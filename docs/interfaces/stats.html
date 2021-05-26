@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>TestRun | Stellar Anchor Tests</title>
+	<title>Stats | Stellar Anchor Tests</title>
 	<meta name="description" content="Documentation for Stellar Anchor Tests">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -55,10 +55,10 @@
 					<a href="../modules.html">Stellar Anchor Tests</a>
 				</li>
 				<li>
-					<a href="testrun.html">TestRun</a>
+					<a href="stats.html">Stats</a>
 				</li>
 			</ul>
-			<h1>Interface TestRun</h1>
+			<h1>Interface Stats</h1>
 		</div>
 	</div>
 </header>
@@ -68,7 +68,7 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>An object containing <a href="test.html">Test</a> and it&#39;s <a href="result.html">Result</a></p>
+						<p>An object used internally to count result states and output them to standard output.</p>
 					</div>
 				</div>
 			</section>
@@ -76,7 +76,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">TestRun</span>
+						<span class="target">Stats</span>
 					</li>
 				</ul>
 			</section>
@@ -87,8 +87,10 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="testrun.html#result" class="tsd-kind-icon">result</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="testrun.html#test" class="tsd-kind-icon">test</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="stats.html#failed" class="tsd-kind-icon">failed</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="stats.html#passed" class="tsd-kind-icon">passed</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="stats.html#skipped" class="tsd-kind-icon">skipped</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="stats.html#total" class="tsd-kind-icon">total</a></li>
 							</ul>
 						</section>
 					</div>
@@ -97,22 +99,42 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="result" class="tsd-anchor"></a>
-					<h3>result</h3>
-					<div class="tsd-signature tsd-kind-icon">result<span class="tsd-signature-symbol">:</span> <a href="result.html" class="tsd-signature-type" data-tsd-kind="Interface">Result</a></div>
+					<a name="failed" class="tsd-anchor"></a>
+					<h3>failed</h3>
+					<div class="tsd-signature tsd-kind-icon">failed<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L295">src/types.ts:295</a></li>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L309">@stellar/anchor-tests/src/types.ts:309</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="test" class="tsd-anchor"></a>
-					<h3>test</h3>
-					<div class="tsd-signature tsd-kind-icon">test<span class="tsd-signature-symbol">:</span> <a href="test.html" class="tsd-signature-type" data-tsd-kind="Interface">Test</a></div>
+					<a name="passed" class="tsd-anchor"></a>
+					<h3>passed</h3>
+					<div class="tsd-signature tsd-kind-icon">passed<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L294">src/types.ts:294</a></li>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L308">@stellar/anchor-tests/src/types.ts:308</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="skipped" class="tsd-anchor"></a>
+					<h3>skipped</h3>
+					<div class="tsd-signature tsd-kind-icon">skipped<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L310">@stellar/anchor-tests/src/types.ts:310</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="total" class="tsd-anchor"></a>
+					<h3>total</h3>
+					<div class="tsd-signature tsd-kind-icon">total<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L307">@stellar/anchor-tests/src/types.ts:307</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -158,27 +180,33 @@
 					<li class=" tsd-kind-interface">
 						<a href="sepconfig.html" class="tsd-kind-icon">Sep<wbr>Config</a>
 					</li>
-					<li class=" tsd-kind-interface">
-						<a href="stats.html" class="tsd-kind-icon">Stats</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="test.html" class="tsd-kind-icon">Test</a>
-					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface">
-						<a href="testrun.html" class="tsd-kind-icon">Test<wbr>Run</a>
+						<a href="stats.html" class="tsd-kind-icon">Stats</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="testrun.html#result" class="tsd-kind-icon">result</a>
+								<a href="stats.html#failed" class="tsd-kind-icon">failed</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="testrun.html#test" class="tsd-kind-icon">test</a>
+								<a href="stats.html#passed" class="tsd-kind-icon">passed</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="stats.html#skipped" class="tsd-kind-icon">skipped</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="stats.html#total" class="tsd-kind-icon">total</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-interface">
+						<a href="test.html" class="tsd-kind-icon">Test</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="testrun.html" class="tsd-kind-icon">Test<wbr>Run</a>
+					</li>
 					<li class=" tsd-kind-type-alias">
 						<a href="../modules.html#sep" class="tsd-kind-icon">SEP</a>
 					</li>

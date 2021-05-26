@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Sep6Config | Stellar Anchor Tests</title>
+	<title>TestRun | Stellar Anchor Tests</title>
 	<meta name="description" content="Documentation for Stellar Anchor Tests">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -55,10 +55,10 @@
 					<a href="../modules.html">Stellar Anchor Tests</a>
 				</li>
 				<li>
-					<a href="sep6config.html">Sep6Config</a>
+					<a href="testrun.html">TestRun</a>
 				</li>
 			</ul>
-			<h1>Interface Sep6Config</h1>
+			<h1>Interface TestRun</h1>
 		</div>
 	</div>
 </header>
@@ -68,7 +68,7 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>The configuration object for SEP-6 tests.</p>
+						<p>An object containing <a href="test.html">Test</a> and it&#39;s <a href="result.html">Result</a></p>
 					</div>
 				</div>
 			</section>
@@ -76,7 +76,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Sep6Config</span>
+						<span class="target">TestRun</span>
 					</li>
 				</ul>
 			</section>
@@ -87,8 +87,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="sep6config.html#deposit" class="tsd-kind-icon">deposit</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="sep6config.html#withdraw" class="tsd-kind-icon">withdraw</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="testrun.html#result" class="tsd-kind-icon">result</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="testrun.html#test" class="tsd-kind-icon">test</a></li>
 							</ul>
 						</section>
 					</div>
@@ -97,68 +97,24 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="deposit" class="tsd-anchor"></a>
-					<h3>deposit</h3>
-					<div class="tsd-signature tsd-kind-icon">deposit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>transactionFields<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> }</span></div>
+					<a name="result" class="tsd-anchor"></a>
+					<h3>result</h3>
+					<div class="tsd-signature tsd-kind-icon">result<span class="tsd-signature-symbol">:</span> <a href="result.html" class="tsd-signature-type" data-tsd-kind="Interface">Result</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L131">src/types.ts:131</a></li>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L300">@stellar/anchor-tests/src/types.ts:300</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The configuration object for SEP-6 deposits.</p>
-						</div>
-					</div>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> transaction<wbr>Fields<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<div class="lead">
-										<p>Additional arguments to use in
-											<a href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#deposit"><code>GET /deposit</code></a>
-											requests. This object will be compared to the <code>fields</code> object returned by
-											<a href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#info"><code>GET /info</code></a> and is expected to
-										contain a value for every required field.</p>
-									</div>
-								</div>
-							</li>
-						</ul>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="withdraw" class="tsd-anchor"></a>
-					<h3>withdraw</h3>
-					<div class="tsd-signature tsd-kind-icon">withdraw<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>types<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span>transactionFields<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span></div>
+					<a name="test" class="tsd-anchor"></a>
+					<h3>test</h3>
+					<div class="tsd-signature tsd-kind-icon">test<span class="tsd-signature-symbol">:</span> <a href="test.html" class="tsd-signature-type" data-tsd-kind="Interface">Test</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L144">src/types.ts:144</a></li>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L299">@stellar/anchor-tests/src/types.ts:299</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The configuration object for SEP-6 deposits.</p>
-						</div>
-					</div>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> types<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span>transactionFields<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<div class="lead">
-										<p>Sets of additional arguments to use in
-											<a href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#withdraw"><code>GET /withdraw</code></a>
-											requests by type. Currently only one type value is required. This object will be compared to the matching <code>types</code>
-											object returned by <a href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#info"><code>GET /info</code></a>
-										and is expected to contain a value for every required field.</p>
-									</div>
-								</div>
-							</li>
-						</ul>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -196,21 +152,9 @@
 					<li class=" tsd-kind-interface">
 						<a href="sep31config.html" class="tsd-kind-icon">Sep31<wbr>Config</a>
 					</li>
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-interface">
+					<li class=" tsd-kind-interface">
 						<a href="sep6config.html" class="tsd-kind-icon">Sep6<wbr>Config</a>
-						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="sep6config.html#deposit" class="tsd-kind-icon">deposit</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="sep6config.html#withdraw" class="tsd-kind-icon">withdraw</a>
-							</li>
-						</ul>
 					</li>
-				</ul>
-				<ul class="after-current">
 					<li class=" tsd-kind-interface">
 						<a href="sepconfig.html" class="tsd-kind-icon">Sep<wbr>Config</a>
 					</li>
@@ -220,9 +164,21 @@
 					<li class=" tsd-kind-interface">
 						<a href="test.html" class="tsd-kind-icon">Test</a>
 					</li>
-					<li class=" tsd-kind-interface">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface">
 						<a href="testrun.html" class="tsd-kind-icon">Test<wbr>Run</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="testrun.html#result" class="tsd-kind-icon">result</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="testrun.html#test" class="tsd-kind-icon">test</a>
+							</li>
+						</ul>
 					</li>
+				</ul>
+				<ul class="after-current">
 					<li class=" tsd-kind-type-alias">
 						<a href="../modules.html#sep" class="tsd-kind-icon">SEP</a>
 					</li>

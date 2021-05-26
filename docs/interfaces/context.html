@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>NetworkCall | Stellar Anchor Tests</title>
+	<title>Context | Stellar Anchor Tests</title>
 	<meta name="description" content="Documentation for Stellar Anchor Tests">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -55,10 +55,10 @@
 					<a href="../modules.html">Stellar Anchor Tests</a>
 				</li>
 				<li>
-					<a href="networkcall.html">NetworkCall</a>
+					<a href="context.html">Context</a>
 				</li>
 			</ul>
-			<h1>Interface NetworkCall</h1>
+			<h1>Interface Context</h1>
 		</div>
 	</div>
 </header>
@@ -68,10 +68,9 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>An object containing a Fetch <a href="https://developer.mozilla.org/en-US/docs/Web/API/Request">Request</a> and
-							<a href="https://developer.mozilla.org/en-US/docs/Web/API/Response">Response</a> for every request made during a test.
-							Every <code>NetworkCall</code> will have a <code>request</code> but will not have a <code>response</code> in the event of a connection error.
-						If such an error occurs the test will fail.</p>
+						<p>An object containing the data expected and provided by the test before and after <a href="test.html#run">Test.run</a> executes,
+							respectively. The data provided by a test is used (i.e. expected) by tests that include it in it&#39;s
+						<a href="test.html#dependencies">Test.dependencies</a> array.</p>
 					</div>
 				</div>
 			</section>
@@ -79,7 +78,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">NetworkCall</span>
+						<span class="target">Context</span>
 					</li>
 				</ul>
 			</section>
@@ -90,8 +89,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="networkcall.html#request" class="tsd-kind-icon">request</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="networkcall.html#response" class="tsd-kind-icon">response</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="context.html#expects" class="tsd-kind-icon">expects</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="context.html#provides" class="tsd-kind-icon">provides</a></li>
 							</ul>
 						</section>
 					</div>
@@ -100,24 +99,52 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="request" class="tsd-anchor"></a>
-					<h3>request</h3>
-					<div class="tsd-signature tsd-kind-icon">request<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span></div>
+					<a name="expects" class="tsd-anchor"></a>
+					<h3>expects</h3>
+					<div class="tsd-signature tsd-kind-icon">expects<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L163">src/types.ts:163</a></li>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L240">@stellar/anchor-tests/src/types.ts:240</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Prior to the test running, every property defined in this object has a value of <code>undefined</code>. If a value
+							for each property was not provided by a prior test, the test fails. See <a href="../modules.html#runtests">runTests</a> for more information.</p>
+						</div>
+					</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></h5>
+							</li>
+						</ul>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="response" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> response</h3>
-					<div class="tsd-signature tsd-kind-icon">response<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span></div>
+					<a name="provides" class="tsd-anchor"></a>
+					<h3>provides</h3>
+					<div class="tsd-signature tsd-kind-icon">provides<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L164">src/types.ts:164</a></li>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L246">@stellar/anchor-tests/src/types.ts:246</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Prior to the test running, every property defined in this object has a value of <code>undefined</code>. If a value
+							for any property is still <code>undefined</code> after the test run, the test fails. See <a href="../modules.html#runtests">runTests</a> for more information.</p>
+						</div>
+					</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></h5>
+							</li>
+						</ul>
+					</div>
 				</section>
 			</section>
 		</div>
@@ -137,27 +164,27 @@
 					<li class=" tsd-kind-interface">
 						<a href="config.html" class="tsd-kind-icon">Config</a>
 					</li>
-					<li class=" tsd-kind-interface">
-						<a href="context.html" class="tsd-kind-icon">Context</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="failure.html" class="tsd-kind-icon">Failure</a>
-					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface">
-						<a href="networkcall.html" class="tsd-kind-icon">Network<wbr>Call</a>
+						<a href="context.html" class="tsd-kind-icon">Context</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="networkcall.html#request" class="tsd-kind-icon">request</a>
+								<a href="context.html#expects" class="tsd-kind-icon">expects</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="networkcall.html#response" class="tsd-kind-icon">response</a>
+								<a href="context.html#provides" class="tsd-kind-icon">provides</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-interface">
+						<a href="failure.html" class="tsd-kind-icon">Failure</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="networkcall.html" class="tsd-kind-icon">Network<wbr>Call</a>
+					</li>
 					<li class=" tsd-kind-interface">
 						<a href="result.html" class="tsd-kind-icon">Result</a>
 					</li>

@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Result | Stellar Anchor Tests</title>
+	<title>NetworkCall | Stellar Anchor Tests</title>
 	<meta name="description" content="Documentation for Stellar Anchor Tests">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -55,10 +55,10 @@
 					<a href="../modules.html">Stellar Anchor Tests</a>
 				</li>
 				<li>
-					<a href="result.html">Result</a>
+					<a href="networkcall.html">NetworkCall</a>
 				</li>
 			</ul>
-			<h1>Interface Result</h1>
+			<h1>Interface NetworkCall</h1>
 		</div>
 	</div>
 </header>
@@ -68,7 +68,10 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>An object containing test result data.</p>
+						<p>An object containing a Fetch <a href="https://developer.mozilla.org/en-US/docs/Web/API/Request">Request</a> and
+							<a href="https://developer.mozilla.org/en-US/docs/Web/API/Response">Response</a> for every request made during a test.
+							Every <code>NetworkCall</code> will have a <code>request</code> but will not have a <code>response</code> in the event of a connection error.
+						If such an error occurs the test will fail.</p>
 					</div>
 				</div>
 			</section>
@@ -76,7 +79,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Result</span>
+						<span class="target">NetworkCall</span>
 					</li>
 				</ul>
 			</section>
@@ -87,11 +90,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="result.html#actual" class="tsd-kind-icon">actual</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="result.html#expected" class="tsd-kind-icon">expected</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="result.html#failure" class="tsd-kind-icon">failure</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="result.html#networkcalls" class="tsd-kind-icon">network<wbr>Calls</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="result.html#skipped" class="tsd-kind-icon">skipped</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="networkcall.html#request" class="tsd-kind-icon">request</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="networkcall.html#response" class="tsd-kind-icon">response</a></li>
 							</ul>
 						</section>
 					</div>
@@ -100,84 +100,24 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="actual" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> actual</h3>
-					<div class="tsd-signature tsd-kind-icon">actual<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">object</span></div>
+					<a name="request" class="tsd-anchor"></a>
+					<h3>request</h3>
+					<div class="tsd-signature tsd-kind-icon">request<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Request</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L215">src/types.ts:215</a></li>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L163">@stellar/anchor-tests/src/types.ts:163</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The value received by the test in the event of a failure. This property may still be undefined when
-							<a href="result.html#failure">Result.failure</a> is present.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="expected" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> expected</h3>
-					<div class="tsd-signature tsd-kind-icon">expected<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">object</span></div>
+					<a name="response" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> response</h3>
+					<div class="tsd-signature tsd-kind-icon">response<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Response</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L209">src/types.ts:209</a></li>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L164">@stellar/anchor-tests/src/types.ts:164</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The value expected by the test in the event of a failure. This property may still be undefined when
-							<a href="result.html#failure">Result.failure</a> is present.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="failure" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> failure</h3>
-					<div class="tsd-signature tsd-kind-icon">failure<span class="tsd-signature-symbol">:</span> <a href="failure.html" class="tsd-signature-type" data-tsd-kind="Interface">Failure</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L203">src/types.ts:203</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The object describing the test failure. If undefined, the test passed or was skipped <a href="failure.html#message">Failure.message</a>
-							will always be defined if this property is also defined.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="networkcalls" class="tsd-anchor"></a>
-					<h3>network<wbr>Calls</h3>
-					<div class="tsd-signature tsd-kind-icon">network<wbr>Calls<span class="tsd-signature-symbol">:</span> <a href="networkcall.html" class="tsd-signature-type" data-tsd-kind="Interface">NetworkCall</a><span class="tsd-signature-symbol">[]</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L197">src/types.ts:197</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The network calls made during the test run in the order they were made.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="skipped" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> skipped</h3>
-					<div class="tsd-signature tsd-kind-icon">skipped<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/src/types.ts#L222">src/types.ts:222</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>If <code>true</code>, the test was skipped. Tests are skipped if it is determined not to be relevant at runtime.
-								For example, some SEP-6 anchors may require manual review of KYC data passed. In this case, deposit and
-							withdraw transactions cannot be created immediately and the tests making those requests will be skipped.</p>
-						</div>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -203,33 +143,24 @@
 					<li class=" tsd-kind-interface">
 						<a href="failure.html" class="tsd-kind-icon">Failure</a>
 					</li>
-					<li class=" tsd-kind-interface">
-						<a href="networkcall.html" class="tsd-kind-icon">Network<wbr>Call</a>
-					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface">
-						<a href="result.html" class="tsd-kind-icon">Result</a>
+						<a href="networkcall.html" class="tsd-kind-icon">Network<wbr>Call</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="result.html#actual" class="tsd-kind-icon">actual</a>
+								<a href="networkcall.html#request" class="tsd-kind-icon">request</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="result.html#expected" class="tsd-kind-icon">expected</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="result.html#failure" class="tsd-kind-icon">failure</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="result.html#networkcalls" class="tsd-kind-icon">network<wbr>Calls</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="result.html#skipped" class="tsd-kind-icon">skipped</a>
+								<a href="networkcall.html#response" class="tsd-kind-icon">response</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-interface">
+						<a href="result.html" class="tsd-kind-icon">Result</a>
+					</li>
 					<li class=" tsd-kind-interface">
 						<a href="sep12config.html" class="tsd-kind-icon">Sep12<wbr>Config</a>
 					</li>

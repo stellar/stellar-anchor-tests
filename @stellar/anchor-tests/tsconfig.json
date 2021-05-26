@@ -16,7 +16,7 @@
     "gitRevision": "master",
     "gitRemote": "upstream",
     "hideGenerator": true,
-    "out": "docs"
+    "out": "../../docs"
   },
   "include": ["src"]
 }
