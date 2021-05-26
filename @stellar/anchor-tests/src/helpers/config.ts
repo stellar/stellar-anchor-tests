@@ -87,22 +87,29 @@ function checkSepConfigObj(config: Config) {
       const customerData = config.sepConfig["12"].customers[customerName];
       for (const binaryField of binaryFields) {
         if (!customerData[binaryField]) continue;
-        if (typeof customerData[binaryField] !== "string") {
+        if (
+          typeof customerData[binaryField] !== "string" &&
+          !(customerData[binaryField] instanceof Buffer)
+        ) {
           throw new ConfigError(
-            "unrecognized type for binary customer field: " +
-              `${typeof customerData[binaryField]}, expected file path.`,
+            "unrecognized type for binary customer field, " +
+              `expected file path string or Buffer.`,
           );
         }
-        if (!isAbsolute(customerData[binaryField])) {
-          customerData[binaryField] = resolve(customerData[binaryField]);
-        }
-        if (!existsSync(customerData[binaryField])) {
-          throw new ConfigError(
-            `'${binaryField}' file for '${customerName}' was not found at ` +
-              `${customerData[binaryField]}`,
+        if (typeof customerData[binaryField] === "string") {
+          if (!isAbsolute(customerData[binaryField])) {
+            customerData[binaryField] = resolve(customerData[binaryField]);
+          }
+          if (!existsSync(customerData[binaryField])) {
+            throw new ConfigError(
+              `'${binaryField}' file for '${customerName}' was not found at ` +
+                `${customerData[binaryField]}`,
+            );
+          }
+          customerData[binaryField] = createReadStream(
+            customerData[binaryField],
           );
         }
-        customerData[binaryField] = createReadStream(customerData[binaryField]);
       }
     }
   }

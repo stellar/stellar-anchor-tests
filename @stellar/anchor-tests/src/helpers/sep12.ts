@@ -13,6 +13,10 @@ export function makeSep12Request(requestData: any): Request {
         requestBody.append(key, requestData.data[key], {
           knownLength: stats.size,
         });
+      } else if (requestData.data[key] instanceof Buffer) {
+        requestBody.append(key, requestData.data[key], {
+          knownLength: requestData.data[key].length,
+        });
       } else {
         requestBody.append(key, requestData.data[key]);
       }

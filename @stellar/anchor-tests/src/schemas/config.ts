@@ -1,21 +1,10 @@
 import { Networks } from "stellar-sdk";
-import { sep9Fields } from "./sep12";
 
 export const sep12ConfigSchema = {
   type: "object",
   properties: {
     customers: {
       type: "object",
-      additionalProperties: {
-        type: "object",
-        additionalProperties: {
-          propertyNames: {
-            type: "string",
-            enum: sep9Fields,
-          },
-        },
-      },
-      minProperties: 4,
     },
   },
   required: ["customers"],
