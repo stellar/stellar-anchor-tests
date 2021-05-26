@@ -37,7 +37,7 @@ export const hasTransferServerUrl: Test = {
       transferServerUrl: undefined,
     },
   },
-  async run(_config: Config): Promise<Result> {
+  async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     this.context.provides.transferServerUrl =
       this.context.expects.tomlObj.TRANSFER_SERVER_SEP0024 ||
@@ -46,7 +46,10 @@ export const hasTransferServerUrl: Test = {
       result.failure = makeFailure(this.failureModes.TRANSFER_SERVER_NOT_FOUND);
       return result;
     }
-    if (!this.context.provides.transferServerUrl.startsWith("https")) {
+    if (
+      !this.context.provides.transferServerUrl.startsWith("https") &&
+      !config.homeDomain.includes("localhost")
+    ) {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;
     }

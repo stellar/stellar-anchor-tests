@@ -37,14 +37,17 @@ export const hasTransferServerUrl: Test = {
       sep6TransferServerUrl: undefined,
     },
   },
-  async run(_config: Config): Promise<Result> {
+  async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     this.context.provides.sep6TransferServerUrl = this.context.expects.tomlObj.TRANSFER_SERVER;
     if (!this.context.provides.sep6TransferServerUrl) {
       result.failure = makeFailure(this.failureModes.TRANSFER_SERVER_NOT_FOUND);
       return result;
     }
-    if (!this.context.provides.sep6TransferServerUrl.startsWith("https")) {
+    if (
+      !this.context.provides.sep6TransferServerUrl.startsWith("https") &&
+      !config.homeDomain.includes("localhost")
+    ) {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;
     }

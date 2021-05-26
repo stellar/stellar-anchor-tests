@@ -35,7 +35,7 @@ export const hasDirectPaymentServer: Test = {
       },
     },
   },
-  async run(_config: Config): Promise<Result> {
+  async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     this.context.provides.directPaymentServerUrl = this.context.expects.tomlObj.DIRECT_PAYMENT_SERVER;
     if (!this.context.provides.directPaymentServerUrl) {
@@ -44,7 +44,10 @@ export const hasDirectPaymentServer: Test = {
       );
       return result;
     }
-    if (!this.context.provides.directPaymentServerUrl.startsWith("https")) {
+    if (
+      !this.context.provides.directPaymentServerUrl.startsWith("https") &&
+      !config.homeDomain.includes("localhost")
+    ) {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;
     }

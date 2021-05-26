@@ -64,13 +64,16 @@ export const hasWebAuthEndpoint: Test = {
       webAuthEndpoint: undefined,
     },
   },
-  async run(_config: Config): Promise<Result> {
+  async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     if (!this.context.expects.tomlObj.WEB_AUTH_ENDPOINT) {
       result.failure = makeFailure(this.failureModes.NOT_FOUND);
       return result;
     }
-    if (!this.context.expects.tomlObj.WEB_AUTH_ENDPOINT.startsWith("https")) {
+    if (
+      !this.context.expects.tomlObj.WEB_AUTH_ENDPOINT.startsWith("https") &&
+      !config.homeDomain.includes("localhost")
+    ) {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;
     }
