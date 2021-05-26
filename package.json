@@ -18,7 +18,7 @@
     "build:docs": "yarn workspace @stellar/anchor-tests build:docs",
     "prepare": "husky install"
   },
-  "homepage": "https://github.com/stellar/stellar-anchor-tests",
+  "homepage": "https://github.com/stellar/stellar-anchor-tests/@stellar/anchor-tests",
   "author": "Stellar Development Foundation <hello@stellar.org>",
   "bugs": {
     "url": "https://github.com/stellar/stellar-anchor-tests/issues"
