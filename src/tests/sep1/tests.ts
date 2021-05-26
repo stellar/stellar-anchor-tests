@@ -25,6 +25,10 @@ export const tomlExists: Test = {
           `Make sure that CORS is enabled.`
         );
       },
+      links: {
+        "Cross-Origin Resource Sharing (CORS)":
+          "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS",
+      },
     },
     TOML_UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",

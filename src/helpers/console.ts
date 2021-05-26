@@ -65,7 +65,16 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
     }
     console.groupEnd(); // description group
   }
-  if (verbose && testRun.result.networkCalls.length) {
+  if (verbose && testRun.result.failure && testRun.result.failure.links) {
+    console.log(c.bold("Relevant Links:\n"));
+    console.group(); // failure links group
+    for (const linkLabel in testRun.result.failure.links) {
+      console.log(`${linkLabel}: ${testRun.result.failure.links[linkLabel]}`);
+    }
+    console.groupEnd(); // failure links group
+    console.log();
+  }
+  if (verbose && testRun.result.failure && testRun.result.networkCalls.length) {
     console.log(c.bold("Network Calls:\n"));
     for (const networkCall of testRun.result.networkCalls) {
       console.log("Request:\n");
