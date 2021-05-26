@@ -11,12 +11,12 @@ registry. To install, run the following commands:
 ```
 git clone git@github.com:stellar/stellar-anchor-tests.git
 yarn build
-npm link
+yarn link
 ```
 
 You can now use the `stellar-anchor-tests` command in your shell or use
-`npm link @stellar/anchor-tests` in another NodeJS project to use the library in
-code.
+`yarn link @stellar/anchor-tests` in another NodeJS project to use the library
+in code.
 
 ## Usage
 
