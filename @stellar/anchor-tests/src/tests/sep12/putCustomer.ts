@@ -7,6 +7,7 @@ import { Test, Config, Result, NetworkCall } from "../../types";
 import { returnsValidJwt } from "../sep10/tests";
 import { hasKycServerUrl } from "./toml";
 import { makeRequest } from "../../helpers/request";
+import { makeSep12Request } from "../../helpers/sep12";
 import { makeFailure, genericFailures } from "../../helpers/failure";
 import { postChallenge } from "../../helpers/sep10";
 
@@ -95,18 +96,18 @@ export const canCreateCustomer: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const [customerNames, customerValues] = getCustomersFromConfig(config);
+    const putCustomerRequest = makeSep12Request({
+      url: this.context.expects.kycServerUrl + "/customer",
+      data: {
+        account: this.context.expects.clientKeypair.publicKey(),
+        ...customerValues[0],
+      },
+      headers: {
+        Authorization: `Bearer ${this.context.expects.token}`,
+      },
+    });
     const putCustomerCall: NetworkCall = {
-      request: new Request(this.context.expects.kycServerUrl + "/customer", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${this.context.expects.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          account: this.context.expects.clientKeypair.publicKey(),
-          ...customerValues[0],
-        }),
-      }),
+      request: putCustomerRequest,
     };
     result.networkCalls.push(putCustomerCall);
     try {
@@ -213,7 +214,7 @@ export const differentMemosSameAccount: Test = {
       ) {
         // this configuration is checked prior to running tests
         // but to satisfy TypeScript we make these checks here.
-        throw { message: "improperly configured" };
+        throw new Error("improperly configured");
       }
       sendingCustomerData =
         config.sepConfig["12"].customers[
@@ -244,22 +245,22 @@ export const differentMemosSameAccount: Test = {
       this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
     );
+    const sep12Request = makeSep12Request({
+      url: this.context.expects.kycServerUrl + "/customer",
+      data: {
+        account: this.context.provides.sendingAnchorClientKeypair.publicKey(),
+        memo: this.context.provides.sendingCustomerMemo.value.toString(
+          "base64",
+        ),
+        memo_type: "hash",
+        ...sendingCustomerData,
+      },
+      headers: {
+        Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
+      },
+    });
     const sendingCustomerCall: NetworkCall = {
-      request: new Request(this.context.expects.kycServerUrl + "/customer", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          account: this.context.provides.sendingAnchorClientKeypair.publicKey(),
-          memo: this.context.provides.sendingCustomerMemo.value.toString(
-            "base64",
-          ),
-          memo_type: "hash",
-          ...sendingCustomerData,
-        }),
-      }),
+      request: sep12Request,
     };
     const sendingCustomerResponse = await makeRequest(
       sendingCustomerCall,
@@ -276,22 +277,22 @@ export const differentMemosSameAccount: Test = {
       result.failure = makeFailure(this.failureModes.BAD_ID_TYPE);
       return result;
     }
+    const receivingCustomerRequest = makeSep12Request({
+      url: this.context.expects.kycServerUrl + "/customer",
+      data: {
+        account: this.context.provides.sendingAnchorClientKeypair.publicKey(),
+        memo: this.context.provides.receivingCustomerMemo.value.toString(
+          "base64",
+        ),
+        memo_type: "hash",
+        ...receivingCustomerData,
+      },
+      headers: {
+        Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
+      },
+    });
     const receivingCustomerCall: NetworkCall = {
-      request: new Request(this.context.expects.kycServerUrl + "/customer", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          account: this.context.provides.sendingAnchorClientKeypair.publicKey(),
-          memo: this.context.provides.receivingCustomerMemo.value.toString(
-            "base64",
-          ),
-          memo_type: "hash",
-          ...receivingCustomerData,
-        }),
-      }),
+      request: receivingCustomerRequest,
     };
     const receivingCustomerResponse = await makeRequest(
       receivingCustomerCall,

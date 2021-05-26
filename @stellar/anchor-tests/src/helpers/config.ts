@@ -16,7 +16,10 @@ export class ConfigError extends Error {
   }
 }
 
-export async function checkConfig(config: Config) {
+export async function checkConfig(
+  config: Config,
+  opts: { checkSepConfig: boolean } = { checkSepConfig: true },
+) {
   try {
     validate(config, configSchema, { throwFirst: true });
   } catch (e) {
@@ -40,11 +43,16 @@ export async function checkConfig(config: Config) {
     }
     config.networkPassphrase = tomlObj.NETWORK_PASSPHRASE;
   }
-  if (!config.sepConfig) {
-    return;
-  }
+  if (opts.checkSepConfig) checkSepConfigObj(config);
+}
+
+function checkSepConfigObj(config: Config) {
   if (config.seps.includes(31)) {
-    if (!config.sepConfig["31"] || !config.sepConfig["12"]) {
+    if (
+      !config.sepConfig ||
+      !config.sepConfig["31"] ||
+      !config.sepConfig["12"]
+    ) {
       throw new ConfigError(
         "configuration for SEP-12 and SEP-31 is required to run SEP-31 tests.",
       );
@@ -70,7 +78,7 @@ export async function checkConfig(config: Config) {
     }
   }
   if (config.seps.includes(12)) {
-    if (!config.sepConfig["12"]) {
+    if (!config.sepConfig || !config.sepConfig["12"]) {
       throw new ConfigError(
         "SEP 12 configuration is required to run SEP 6, 12, or 31 tests.",
       );
@@ -99,7 +107,7 @@ export async function checkConfig(config: Config) {
     }
   }
   if (config.seps.includes(6)) {
-    if (!config.sepConfig["6"]) {
+    if (!config.sepConfig || !config.sepConfig["6"]) {
       throw new ConfigError(
         "SEP 6 configuration is required to run SEP-6 tests.",
       );

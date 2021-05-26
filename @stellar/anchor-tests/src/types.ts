@@ -185,6 +185,11 @@ export interface Failure {
    * populates it, which is done in the [[Test.run]] method.
    */
   message?: string;
+
+  /**
+   * A set of labeled links containing information relevant to the test failure.
+   */
+  links?: Record<string, string>;
 }
 
 /**

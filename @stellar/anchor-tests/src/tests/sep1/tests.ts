@@ -25,6 +25,10 @@ export const tomlExists: Test = {
           `Make sure that CORS is enabled.`
         );
       },
+      links: {
+        "Cross-Origin Resource Sharing (CORS)":
+          "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS",
+      },
     },
     TOML_UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",
@@ -277,7 +281,7 @@ const validUrls: Test = {
     },
     provides: {},
   },
-  async run(_config: Config): Promise<Result> {
+  async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const urlAttributes = [
       "FEDERATION_SERVER",
@@ -299,7 +303,10 @@ const validUrls: Test = {
     ];
     const checkUrl = (u?: string) => {
       if (!u) return;
-      if (!u.startsWith("https://")) {
+      if (
+        !u.startsWith("https://") &&
+        !config.homeDomain.includes("localhost")
+      ) {
         result.failure = makeFailure(this.failureModes.NO_HTTPS);
       } else if (u.slice(-1) === "/") {
         result.failure = makeFailure(this.failureModes.ENDS_WITH_SLASH);

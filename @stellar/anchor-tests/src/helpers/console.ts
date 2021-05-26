@@ -65,7 +65,16 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
     }
     console.groupEnd(); // description group
   }
-  if (verbose && testRun.result.networkCalls.length) {
+  if (verbose && testRun.result.failure && testRun.result.failure.links) {
+    console.log(c.bold("Relevant Links:\n"));
+    console.group(); // failure links group
+    for (const linkLabel in testRun.result.failure.links) {
+      console.log(`${linkLabel}: ${testRun.result.failure.links[linkLabel]}`);
+    }
+    console.groupEnd(); // failure links group
+    console.log();
+  }
+  if (verbose && testRun.result.failure && testRun.result.networkCalls.length) {
     console.log(c.bold("Network Calls:\n"));
     for (const networkCall of testRun.result.networkCalls) {
       console.log("Request:\n");
@@ -97,7 +106,14 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
         requestHeaders["content-type"] &&
         requestHeaders["content-type"].includes("multipart/form-data")
       ) {
-        requestBody = ""; // TODO
+        // TODO:
+        //
+        // FormData does not provide a method for retrieving key-value pairs.
+        // .toString() does not work if binary data was appended, which is the
+        // only time FormData is used.
+        //
+        // https://github.com/stellar/stellar-anchor-tests/issues/3
+        requestBody = "binary data content";
       } else {
         requestBody = await networkCall.request.text();
       }
