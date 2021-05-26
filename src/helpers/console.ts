@@ -106,7 +106,14 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
         requestHeaders["content-type"] &&
         requestHeaders["content-type"].includes("multipart/form-data")
       ) {
-        requestBody = ""; // TODO
+        // TODO:
+        //
+        // FormData does not provide a method for retrieving key-value pairs.
+        // .toString() does not work if binary data was appended, which is the
+        // only time FormData is used.
+        //
+        // https://github.com/stellar/stellar-anchor-tests/issues/3
+        requestBody = "binary data content";
       } else {
         requestBody = await networkCall.request.text();
       }
