@@ -42,7 +42,7 @@ export async function* run(config: Config): AsyncGenerator<TestRun> {
  * @throws [[ConfigError]]  if the `config` is invalid in some way.
  */
 export async function getTests(config: Config): Promise<Test[]> {
-  await checkConfig(config);
+  await checkConfig(config, { checkSepConfig: false });
   const topLevelTests = getTopLevelTests(config);
   return getAllTestsRecur(topLevelTests, [], new Set());
 }
