@@ -15,7 +15,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build:anchor-tests": "yarn workspace @stellar/anchor-tests build",
-    "build:docs": "yarn workspace @stellar/anchor-tests build:docs",
+    "build:docs": "yarn workspace @stellar/anchor-tests typedoc --out ../../docs",
     "stellar-anchor-tests": "node @stellar/anchor-tests/lib/cli.js",
     "prepare": "husky install"
   },
