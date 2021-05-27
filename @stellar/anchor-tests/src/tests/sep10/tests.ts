@@ -1,4 +1,5 @@
 import {
+  Account,
   Keypair,
   Networks,
   Transaction,
@@ -77,12 +78,11 @@ export const hasWebAuthEndpoint: Test = {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;
     }
-    this.context.provides.webAuthEndpoint = this.context.expects.tomlObj.WEB_AUTH_ENDPOINT;
+    this.context.provides.webAuthEndpoint =
+      this.context.expects.tomlObj.WEB_AUTH_ENDPOINT;
     if (this.context.expects.tomlObj.WEB_AUTH_ENDPOINT.slice(-1) === "/") {
-      this.context.provides.webAuthEndpoint = this.context.provides.webAuthEndpoint.slice(
-        0,
-        -1,
-      );
+      this.context.provides.webAuthEndpoint =
+        this.context.provides.webAuthEndpoint.slice(0, -1);
       result.failure = makeFailure(this.failureModes.ENDS_WITH_SLASH);
       return result;
     }
@@ -925,8 +925,15 @@ const failsIfWeighBelowMediumThreshold: Test = {
     const clientKeypair = Keypair.random();
     await friendBot(clientKeypair.publicKey(), result);
     if (result.failure) return result;
-    const clientAccount = await loadAccount(clientKeypair.publicKey(), result);
-    if (!clientAccount) return result;
+    const clientAccountResponse = await loadAccount(
+      clientKeypair.publicKey(),
+      result,
+    );
+    if (!clientAccountResponse) return result;
+    const clientAccount = new Account(
+      clientAccountResponse.account_id,
+      clientAccountResponse.sequenceNumber(),
+    );
     const raiseThresoldsTx = new TransactionBuilder(clientAccount, {
       fee: "10000",
       networkPassphrase: Networks.TESTNET,
@@ -994,8 +1001,15 @@ const signedByNonMasterSigner: Test = {
     const clientSignerKeypair = Keypair.random();
     await friendBot(clientKeypair.publicKey(), result);
     if (result.failure) return result;
-    const clientAccount = await loadAccount(clientKeypair.publicKey(), result);
-    if (!clientAccount) return result;
+    const clientAccountResponse = await loadAccount(
+      clientKeypair.publicKey(),
+      result,
+    );
+    if (!clientAccountResponse) return result;
+    const clientAccount = new Account(
+      clientAccountResponse.account_id,
+      clientAccountResponse.sequenceNumber(),
+    );
     const raiseThresholdsTx = new TransactionBuilder(clientAccount, {
       fee: "10000",
       networkPassphrase: Networks.TESTNET,
@@ -1070,8 +1084,15 @@ const failsWithDuplicateSignatures: Test = {
     const clientSignerKeypair = Keypair.random();
     await friendBot(clientKeypair.publicKey(), result);
     if (result.failure) return result;
-    const clientAccount = await loadAccount(clientKeypair.publicKey(), result);
-    if (!clientAccount) return result;
+    const clientAccountResponse = await loadAccount(
+      clientKeypair.publicKey(),
+      result,
+    );
+    if (!clientAccountResponse) return result;
+    const clientAccount = new Account(
+      clientAccountResponse.account_id,
+      clientAccountResponse.sequenceNumber(),
+    );
     const raiseThresholdsTx = new TransactionBuilder(clientAccount, {
       fee: "10000",
       networkPassphrase: Networks.TESTNET,
@@ -1144,8 +1165,15 @@ const multipleNonMasterSigners: Test = {
     const clientSigner2Keypair = Keypair.random();
     await friendBot(clientKeypair.publicKey(), result);
     if (result.failure) return result;
-    const clientAccount = await loadAccount(clientKeypair.publicKey(), result);
-    if (!clientAccount) return result;
+    const clientAccountResponse = await loadAccount(
+      clientKeypair.publicKey(),
+      result,
+    );
+    if (!clientAccountResponse) return result;
+    const clientAccount = new Account(
+      clientAccountResponse.account_id,
+      clientAccountResponse.sequenceNumber(),
+    );
     const raiseThresholdsTx = new TransactionBuilder(clientAccount, {
       fee: "10000",
       networkPassphrase: Networks.TESTNET,
