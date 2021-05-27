@@ -1,29 +1,27 @@
 # Stellar Anchor Tests
 
-`stellar-anchor-tests` is a library and command line tool for testing Stellar
-anchors.
+`@stellar/anchor-tests` is a library and command line tool for testing Stellar anchors.
 
 ## Install
 
-This project is in active development and is not yet published to the npm
-registry. To install, run the following commands:
+This project is in active development and is not yet published to the npm registry. To install, run the following commands:
 
 ```
 git clone git@github.com:stellar/stellar-anchor-tests.git
 yarn build
-yarn link
+yarn workspace @stellar/anchor-tests link
 ```
 
-You can now use the `stellar-anchor-tests` command in your shell or use
-`yarn link @stellar/anchor-tests` in another NodeJS project to use the library
-in code.
+You can now use `yarn link @stellar/anchor-tests` in another NodeJS project to use the library in code.
+
+If you want to run the `stellar-anchor-tests` command, use the `yarn stellar-anchor-tests` script provided by this repository. The command is not globally available because Yarn's `link` command does not create symbolic links correctly.
 
 ## Usage
 
 ### Command Line Tool
 
 ```
-$ stellar-anchor-tests --help
+$ yarn stellar-anchor-tests --help
 Options:
       --help         Show help                                         [boolean]
       --version      Show version number                               [boolean]
@@ -40,7 +38,7 @@ Options:
 ```
 
 ```
-$ stellar-anchor-tests --seps 1 --home-domain testanchor.stellar.org
+$ yarn stellar-anchor-tests --seps 1 --home-domain testanchor.stellar.org
 ✔ SEP-1 ❯ TOML Tests ❯ the TOML file exists at ./well-known/stellar.toml
 ✔ SEP-1 ❯ TOML Tests ❯ the file has a size less than 100KB
 ✔ SEP-1 ❯ TOML Tests ❯ has a valid network passphrase
@@ -62,8 +60,8 @@ const config: Config = {
 };
 
 (async () => {
-  for await (const result of run(config)) {
-    console.dir(request);
+  for await (const testRun of run(config)) {
+    console.dir(testRun, { depth: Infinity });
   }
 })()
 ```

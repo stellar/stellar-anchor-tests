@@ -20,7 +20,7 @@
     "build:docs": "typedoc",
     "prepare": "husky install"
   },
-  "homepage": "https://github.com/stellar/stellar-anchor-tests",
+  "homepage": "https://github.com/stellar/stellar-anchor-tests/tree/master/%40stellar/anchor-tests",
   "author": "Stellar Development Foundation <hello@stellar.org>",
   "bugs": {
     "url": "https://github.com/stellar/stellar-anchor-tests/issues"
