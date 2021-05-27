@@ -15,7 +15,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build:anchor-tests": "yarn workspace @stellar/anchor-tests build",
-    "build:anchor-tests-docs": "yarn workspace @stellar/anchor-tests typedoc --out ../../docs",
+    "build:docs": "yarn workspace @stellar/anchor-tests typedoc --out ../../docs",
     "publish:anchor-tests": "npm publish @stellar/anchor-tests --access public",
     "stellar-anchor-tests": "node @stellar/anchor-tests/lib/cli.js",
     "start:ui": "yarn workspace ui start",
