@@ -40,7 +40,7 @@ export async function onRunTests(
   console.log(`received '${runTestsEventName}' request from ${this.id}`);
   try {
     for await (const testRun of run(config)) {
-      this.emit(runTestsEventName, serializeTestRun(testRun));
+      this.emit(runTestsEventName, await serializeTestRun(testRun));
     }
   } catch (e) {
     const error = serializeError(e);
