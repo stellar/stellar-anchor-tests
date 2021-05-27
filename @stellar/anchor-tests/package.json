@@ -44,7 +44,7 @@
     "jsonschema": "^1.4.0",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.1",
-    "stellar-sdk": "^8.1.1",
+    "stellar-sdk": "~8.2.1",
     "toml": "^3.0.0",
     "tslib": "^2.2.0",
     "yargs": "^16.2.0"
