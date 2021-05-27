@@ -4,9 +4,9 @@
   "description": "stellar-anchor-tests is a container for the @stellar/anchor-tests project",
   "private": true,
   "workspaces": [
-      "@stellar/anchor-tests",
-      "ui",
-      "server"
+    "@stellar/anchor-tests",
+    "ui",
+    "server"
   ],
   "repository": {
     "type": "git",
@@ -16,8 +16,11 @@
   "scripts": {
     "build:anchor-tests": "yarn workspace @stellar/anchor-tests build",
     "build:docs": "yarn workspace @stellar/anchor-tests typedoc --out ../../docs",
+    "publish:anchor-tests": "npm publish @stellar/anchor-tests --access public",
     "stellar-anchor-tests": "node @stellar/anchor-tests/lib/cli.js",
     "start:ui": "yarn workspace ui start",
+    "build:server": "yarn build:anchor-tests; yarn workspace server build",
+    "start:server": "yarn workspace server start",
     "prepare": "husky install"
   },
   "homepage": "https://github.com/stellar/stellar-anchor-tests",
