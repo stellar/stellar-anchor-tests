@@ -2,16 +2,18 @@
 
 This repository is a container for three applications
 
-- @stellar/anchor-tests
-- anchor-tests-ui
-- anchor-tests-server
+- [@stellar/anchor-tests](./@stellar/anchor-tests)
+	- A library and CLI for testing stellar anchors. Will be published to npm.
+- [ui](./ui)
+	- A [react-redux](https://react-redux.js.org/) web interface for running anchor tests. Connects to the server via websockets.
+- [server](./server)
+	- An [socket.io](socket.io) server. Depends on `@stellar/anchor-tests`.
 
-`@stellar/anchor-tests` is published to npm and can be used as a library or command line tool. See the subfolder for details.
+See each project for more information. To install and run all applications:
 
-The UI and server applications can be run by cloning the repository and installing the top-level package.
-
-```
+```sh
 git clone git@github.com:stellar/stellar-anchor-tests.git
-yarn build
+cd stelar-anchor-tests
+yarn build:all
 yarn start:all
 ```

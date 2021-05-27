@@ -21,6 +21,8 @@
     "start:ui": "yarn workspace ui start",
     "build:server": "yarn build:anchor-tests; yarn workspace server build",
     "start:server": "yarn workspace server start",
+    "build:all": "yarn build:server",
+    "start:all": "concurrently \"yarn start:ui\" \"yarn start:server\"",
     "prepare": "husky install"
   },
   "homepage": "https://github.com/stellar/stellar-anchor-tests",
@@ -30,6 +32,7 @@
   },
   "devDependencies": {
     "@stellar/tsconfig": "^1.0.2",
+    "concurrently": "^6.2.0",
     "husky": "^6.0.0",
     "prettier": "^2.2.1",
     "pretty-quick": "^3.1.0"
