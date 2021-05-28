@@ -7,7 +7,7 @@ This repository is a container for three applications
 - [ui](./ui)
 	- A [react-redux](https://react-redux.js.org/) web interface for running anchor tests. Connects to the server via websockets.
 - [server](./server)
-	- An [socket.io](socket.io) server. Depends on `@stellar/anchor-tests`.
+	- A [socket.io](socket.io) server. Depends on `@stellar/anchor-tests`.
 
 See each project for more information. To install and run all applications:
 
