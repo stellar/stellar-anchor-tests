@@ -22,6 +22,7 @@ const io = new Server(httpServer, {
 });
 
 io.on("connection", (socket: Socket) => {
+  logger.info("Connection established with socket ${socket.id}");
   socket.on(getTestsEventName, onGetTests);
   socket.on(runTestsEventName, onRunTests);
   socket.on("disconnect", (reason: string) => {
