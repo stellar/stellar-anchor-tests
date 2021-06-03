@@ -2,7 +2,7 @@ import { Test, Config, Result } from "../../types";
 import { makeFailure } from "../../helpers/failure";
 import { tomlExists } from "../sep1/tests";
 
-const tomlTestsGroup = "TOML tests";
+const tomlTestsGroup = "TOML Tests";
 
 export const hasTransferServerUrl: Test = {
   assertion: "has a valid transfer server URL",
