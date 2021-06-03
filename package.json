@@ -23,6 +23,8 @@
     "start:server": "yarn workspace server start",
     "build:all": "yarn build:server",
     "start:all": "concurrently \"yarn start:ui\" \"yarn start:server\"",
+    "docker:build:ui": "docker image build -f ui/Dockerfile -t stellar-anchor-tests-ui .",
+    "docker:start:ui": "docker run --name stellar-anchor-tests-ui -p 8000:80 stellar-anchor-tests-ui",
     "prepare": "husky install"
   },
   "homepage": "https://github.com/stellar/stellar-anchor-tests",
