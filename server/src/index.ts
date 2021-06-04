@@ -10,7 +10,7 @@ import {
 } from "./eventHandlers";
 import logger from "./logging";
 
-const port = 8000;
+const port = 8001;
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -19,6 +19,10 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"],
     credentials: true,
   },
+});
+
+app.get("/api", (_req, res) => {
+  res.send("Hello World!");
 });
 
 io.on("connection", (socket: Socket) => {

@@ -1,0 +1,16 @@
+version: "3"
+services:
+  ui:
+    container_name: stellar-anchor-tests-ui
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    ports:
+      - "8000:80"
+  server:
+    container_name: stellar-anchor-tests-server
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - "8001:8001"
