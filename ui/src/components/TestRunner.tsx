@@ -14,12 +14,14 @@ import { socket } from "helpers/socketConnection";
 
 const DROPDOWN_SEPS = [6, 10, 12, 24, 31];
 
+const CONFIG_SEPS = [6, 12, 31];
+
 const TestConfigWrapper = styled.div`
   margin-bottom: 2rem;
   width: 20rem;
 `;
 
-const SubmitButtonWrapper = styled.div`
+const ButtonWrapper = styled.div`
   margin-top: 1rem;
 `;
 
@@ -40,6 +42,7 @@ export const TestRunner = () => {
     seps: [],
   } as FormData);
   const [serverFailure, setServerFailure] = useState("");
+  const [isConfigNeeded, setIsConfigNeeded] = useState(false);
 
   type TestCollection = [string, { order: number; results: Array<any> }][];
   const [testCollection, setTestCollection] = useState([] as TestCollection);
@@ -139,10 +142,32 @@ export const TestRunner = () => {
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { id, value } = e.target;
 
+    const sepNumber = Number(value);
+
+    if (CONFIG_SEPS.includes(sepNumber)) {
+      setIsConfigNeeded(true);
+    }
+
     setFormData({
       ...formData,
-      [id]: [Number(value)],
+      [id]: [sepNumber],
     });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, files } = e.target;
+    if (files?.length) {
+      const fileReader = new FileReader();
+      fileReader.readAsText(files[0], "UTF-8");
+      fileReader.onload = (e) => {
+        setFormData({
+          ...formData,
+          [id]: {
+            [formData.seps[0]]: JSON.parse(e?.target?.result as string),
+          },
+        });
+      };
+    }
   };
 
   const handleSubmit = () => {
@@ -175,9 +200,20 @@ export const TestRunner = () => {
               {serverFailure}
             </InfoBlock>
           )}
-          <SubmitButtonWrapper>
+          {isConfigNeeded && (
+            <ButtonWrapper>
+              <Input
+                id="sepConfig"
+                label="Upload Config"
+                onChange={handleFileChange}
+                type="file"
+              />
+            </ButtonWrapper>
+          )}
+
+          <ButtonWrapper>
             <Button onClick={handleSubmit}>Run Tests</Button>
-          </SubmitButtonWrapper>
+          </ButtonWrapper>
         </Layout.Inset>
       </TestConfigWrapper>
       <hr />
