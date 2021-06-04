@@ -1,11 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./index.css";
-import { App } from "./App";
+import { App } from "./views/App";
 import reportWebVitals from "./reportWebVitals";
 
 // Import global CSS from Stellar Design System
-import "@stellar/design-system/dist/styles.min.css";
+import "@stellar/design-system/build/styles.min.css";
 
 ReactDOM.render(
   <React.StrictMode>

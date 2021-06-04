@@ -1,19 +1,14 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
+    "baseUrl": "src/",
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowSyntheticDefaultImports": true,
     "module": "esnext",
     "moduleResolution": "node",
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

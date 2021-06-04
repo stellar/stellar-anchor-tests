@@ -13,7 +13,13 @@ import logger from "./logging";
 const port = 8000;
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:8001",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
 io.on("connection", (socket: Socket) => {
   socket.on(getTestsEventName, onGetTests);
