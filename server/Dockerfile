@@ -21,5 +21,5 @@ COPY ./@stellar/anchor-tests /app/@stellar/anchor-tests
 RUN yarn install
 RUN yarn workspace server build
 
-EXPOSE 8001
+EXPOSE 8000
 CMD ["yarn", "workspace", "server", "start"]
