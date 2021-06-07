@@ -10,23 +10,17 @@ import {
 } from "./eventHandlers";
 import logger from "./logging";
 
-const port = 8001;
+const port = 8000;
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:8001",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
+const io = new Server(httpServer, { path: "/api", cors: { origin: "*" } });
 
 app.get("/api", (_req, res) => {
   res.send("Hello World!");
 });
 
 io.on("connection", (socket: Socket) => {
-  logger.info("Connection established with socket ${socket.id}");
+  logger.info(`Connection established with socket ${socket.id}`);
   socket.on(getTestsEventName, onGetTests);
   socket.on(runTestsEventName, onRunTests);
   socket.on("disconnect", (reason: string) => {
