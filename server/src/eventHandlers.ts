@@ -24,7 +24,7 @@ export async function onGetTests(
   } catch (e) {
     const error = serializeError(e);
     logger.error(
-      `getTests() threw an exception: '${error.name}: ${error.message}'`,
+      `getTests() threw an exception: '${error.name}: ${error.message}\n${e.stack}'`,
     );
     if (callback) callback(error);
     return;
@@ -37,14 +37,16 @@ export async function onRunTests(
   config: Config,
   callback: (error: SerializedError) => void,
 ) {
-  console.log(`received '${runTestsEventName}' request from ${this.id}`);
+  logger.info(`received '${runTestsEventName}' request from ${this.id}`);
   try {
     for await (const testRun of run(config)) {
       this.emit(runTestsEventName, await serializeTestRun(testRun));
     }
   } catch (e) {
     const error = serializeError(e);
-    logger.error(`run() threw an exception: '${error.name}: ${error.message}'`);
+    logger.error(
+      `run() threw an exception: '${error.name}: ${error.message}'\n${e.stack}`,
+    );
     if (callback) callback(error);
     return;
   }

@@ -1,4 +1,4 @@
-import { URL } from "url";
+import { URL, URLSearchParams } from "url";
 import { Test, Result, TestRun, SEP, NetworkCall } from "@stellar/anchor-tests";
 
 export interface SerializedTest {
@@ -113,7 +113,9 @@ async function serializeNetworkCall(
       headers: networkCall.request.headers.raw(),
     },
   };
-  const params = getParamsFromSearchString(networkCall.request.url);
+  const params = getParamsFromSearchString(
+    new URL(networkCall.request.url).searchParams.toString(),
+  );
   if (Object.keys(params).length > 0)
     serializedNetworkCall.request.params = params;
   if (networkCall.request.body) {
@@ -158,7 +160,7 @@ function getParamsFromSearchString(
   searchString: string,
 ): Record<string, string | string[]> {
   let params: Record<string, string | string[]> = {};
-  const searchParams = new URL(searchString).searchParams;
+  const searchParams = new URLSearchParams(searchString);
   for (const key of Object.keys(searchParams)) {
     const values = searchParams.getAll(key);
     if (values.length === 1) {
