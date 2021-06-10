@@ -12,16 +12,32 @@ import { TestCases, TestCase, parseTests, getTestRunId } from "../TestCases"
 
 // SEPs displayed in dropdown rendered in UI
 const DROPDOWN_SEPS = [1, 6, 10, 12, 24, 31];
-// SEPs that require the config field to be rendered in UI
+// SEPs to send to server based on SEP selected in dropdown
+const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
+  1: [1],
+  6: [1, 10, 12, 6],
+  10: [1, 10],
+  12: [1, 10, 12],
+  24: [1, 10, 24],
+  31: [1, 10, 12, 31]
+};
+// SEPs that require the config file field to be rendered in UI
 const CONFIG_SEPS = [6, 12, 31];
 
-export const TestRunner = () => {
-  interface FormData {
-    homeDomain: string;
-    seps: Array<number>;
-    assetCode?: string;
-  }
+interface FormData {
+  homeDomain: string;
+  seps: Array<number>;
+  assetCode?: string;
+}
 
+enum RunState {
+  noTests = "noTests",
+  awaitingRun = "awaitingRun",
+  running = "running",
+  done = "done"
+}
+
+export const TestRunner = () => {
   const [formData, setFormData] = useState(
     {
       homeDomain: "",
@@ -32,6 +48,8 @@ export const TestRunner = () => {
   const [isConfigNeeded, setIsConfigNeeded] = useState(false);
   const [testRunArray, setTestRunArray] = useState([] as TestCase[]); 
   const [testRunOrderMap, setTestRunOrderMap] = useState({} as Record<string, number>);
+  const [runState, setRunState] = useState(RunState.noTests);
+  //const [assetCode, setAssetCode] = useState(undefined);
 
   /*
    * getTests functionality
@@ -64,11 +82,12 @@ export const TestRunner = () => {
         testRunOrderMap[getTestRunId(testRun.test)] = i++;
       setTestRunOrderMap(testRunOrderMap);
       setTestRunArray(testRuns);
+      setRunState(RunState.awaitingRun);
     });
     return () => {
       socket.off("getTests");
     };
-  }, [testRunArray, testRunOrderMap]);
+  }, [testRunArray, testRunOrderMap, runState]);
 
   /*
    * runTests functionality
@@ -82,17 +101,31 @@ export const TestRunner = () => {
     });
   };
 
+  const clearTestRunArray = () => {
+    const testRunArrayCopy = [...testRunArray];
+    for (const testRun of testRunArrayCopy) {
+      testRun.result = undefined;
+    }
+    setTestRunArray(testRunArrayCopy);
+    setRunState(RunState.awaitingRun);
+  };
+
   useEffect(() => {
     socket.on("runTests", ({ test, result }) => {
       const testRunArrayCopy = [...testRunArray];
       const testRun = testRunArrayCopy[testRunOrderMap[getTestRunId(test)]];
       testRun.result = result;
       setTestRunArray(testRunArrayCopy);
+      if (testRunArrayCopy.every((testRun => testRun.result))) {
+        setRunState(RunState.done);
+      } else if (runState !== RunState.running) {
+        setRunState(RunState.running);
+      }
     });
     return () => {
       socket.off("runTests");
     };
-  }, [testRunArray, testRunOrderMap]);
+  }, [testRunArray, testRunOrderMap, runState]);
 
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -108,11 +141,13 @@ export const TestRunner = () => {
 
     if (CONFIG_SEPS.includes(sepNumber)) {
       setIsConfigNeeded(true);
+    } else {
+      setIsConfigNeeded(false);
     }
 
     setFormData({
       ...formData,
-      [id]: [sepNumber],
+      [id]: DROPDOWN_SEPS_MAP[sepNumber],
     });
   };
 
@@ -166,6 +201,9 @@ export const TestRunner = () => {
         )}
         <div className="ButtonWrapper">
           <Button onClick={handleSubmit}>Run Tests</Button>
+          { (runState === RunState.done) && <Button onClick={clearTestRunArray}>Clear Tests</Button> }
+        </div>
+        <div className="ButtonWrapper">
         </div>
       </div>
       <hr />

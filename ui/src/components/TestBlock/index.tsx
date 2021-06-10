@@ -12,7 +12,7 @@ enum TestBlockVariant {
 export const TestBlock: React.FC<{ testCase: TestCase }> = ({ testCase }) => {
 	let testBlockHeaderVariant;
 	if (testCase.result) {
-		testBlockHeaderVariant = Boolean(testCase.result.failure) ? TestBlockVariant.failed : TestBlockVariant.passed;
+		testBlockHeaderVariant = Boolean(testCase.result.failureMode) ? TestBlockVariant.failed : TestBlockVariant.passed;
 	}
   const variantIcon = {
     [TestBlockVariant.passed]: <Icon.Success />,
