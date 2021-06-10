@@ -49,7 +49,6 @@ export const TestRunner = () => {
   const [testRunArray, setTestRunArray] = useState([] as TestCase[]); 
   const [testRunOrderMap, setTestRunOrderMap] = useState({} as Record<string, number>);
   const [runState, setRunState] = useState(RunState.noTests);
-  //const [assetCode, setAssetCode] = useState(undefined);
 
   /*
    * getTests functionality
