@@ -28,6 +28,7 @@ interface FormData {
   homeDomain: string;
   seps: Array<number>;
   assetCode?: string;
+  sepConfig?: any
 }
 
 enum RunState {
@@ -138,14 +139,19 @@ export const TestRunner = () => {
     const { id, value } = e.target;
     const sepNumber = Number(value);
 
+    // retain config only if it is still needed
+    let configValue; 
     if (CONFIG_SEPS.includes(sepNumber)) {
       setIsConfigNeeded(true);
+      configValue = formData.sepConfig;
     } else {
       setIsConfigNeeded(false);
+      configValue = undefined;
     }
 
     setFormData({
       ...formData,
+      sepConfig: configValue,
       [id]: DROPDOWN_SEPS_MAP[sepNumber],
     });
   };
@@ -158,9 +164,7 @@ export const TestRunner = () => {
       fileReader.onload = (e) => {
         setFormData({
           ...formData,
-          [id]: {
-            [formData.seps[0]]: JSON.parse(e?.target?.result as string),
-          },
+          [id]: JSON.parse(e?.target?.result as string),
         });
       };
     }
