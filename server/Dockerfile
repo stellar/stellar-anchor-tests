@@ -4,7 +4,7 @@ MAINTAINER SDF Ops Team <ops@stellar.org>
 
 RUN mkdir -p /app/server
 RUN mkdir -p /app/@stellar/anchor-tests
-RUN apt-get update && apt-get install -y gnupg1 libtool
+RUN apt-get update && apt-get install -y gnupg1 libtool build-essential
 
 WORKDIR /app
 
