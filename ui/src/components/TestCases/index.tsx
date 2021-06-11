@@ -1,7 +1,8 @@
 import React from "react";
 
-import { SepBlock } from "../SepBlock"
-import { TestBlock } from "../TestBlock"
+import { SepBlock } from "../SepBlock";
+import { TestBlock } from "../TestBlock";
+import "./styles.scss";
 
 export const SepUIOrder = [1, 10, 12, 6, 24, 31];
 

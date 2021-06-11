@@ -9,6 +9,7 @@ import throttle from "lodash.throttle";
 
 import { socket } from "helpers/socketConnection";
 import { TestCases, TestCase, parseTests, getTestRunId } from "../TestCases"
+import "./styles.scss";
 
 // SEPs displayed in dropdown rendered in UI
 const DROPDOWN_SEPS = [1, 6, 10, 12, 24, 31];
