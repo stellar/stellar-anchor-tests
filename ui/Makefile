@@ -9,7 +9,7 @@ TAG ?= stellar/stellar-anchor-tests:$(LABEL)
 BUILD_DATE := $(shell date --utc --rfc-3339=seconds)
 
 docker-build:
-	$(SUDO) docker build --pull --label org.opencontainers.image.created="$(BUILD_DATE)" -f ui/Dockerfile -t $(TAG) ..
+	$(SUDO) docker build --pull --label org.opencontainers.image.created="$(BUILD_DATE)" -f Dockerfile -t $(TAG) ..
 
 docker-push:
 	$(SUDO) docker push $(TAG)
