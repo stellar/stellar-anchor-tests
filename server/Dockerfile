@@ -19,7 +19,7 @@ COPY tsconfig.json package.json yarn.lock /app/
 COPY ./server /app/server/
 COPY ./@stellar/anchor-tests /app/@stellar/anchor-tests/
 RUN yarn install
-RUN yarn workspace server build
+RUN yarn build:server
 
 EXPOSE 8000
 CMD ["yarn", "workspace", "server", "start"]
