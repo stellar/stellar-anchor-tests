@@ -128,7 +128,10 @@ export const TestRunner = () => {
   }, [testRunArray, testRunOrderMap, runState]);
 
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
+    let { id, value } = e.target;
+    if (id === "homeDomain" && !value.startsWith("http")) {
+      value = "https://" + value;
+    }
     setFormData({
       ...formData,
       [id]: value,
