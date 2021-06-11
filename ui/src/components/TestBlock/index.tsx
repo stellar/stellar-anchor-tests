@@ -26,7 +26,7 @@ export const TestBlock: React.FC<{ testCase: TestCase }> = ({ testCase }) => {
 				)}
 				{ testCase.test.group }: {testCase.test.assertion }
 			</div>
-			{testCase.result && testCase.result.failure && (
+			{testCase.result && testCase.result.failureMode && (
 				<ResultBlock result={ testCase.result }></ResultBlock>
 			)}
 		</>

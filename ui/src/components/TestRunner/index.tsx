@@ -94,6 +94,8 @@ export const TestRunner = () => {
    */
 
   const handleSubmit = () => {
+    clearTestResults();
+    setRunState(RunState.running);
     socket.emit("runTests", formData, (error: Error) => {
       setServerFailure(
         `server failure occurred: ${error.name}: ${error.message}`
@@ -101,7 +103,7 @@ export const TestRunner = () => {
     });
   };
 
-  const clearTestRunArray = () => {
+  const clearTestResults = () => {
     const testRunArrayCopy = [...testRunArray];
     for (const testRun of testRunArrayCopy) {
       testRun.result = undefined;
@@ -118,9 +120,7 @@ export const TestRunner = () => {
       setTestRunArray(testRunArrayCopy);
       if (testRunArrayCopy.every((testRun => testRun.result))) {
         setRunState(RunState.done);
-      } else if (runState !== RunState.running) {
-        setRunState(RunState.running);
-      }
+      } 
     });
     return () => {
       socket.off("runTests");
@@ -140,22 +140,25 @@ export const TestRunner = () => {
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { id, value } = e.target;
-    const sepNumber = Number(value);
+    const sepNumber = value ? Number(value) : undefined;
 
     // retain config only if it is still needed
     let configValue; 
-    if (CONFIG_SEPS.includes(sepNumber)) {
+    if (sepNumber && CONFIG_SEPS.includes(sepNumber)) {
       setIsConfigNeeded(true);
       configValue = formData.sepConfig;
     } else {
       setIsConfigNeeded(false);
       configValue = undefined;
     }
+    
+    if (!sepNumber)
+      setTestRunArray([]);
 
     setFormData({
       ...formData,
       sepConfig: configValue,
-      [id]: DROPDOWN_SEPS_MAP[sepNumber],
+      [id]: sepNumber ? DROPDOWN_SEPS_MAP[sepNumber] : [],
     });
   };
 
@@ -206,8 +209,10 @@ export const TestRunner = () => {
           </div>
         )}
         <div className="ButtonWrapper">
-          <Button onClick={handleSubmit}>Run Tests</Button>
-          { (runState === RunState.done) && <Button onClick={clearTestRunArray}>Clear Tests</Button> }
+          <Button onClick={handleSubmit} disabled={ runState === RunState.running }>
+            { (runState !== RunState.running) ? "Run Tests" : "Running..." }
+          </Button>
+          { (runState === RunState.done) && <Button onClick={clearTestResults}>Reset</Button> }
         </div>
         <div className="ButtonWrapper">
         </div>
