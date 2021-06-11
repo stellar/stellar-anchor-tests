@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y gnupg curl git make apt-transport-https
 
 COPY tsconfig.json package.json yarn.lock /app/
 COPY ./server /app/server/
-COPY ./@stellar/anchor-tests /app/@stellar/anchor-tests
+COPY ./@stellar/anchor-tests /app/@stellar/anchor-tests/
 RUN yarn install
 RUN yarn workspace server build
 
