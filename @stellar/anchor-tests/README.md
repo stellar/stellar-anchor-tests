@@ -4,17 +4,9 @@
 
 ## Install
 
-This project is in active development and is not yet published to the npm registry. To install, run the following commands:
-
 ```
-git clone git@github.com:stellar/stellar-anchor-tests.git
-yarn build
-yarn workspace @stellar/anchor-tests link
+yarn install --save @stellar/anchor-tests
 ```
-
-You can now use `yarn link @stellar/anchor-tests` in another NodeJS project to use the library in code.
-
-If you want to run the `stellar-anchor-tests` command, use the `yarn stellar-anchor-tests` script provided by this repository. The command is not globally available because Yarn's `link` command does not create symbolic links correctly.
 
 ## Usage
 
@@ -50,6 +42,8 @@ Time:        0.373s
 ```
 
 ### Library
+
+Check out the complete [API Reference documentation](https://stellar.github.io/stellar-anchor-tests).
 
 ```
 import { run, Config } from "@stellar/anchor-tests";

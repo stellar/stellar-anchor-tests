@@ -1,6 +1,6 @@
 {
   "name": "@stellar/anchor-tests",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "stellar-anchor-tests is a library and command line interface for testing Stellar anchors.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -16,8 +16,7 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "build": "tsc",
-    "prepare": "husky install"
+    "build": "tsc"
   },
   "homepage": "https://github.com/stellar/stellar-anchor-tests/tree/master/%40stellar/anchor-tests",
   "author": "Stellar Development Foundation <hello@stellar.org>",
