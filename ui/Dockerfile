@@ -3,7 +3,7 @@ FROM ubuntu:20.04 as build
 MAINTAINER SDF Ops Team <ops@stellar.org>
 
 RUN mkdir -p /app/ui
-RUN apt-get update && apt-get install -y gnupg1
+RUN apt-get update && apt-get install -y gnupg1 libtool build-essential
 
 WORKDIR /app
 
