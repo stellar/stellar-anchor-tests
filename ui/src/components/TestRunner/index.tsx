@@ -6,8 +6,10 @@ import {
   Select,
 } from "@stellar/design-system";
 import throttle from "lodash.throttle";
+import { Networks, StellarTomlResolver } from "stellar-sdk";
 
 import { socket } from "helpers/socketConnection";
+import { getSupportedAssets } from "helpers/utils";
 import { TestCases, TestCase, parseTests, getTestRunId } from "../TestCases"
 import "./styles.scss";
 
@@ -24,6 +26,8 @@ const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
 };
 // SEPs that require the config file field to be rendered in UI
 const CONFIG_SEPS = [6, 12, 31];
+// SEPs that require an asset to use in tests
+const TRANSFER_SEPS = [6, 24, 31];
 
 interface FormData {
   homeDomain: string;
@@ -51,6 +55,10 @@ export const TestRunner = () => {
   const [testRunArray, setTestRunArray] = useState([] as TestCase[]); 
   const [testRunOrderMap, setTestRunOrderMap] = useState({} as Record<string, number>);
   const [runState, setRunState] = useState(RunState.noTests);
+  const [toml, setToml] = useState(undefined as undefined | { [key in string]: string });
+  // TODO: add testnet / pubnet label next to home domain input
+  const [_isTestnet, setIsTestnet] = useState(undefined as undefined | Boolean);
+  const [supportedAssets, setSupportedAssets] = useState([] as string[]);
 
   /*
    * getTests functionality
@@ -68,12 +76,82 @@ export const TestRunner = () => {
     }, 250)
   );
 
+  // make toml requests at most once every 250 milliseconds
+  const getTomlThrottled = useRef(
+    throttle(async (homeDomain) => {
+      const homeDomainHost = new URL(homeDomain).host;
+      try {
+        setToml(await StellarTomlResolver.resolve(homeDomainHost));
+      } catch {
+        setToml(undefined);
+      }
+    }, 250)
+  );
+
+  const getSupportedSepsRef = useRef(
+    throttle(async (domain: string, sep: number) => {
+      try {
+        setSupportedAssets(await getSupportedAssets(domain, sep));
+      } catch (e) {
+        setServerFailure(
+          `Failed to fetch supported currenices from ${domain}`
+        );
+        setSupportedAssets([]);
+      }
+    }, 250)
+  );
+
+  // Update toml-related state variables based on toml object
+  useEffect(() => {
+    if (toml && toml.NETWORK_PASSPHRASE) {
+      if (Networks.TESTNET === toml.NETWORK_PASSPHRASE) {
+        setIsTestnet(true);
+      } else if (Networks.PUBLIC === toml.NETWORK_PASSPHRASE) {
+        setIsTestnet(false);
+      } else {
+        setIsTestnet(undefined);
+      }
+    } else {
+      setIsTestnet(undefined);
+    }
+    if (
+      formData.homeDomain && 
+      toml && 
+      formData.seps.length && 
+      TRANSFER_SEPS.includes(formData.seps[formData.seps.length - 1])
+    ) {
+      const transferSep = formData.seps[formData.seps.length - 1];
+      const tomlAttribute = {
+        6: "TRANSFER_SERVER",
+        24: "TRANSFER_SERVER_SEP0024",
+        31: "DIRECT_PAYMENT_SERVER"
+      }[transferSep];
+      if (!toml[tomlAttribute as string]) {
+        setServerFailure(
+          `The SEP-1 stellar.toml file has no ${tomlAttribute}.`
+        );
+        setSupportedAssets([]);
+        return;
+      }
+      getSupportedSepsRef.current(
+        toml[tomlAttribute as string], transferSep
+      );
+    } else {
+      setSupportedAssets([]);
+    }
+  }, [formData.homeDomain, formData.seps, toml]);
+
+  // make getTests socket request every time form data changes
   useEffect(() => {
     if (formData.homeDomain && formData.seps.length) {
       getTestsThrottled.current(formData);
     }
+    if (formData.homeDomain) {
+      getTomlThrottled.current(formData.homeDomain);
+    }
   }, [formData]);
 
+  // add/remove websocket listener for getTests on component mount/dismount
   useEffect(() => {
     socket.on("getTests", (tests) => {
       const testRunOrderMap: Record<string, number> = {};
@@ -88,12 +166,13 @@ export const TestRunner = () => {
     return () => {
       socket.off("getTests");
     };
-  }, [testRunArray, testRunOrderMap, runState]);
+  }, [testRunArray, testRunOrderMap]);
 
   /*
    * runTests functionality
    */
 
+  // onClick handler for 'Run Tests' button
   const handleSubmit = () => {
     clearTestResults();
     setRunState(RunState.running);
@@ -104,6 +183,7 @@ export const TestRunner = () => {
     });
   };
 
+  // onClick handler for 'Reset' button
   const clearTestResults = () => {
     const testRunArrayCopy = [...testRunArray];
     for (const testRun of testRunArrayCopy) {
@@ -113,6 +193,7 @@ export const TestRunner = () => {
     setRunState(RunState.awaitingRun);
   };
 
+  // add/remove websocket listener for runTests on component mount/dismount
   useEffect(() => {
     socket.on("runTests", ({ test, result }) => {
       const testRunArrayCopy = [...testRunArray];
@@ -126,12 +207,18 @@ export const TestRunner = () => {
     return () => {
       socket.off("runTests");
     };
-  }, [testRunArray, testRunOrderMap, runState]);
+  }, [testRunArray, testRunOrderMap]);
 
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let { id, value } = e.target;
-    if (id === "homeDomain" && !value.startsWith("http")) {
-      value = "https://" + value;
+    if (id === "homeDomain") {
+      if (value && !value.startsWith("http")) {
+        value = "https://" + value;
+      } else if (!value) {
+        setIsTestnet(undefined);
+        setTestRunArray([]);
+        setTestRunOrderMap({});
+      }
     }
     setFormData({
       ...formData,
@@ -139,7 +226,7 @@ export const TestRunner = () => {
     });
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSepChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { id, value } = e.target;
     const sepNumber = value ? Number(value) : undefined;
 
@@ -163,6 +250,14 @@ export const TestRunner = () => {
     });
   };
 
+  const handleAssetCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { id, value } = e.target;
+    setFormData({
+      ...formData,
+      [id]: value
+    })
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, files } = e.target;
     if (files?.length) {
@@ -180,12 +275,14 @@ export const TestRunner = () => {
   return (
     <>
       <div className="TestConfigWrapper">
-        <Input
-          id="homeDomain"
-          label="Home Domain"
-          onChange={handleFieldChange}
-        />
-        <Select id="seps" label="sep" onChange={handleSelectChange}>
+        <div className="HomeDomainRow">
+          <Input
+            id="homeDomain"
+            label="Home Domain"
+            onChange={handleFieldChange}
+          />
+        </div>
+        <Select id="seps" label="sep" onChange={handleSepChange}>
           <option></option>
           {DROPDOWN_SEPS.map((sepNum) => (
             <option key={sepNum} value={sepNum}>
@@ -193,7 +290,13 @@ export const TestRunner = () => {
             </option>
           ))}
         </Select>
-        <Input id="assetCode" label="Currency" onChange={handleFieldChange} />
+        { supportedAssets.length !== 0 && 
+          <Select id="assetCode" label="Currency" onChange={handleAssetCodeChange}>
+            {supportedAssets.map(assetCode => (
+              <option key={assetCode} value={assetCode}>{assetCode}</option>
+            ))}          
+          </Select> 
+        }
         {serverFailure && (
           <InfoBlock variant={InfoBlock.variant.error}>
             {serverFailure}
@@ -210,12 +313,10 @@ export const TestRunner = () => {
           </div>
         )}
         <div className="ButtonWrapper">
-          <Button onClick={handleSubmit} disabled={ runState === RunState.running }>
+          <Button onClick={handleSubmit} disabled={ [RunState.running, RunState.noTests].includes(runState) || Boolean(serverFailure) }>
             { (runState !== RunState.running) ? "Run Tests" : "Running..." }
           </Button>
           { (runState === RunState.done) && <Button onClick={clearTestResults}>Reset</Button> }
-        </div>
-        <div className="ButtonWrapper">
         </div>
       </div>
       <hr />
