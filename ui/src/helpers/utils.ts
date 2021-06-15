@@ -4,7 +4,6 @@ export async function getSupportedAssets(
   url: string,
   sep: number
 ): Promise<Array<string>> {
-  console.log("calling /info");
   const infoResp = await fetch(url + "/info");
   if (infoResp.status !== 200)
     throw new Error("unexpected status code from /info");
