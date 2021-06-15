@@ -299,13 +299,11 @@ export const TestRunner = () => {
   return (
     <>
       <div className="TestConfigWrapper">
-        <div className="HomeDomainRow">
-          <Input
-            id="homeDomain"
-            label="Home Domain"
-            onChange={handleFieldChange}
-          />
-        </div>
+        <Input
+          id="homeDomain"
+          label="Home Domain"
+          onChange={handleFieldChange}
+        />
         { supportedSeps.length !== 0 && 
           <Select id="seps" label="sep" onChange={handleSepChange}>
             <option></option>
