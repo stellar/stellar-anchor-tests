@@ -54,12 +54,10 @@ export const TestRunner = () => {
   const [toml, setToml] = useState(undefined as undefined | { [key in string]: string });
   const [supportedAssets, setSupportedAssets] = useState([] as string[]);
   const [supportedSeps, setSupportedSeps] = useState([] as number[]);
-  const [urlArgs, setUrlArgs] = useState({} as Record<string, string>);
   // TODO: add testnet / pubnet label next to home domain input
   const [_isTestnet, setIsTestnet] = useState(undefined as undefined | Boolean);
 
   function resetAllState() {
-    setUrlArgs({});
     setIsTestnet(undefined);
     setRunState(RunState.noTests);
     setServerFailure("");
@@ -69,28 +67,7 @@ export const TestRunner = () => {
     setToml(undefined);
     setTestRunArray([]);
     setTestRunOrderMap({});
-    setFormData({ homeDomain: "", seps: [] });
   }
-
-  useEffect(() => {
-    let queryString = new URLSearchParams(urlArgs).toString();
-    if (queryString)
-      queryString = "?" + queryString;
-    window.history.replaceState(null, "", queryString);
-  }, [urlArgs]);
-
-  useEffect(() => {
-    if (supportedAssets.length) {
-      setUrlArgs({
-        ...urlArgs,
-        assetCode: supportedAssets[0]
-      });
-    } else {
-      const urlArgsCopy = { ...urlArgs };
-      delete urlArgsCopy.assetCode;
-      setUrlArgs(urlArgsCopy);
-    }
-  }, [supportedAssets]);
 
   useEffect(() => {
     if (formData.homeDomain) {
@@ -264,10 +241,6 @@ export const TestRunner = () => {
       } else if (!value) {
         resetAllState();
       }
-      setUrlArgs({
-        ...urlArgs,
-        homeDomain: value
-      });
     }
     setFormData({
       ...formData,
@@ -292,14 +265,6 @@ export const TestRunner = () => {
     if (!sepNumber) {
       setTestRunArray([]);
       setTestRunOrderMap({});
-      const urlArgsCopy = { ...urlArgs };
-      delete urlArgsCopy.sep;
-      setUrlArgs(urlArgsCopy);
-    } else {
-      setUrlArgs({
-        ...urlArgs,
-        sep: String(sepNumber)
-      });
     }
     
     setFormData({
@@ -311,20 +276,10 @@ export const TestRunner = () => {
 
   const handleAssetCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { id, value } = e.target;
-    if (value) {
-      setUrlArgs({
-        ...urlArgs,
-        assetCode: value
-      });
-    } else {
-      const urlArgsCopy = { ...urlArgs };
-      delete urlArgsCopy.assetCode;
-      setUrlArgs(urlArgsCopy);
-    }
     setFormData({
       ...formData,
       [id]: value
-    });
+    })
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
