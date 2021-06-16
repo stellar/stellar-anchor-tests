@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import {
   Button,
   InfoBlock,
@@ -6,7 +6,7 @@ import {
   Select,
 } from "@stellar/design-system";
 import throttle from "lodash.throttle";
-import { Networks, StellarTomlResolver } from "stellar-sdk";
+import { StellarTomlResolver } from "stellar-sdk";
 
 import { socket } from "helpers/socketConnection";
 import { getSupportedAssets } from "helpers/utils";
@@ -54,11 +54,8 @@ export const TestRunner = () => {
   const [toml, setToml] = useState(undefined as undefined | { [key in string]: string });
   const [supportedAssets, setSupportedAssets] = useState([] as string[]);
   const [supportedSeps, setSupportedSeps] = useState([] as number[]);
-  // TODO: add testnet / pubnet label next to home domain input
-  const [_isTestnet, setIsTestnet] = useState(undefined as undefined | Boolean);
 
   function resetAllState() {
-    setIsTestnet(undefined);
     setRunState(RunState.noTests);
     setServerFailure("");
     setIsConfigNeeded(false);
@@ -69,76 +66,6 @@ export const TestRunner = () => {
     setTestRunOrderMap({});
     setFormData({ homeDomain: "", seps: [] });
   }
-
-  useEffect(() => {
-    if (formData.homeDomain) {
-      getTomlThrottled.current(formData.homeDomain);
-    }
-  }, [formData.homeDomain]);
-
-  useEffect(() => {
-    if (formData.homeDomain && formData.seps.length) {
-      getTestsThrottled.current(formData);
-    }
-  }, [formData, formData.homeDomain, formData.seps])
-
-  useEffect(() => {
-    if (toml && toml.NETWORK_PASSPHRASE) {
-      if (Networks.TESTNET === toml.NETWORK_PASSPHRASE) {
-        setIsTestnet(true);
-      } else if (Networks.PUBLIC === toml.NETWORK_PASSPHRASE) {
-        setIsTestnet(false);
-      } else {
-        setIsTestnet(undefined);
-      }
-    } else {
-      setIsTestnet(undefined);
-    }
-    if (toml) {
-      const newSupportedSeps = [1];
-      if (toml.TRANSFER_SERVER) {
-        newSupportedSeps.push(6);
-      }
-      if (toml.WEB_AUTH_ENDPOINT) {
-        newSupportedSeps.push(10);
-      }
-      if (toml.KYC_SERVER) {
-        newSupportedSeps.push(12);
-      }
-      if (toml.TRANSFER_SERVER_SEP0024) {
-        newSupportedSeps.push(24);
-      }
-      if (toml.DIRECT_PAYMENT_SERVER) {
-        newSupportedSeps.push(31);
-      }
-      setSupportedSeps(newSupportedSeps);
-    }
-    if (
-      formData.homeDomain && 
-      formData.seps.length && 
-      toml && 
-      TRANSFER_SEPS.includes(formData.seps[formData.seps.length - 1])
-    ) {
-      const transferSep = formData.seps[formData.seps.length - 1];
-      const tomlAttribute = {
-        6: "TRANSFER_SERVER",
-        24: "TRANSFER_SERVER_SEP0024",
-        31: "DIRECT_PAYMENT_SERVER"
-      }[transferSep];
-      if (!toml[tomlAttribute as string]) {
-        setServerFailure(
-          `The SEP-1 stellar.toml file has no ${tomlAttribute}.`
-        );
-        setSupportedAssets([]);
-        return;
-      }
-      getSupportedAssetsRef.current(
-        toml[tomlAttribute as string], transferSep
-      );
-    } else {
-      setSupportedAssets([]);
-    }
-  }, [formData.homeDomain, formData.seps, toml]);
 
   // add/remove websocket listener for getTests on component mount/dismount
   useEffect(() => {
@@ -155,7 +82,7 @@ export const TestRunner = () => {
     return () => {
       socket.off("getTests");
     };
-  }, [testRunArray, testRunOrderMap]);
+  }, []);
 
   // add/remove websocket listener for runTests on component mount/dismount
   useEffect(() => {
@@ -176,7 +103,6 @@ export const TestRunner = () => {
   // make getTests request at most once every 250 milliseconds
   const getTestsThrottled = useRef(
     throttle((newFormData) => {
-      setServerFailure("");
       socket.emit("getTests", newFormData, (error: Error) => {
         setServerFailure(
           `server failure occurred: ${error.name}: ${error.message}`
@@ -188,28 +114,26 @@ export const TestRunner = () => {
   // make toml requests at most once every 250 milliseconds
   const getTomlThrottled = useRef(
     throttle(async (homeDomain) => {
+      const homeDomainHost = new URL(homeDomain).host;
+      let tomlObj;
       try {
-        const homeDomainHost = new URL(homeDomain).host;
-        setToml(await StellarTomlResolver.resolve(homeDomainHost));
+        tomlObj = await StellarTomlResolver.resolve(homeDomainHost);
       } catch {
         resetAllState();
-        setServerFailure("unable to fetch SEP-1 stellar.toml file");
+        setServerFailure("Unable to fetch SEP-1 stellar.toml file");
         return;
       }
       setServerFailure("");
+      setToml(tomlObj);
+      //updateNetworkState(tomlObj.NETWORK_PASSPHRASE);
+      updateSupportedSepsState(tomlObj);
+      return tomlObj;
     }, 250)
   );
 
   const getSupportedAssetsRef = useRef(
     throttle(async (domain: string, sep: number) => {
-      try {
-        setSupportedAssets(await getSupportedAssets(domain, sep));
-      } catch {
-        setServerFailure(
-          `Failed to fetch supported assets from ${domain}`
-        );
-        setSupportedAssets([]);
-      }
+      setSupportedAssets(await getSupportedAssets(domain, sep));
     }, 250)
   );
 
@@ -234,23 +158,82 @@ export const TestRunner = () => {
     setRunState(RunState.awaitingRun);
   };
 
-  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let { id, value } = e.target;
-    if (id === "homeDomain") {
-      if (value && !value.startsWith("http")) {
-        value = "https://" + value;
-      } else if (!value) {
-        resetAllState();
+  /*const updateNetworkState = (network: string | undefined) => {
+    if (network) {
+      if (Networks.TESTNET === network) {
+        setIsTestnet(true);
+      } else if (Networks.PUBLIC === network) {
+        setIsTestnet(false);
+      } else {
+        setIsTestnet(undefined);
       }
+    } else {
+      setIsTestnet(undefined);
     }
+  }*/
+
+  const updateSupportedSepsState = (tomlObj: { [key: string]: string }) => {
+    if (tomlObj) {
+      const newSupportedSeps = [1];
+      if (tomlObj.TRANSFER_SERVER) {
+        newSupportedSeps.push(6);
+      }
+      if (tomlObj.WEB_AUTH_ENDPOINT) {
+        newSupportedSeps.push(10);
+      }
+      if (tomlObj.KYC_SERVER) {
+        newSupportedSeps.push(12);
+      }
+      if (tomlObj.TRANSFER_SERVER_SEP0024) {
+        newSupportedSeps.push(24);
+      }
+      if (tomlObj.DIRECT_PAYMENT_SERVER) {
+        newSupportedSeps.push(31);
+      }
+      setSupportedSeps(newSupportedSeps);
+    } else {
+      setSupportedSeps([]);
+    }
+  }
+
+  const handleHomeDomainChange = async (value: string) => {
+    if (!value) {
+      resetAllState();
+      return;
+    }
+    if (!value.startsWith("http")) {
+      value = "https://" + value;
+    }
+    await getTomlThrottled.current(value);
     setFormData({
       ...formData,
-      [id]: value,
+      homeDomain: value
     });
   };
 
-  const handleSepChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { id, value } = e.target;
+  const updateSupportedAssetsState = async (sep: number | undefined) => {
+    if (!sep || !TRANSFER_SEPS.includes(sep)) {
+      setSupportedAssets([]);
+      return;
+    }
+    const tomlAttribute = {
+      6: "TRANSFER_SERVER",
+      24: "TRANSFER_SERVER_SEP0024",
+      31: "DIRECT_PAYMENT_SERVER"
+    }[sep];
+    if (!toml || !toml[tomlAttribute as string]) {
+      setServerFailure(
+        `The SEP-1 stellar.toml file has no ${tomlAttribute}.`
+      );
+      setSupportedAssets([]);
+      return;
+    }
+    await getSupportedAssetsRef.current(
+      toml[tomlAttribute as string], sep
+    )
+  }
+
+  const handleSepChange = async (value: string) => {
     const sepNumber = value ? Number(value) : undefined;
 
     // retain config only if it is still needed
@@ -263,35 +246,38 @@ export const TestRunner = () => {
       configValue = undefined;
     }
 
+    const newFormData = {
+      ...formData,
+      sepConfig: configValue,
+      seps: sepNumber ? DROPDOWN_SEPS_MAP[sepNumber] : []
+    };
+
     if (!sepNumber) {
       setTestRunArray([]);
       setTestRunOrderMap({});
+    } else {
+      getTestsThrottled.current(newFormData);
     }
-    
-    setFormData({
-      ...formData,
-      sepConfig: configValue,
-      [id]: sepNumber ? DROPDOWN_SEPS_MAP[sepNumber] : []
-    });
+
+    await updateSupportedAssetsState(sepNumber);
+    setFormData(newFormData);
   };
 
-  const handleAssetCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { id, value } = e.target;
+  const handleAssetCodeChange = (value: string) => {
     setFormData({
       ...formData,
-      [id]: value
+      assetCode: value
     })
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, files } = e.target;
+  const handleFileChange = (files: FileList | null) => {
     if (files?.length) {
       const fileReader = new FileReader();
       fileReader.readAsText(files[0], "UTF-8");
       fileReader.onload = (e) => {
         setFormData({
           ...formData,
-          [id]: JSON.parse(e?.target?.result as string),
+          sepConfig: JSON.parse(e?.target?.result as string),
         });
       };
     }
@@ -303,20 +289,20 @@ export const TestRunner = () => {
         <Input
           id="homeDomain"
           label="Home Domain"
-          onChange={handleFieldChange}
+          onChange={(e) => handleHomeDomainChange(e.target.value)}
         />
         { supportedSeps.length !== 0 && 
-          <Select id="seps" label="sep" onChange={handleSepChange}>
+          <Select id="seps" label="sep" onChange={(e) => handleSepChange(e.target.value)}>
             <option></option>
             { supportedSeps.map((sepNum) => (
-              <option key={sepNum} value={sepNum}>
+              <option key={sepNum} value={String(sepNum)}>
                 SEP-{sepNum}
               </option>
             )) }
           </Select>
         }
         { supportedAssets.length !== 0 && 
-          <Select id="assetCode" label="Asset" onChange={handleAssetCodeChange}>
+          <Select id="assetCode" label="Asset" onChange={(e) => handleAssetCodeChange(e.target.value)}>
             {supportedAssets.map(assetCode => (
               <option key={assetCode} value={assetCode}>{assetCode}</option>
             ))}          
@@ -327,7 +313,7 @@ export const TestRunner = () => {
             <Input
               id="sepConfig"
               label="Upload Config"
-              onChange={handleFileChange}
+              onChange={(e) => handleFileChange(e.target.files)}
               type="file"
             />
           </div>
