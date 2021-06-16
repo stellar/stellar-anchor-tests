@@ -2,7 +2,8 @@ FROM ubuntu:20.04 as build
 
 MAINTAINER SDF Ops Team <ops@stellar.org>
 
-ENV REACT_APP_SERVER_HOST="http://localhost:8000"
+ARG SERVER_HOST
+ENV REACT_APP_SERVER_HOST=$SERVER_HOST
 
 RUN mkdir -p /app/ui
 RUN apt-get update && apt-get install -y gnupg1 libtool build-essential
