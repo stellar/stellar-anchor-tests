@@ -67,6 +67,7 @@ export const TestRunner = () => {
     setToml(undefined);
     setTestRunArray([]);
     setTestRunOrderMap({});
+    setFormData({ homeDomain: "", seps: [] });
   }
 
   useEffect(() => {
