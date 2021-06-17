@@ -1,6 +1,7 @@
 import { Layout } from "@stellar/design-system";
 
 import { TestRunner } from "components/TestRunner";
+import "./App.scss";
 
 export const App = () => (
   <>
