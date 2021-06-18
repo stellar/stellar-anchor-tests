@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 
 export async function getSupportedAssets(
   url: string,
-  sep: number
+  sep: number,
 ): Promise<Array<string>> {
   const infoResp = await fetch(url + "/info");
   if (infoResp.status !== 200)
