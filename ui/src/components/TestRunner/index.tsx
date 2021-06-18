@@ -1,17 +1,14 @@
 import { useRef, useEffect, useState } from "react";
-import {
-  Button,
-  InfoBlock,
-  Input,
-  Select,
-} from "@stellar/design-system";
+import { Button, InfoBlock, Input, Select } from "@stellar/design-system";
 import throttle from "lodash.throttle";
 import { StellarTomlResolver } from "stellar-sdk";
+import styled from "styled-components";
 
 import { socket } from "helpers/socketConnection";
+import { getTestRunId, parseTests } from "helpers/testCases";
 import { getSupportedAssets } from "helpers/utils";
-import { TestCases, TestCase, parseTests, getTestRunId } from "../TestCases"
-import "./styles.scss";
+import { TestCase } from "types/testCases";
+import { TestCases } from "../TestCases";
 
 // SEPs to send to server based on SEP selected in dropdown
 const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
@@ -20,7 +17,7 @@ const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
   10: [1, 10],
   12: [1, 10, 12],
   24: [1, 10, 24],
-  31: [1, 10, 12, 31]
+  31: [1, 10, 12, 31],
 };
 // SEPs that require the config file field to be rendered in UI
 const CONFIG_SEPS = [6, 12, 31];
@@ -31,27 +28,47 @@ interface FormData {
   homeDomain: string;
   seps: Array<number>;
   assetCode?: string;
-  sepConfig?: any
+  sepConfig?: any;
 }
 
 enum RunState {
   noTests = "noTests",
   awaitingRun = "awaitingRun",
   running = "running",
-  done = "done"
+  done = "done",
 }
 
+const ButtonWrapper = styled.div`
+  display: flex;
+  margin-top: 1rem;
+`;
+
+const TestConfigWrapper = styled.form`
+  margin-bottom: 2rem;
+  width: 25rem;
+`;
+
+const ResetButtonWrapper = styled.div`
+  margin-left: 1rem;
+`;
+
+const defaultFormData = {
+  homeDomain: "",
+  seps: [],
+} as FormData;
+
 export const TestRunner = () => {
-  const [formData, setFormData] = useState({
-    homeDomain: "",
-    seps: [],
-  } as FormData);
+  const [formData, setFormData] = useState(defaultFormData);
   const [serverFailure, setServerFailure] = useState("");
   const [isConfigNeeded, setIsConfigNeeded] = useState(false);
-  const [testRunArray, setTestRunArray] = useState([] as TestCase[]); 
-  const [testRunOrderMap, setTestRunOrderMap] = useState({} as Record<string, number>);
+  const [testRunArray, setTestRunArray] = useState([] as TestCase[]);
+  const [testRunOrderMap, setTestRunOrderMap] = useState(
+    {} as Record<string, number>
+  );
   const [runState, setRunState] = useState(RunState.noTests);
-  const [toml, setToml] = useState(undefined as undefined | { [key in string]: string });
+  const [toml, setToml] = useState(
+    undefined as undefined | { [key in string]: string }
+  );
   const [supportedAssets, setSupportedAssets] = useState([] as string[]);
   const [supportedSeps, setSupportedSeps] = useState([] as number[]);
 
@@ -64,7 +81,7 @@ export const TestRunner = () => {
     setToml(undefined);
     setTestRunArray([]);
     setTestRunOrderMap({});
-    setFormData({ homeDomain: "", seps: [] });
+    setFormData(defaultFormData);
   }
 
   // add/remove websocket listener for getTests on component mount/dismount
@@ -91,9 +108,9 @@ export const TestRunner = () => {
       const testRun = testRunArrayCopy[testRunOrderMap[getTestRunId(test)]];
       testRun.result = result;
       setTestRunArray(testRunArrayCopy);
-      if (testRunArrayCopy.every((testRun => testRun.result))) {
+      if (testRunArrayCopy.every((testRun) => testRun.result)) {
         setRunState(RunState.done);
-      } 
+      }
     });
     return () => {
       socket.off("runTests");
@@ -194,7 +211,7 @@ export const TestRunner = () => {
     } else {
       setSupportedSeps([]);
     }
-  }
+  };
 
   const handleHomeDomainChange = async (value: string) => {
     if (!value) {
@@ -202,12 +219,12 @@ export const TestRunner = () => {
       return;
     }
     if (!value.startsWith("http")) {
-      value = "https://" + value;
+      value = `https://${value}`;
     }
     await getTomlThrottled.current(value);
     setFormData({
       ...formData,
-      homeDomain: value
+      homeDomain: value,
     });
   };
 
@@ -219,25 +236,21 @@ export const TestRunner = () => {
     const tomlAttribute = {
       6: "TRANSFER_SERVER",
       24: "TRANSFER_SERVER_SEP0024",
-      31: "DIRECT_PAYMENT_SERVER"
+      31: "DIRECT_PAYMENT_SERVER",
     }[sep];
     if (!toml || !toml[tomlAttribute as string]) {
-      setServerFailure(
-        `The SEP-1 stellar.toml file has no ${tomlAttribute}.`
-      );
+      setServerFailure(`The SEP-1 stellar.toml file has no ${tomlAttribute}.`);
       setSupportedAssets([]);
       return;
     }
-    await getSupportedAssetsRef.current(
-      toml[tomlAttribute as string], sep
-    )
-  }
+    await getSupportedAssetsRef.current(toml[tomlAttribute as string], sep);
+  };
 
   const handleSepChange = async (value: string) => {
     const sepNumber = value ? Number(value) : undefined;
 
     // retain config only if it is still needed
-    let configValue; 
+    let configValue;
     if (sepNumber && CONFIG_SEPS.includes(sepNumber)) {
       setIsConfigNeeded(true);
       configValue = formData.sepConfig;
@@ -249,7 +262,7 @@ export const TestRunner = () => {
     const newFormData = {
       ...formData,
       sepConfig: configValue,
-      seps: sepNumber ? DROPDOWN_SEPS_MAP[sepNumber] : []
+      seps: sepNumber ? DROPDOWN_SEPS_MAP[sepNumber] : [],
     };
 
     if (!sepNumber) {
@@ -266,8 +279,8 @@ export const TestRunner = () => {
   const handleAssetCodeChange = (value: string) => {
     setFormData({
       ...formData,
-      assetCode: value
-    })
+      assetCode: value,
+    });
   };
 
   const handleFileChange = (files: FileList | null) => {
@@ -285,53 +298,73 @@ export const TestRunner = () => {
 
   return (
     <>
-      <div className="TestConfigWrapper">
+      <TestConfigWrapper>
         <Input
           id="homeDomain"
           label="Home Domain"
           onChange={(e) => handleHomeDomainChange(e.target.value)}
         />
-        { supportedSeps.length !== 0 && 
-          <Select id="seps" label="sep" onChange={(e) => handleSepChange(e.target.value)}>
+        {supportedSeps.length !== 0 && (
+          <Select
+            id="seps"
+            label="sep"
+            onChange={(e) => handleSepChange(e.target.value)}
+          >
             <option></option>
-            { supportedSeps.map((sepNum) => (
+            {supportedSeps.map((sepNum) => (
               <option key={sepNum} value={String(sepNum)}>
                 SEP-{sepNum}
               </option>
-            )) }
+            ))}
           </Select>
-        }
-        { supportedAssets.length !== 0 && 
-          <Select id="assetCode" label="Asset" onChange={(e) => handleAssetCodeChange(e.target.value)}>
-            {supportedAssets.map(assetCode => (
-              <option key={assetCode} value={assetCode}>{assetCode}</option>
-            ))}          
-          </Select> 
-        }
+        )}
+        {supportedAssets.length !== 0 && (
+          <Select
+            id="assetCode"
+            label="Asset"
+            onChange={(e) => handleAssetCodeChange(e.target.value)}
+          >
+            {supportedAssets.map((assetCode) => (
+              <option key={assetCode} value={assetCode}>
+                {assetCode}
+              </option>
+            ))}
+          </Select>
+        )}
         {isConfigNeeded && (
-          <div className="ButtonWrapper">
+          <ButtonWrapper>
             <Input
               id="sepConfig"
               label="Upload Config"
               onChange={(e) => handleFileChange(e.target.files)}
               type="file"
             />
-          </div>
+          </ButtonWrapper>
         )}
         {serverFailure && (
           <InfoBlock variant={InfoBlock.variant.error}>
             {serverFailure}
           </InfoBlock>
         )}
-        <div className="ButtonWrapper">
-          <Button onClick={handleSubmit} disabled={ [RunState.running, RunState.noTests].includes(runState) || Boolean(serverFailure) }>
-            { (runState !== RunState.running) ? "Run Tests" : "Running..." }
+        <ButtonWrapper>
+          <Button
+            onClick={handleSubmit}
+            disabled={
+              [RunState.running, RunState.noTests].includes(runState) ||
+              Boolean(serverFailure)
+            }
+          >
+            {runState !== RunState.running ? "Run Tests" : "Running..."}
           </Button>
-          { (runState === RunState.done) && <Button onClick={clearTestResults}>Reset</Button> }
-        </div>
-      </div>
+          {runState === RunState.done && (
+            <ResetButtonWrapper>
+              <Button onClick={clearTestResults}>Reset</Button>
+            </ResetButtonWrapper>
+          )}
+        </ButtonWrapper>
+      </TestConfigWrapper>
       <hr />
-      <TestCases testCases={ testRunArray }></TestCases>
+      <TestCases testCases={testRunArray}></TestCases>
     </>
   );
 };
