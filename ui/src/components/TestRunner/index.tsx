@@ -63,11 +63,11 @@ export const TestRunner = () => {
   const [isConfigNeeded, setIsConfigNeeded] = useState(false);
   const [testRunArray, setTestRunArray] = useState([] as TestCase[]);
   const [testRunOrderMap, setTestRunOrderMap] = useState(
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
   const [runState, setRunState] = useState(RunState.noTests);
   const [toml, setToml] = useState(
-    undefined as undefined | { [key in string]: string }
+    undefined as undefined | { [key in string]: string },
   );
   const [supportedAssets, setSupportedAssets] = useState([] as string[]);
   const [supportedSeps, setSupportedSeps] = useState([] as number[]);
@@ -122,10 +122,10 @@ export const TestRunner = () => {
     throttle((newFormData) => {
       socket.emit("getTests", newFormData, (error: Error) => {
         setServerFailure(
-          `server failure occurred: ${error.name}: ${error.message}`
+          `server failure occurred: ${error.name}: ${error.message}`,
         );
       });
-    }, 250)
+    }, 250),
   );
 
   // make toml requests at most once every 250 milliseconds
@@ -145,13 +145,13 @@ export const TestRunner = () => {
       //updateNetworkState(tomlObj.NETWORK_PASSPHRASE);
       updateSupportedSepsState(tomlObj);
       return tomlObj;
-    }, 250)
+    }, 250),
   );
 
   const getSupportedAssetsRef = useRef(
     throttle(async (domain: string, sep: number) => {
       setSupportedAssets(await getSupportedAssets(domain, sep));
-    }, 250)
+    }, 250),
   );
 
   // onClick handler for 'Run Tests' button
@@ -160,7 +160,7 @@ export const TestRunner = () => {
     setRunState(RunState.running);
     socket.emit("runTests", formData, (error: Error) => {
       setServerFailure(
-        `server failure occurred: ${error.name}: ${error.message}`
+        `server failure occurred: ${error.name}: ${error.message}`,
       );
     });
   };

@@ -53,7 +53,7 @@ export const TestCases: React.FC<{ testCases: TestCase[] }> = ({
                 })}
               </div>
             );
-          }
+          },
         )}
       </TestCasesWrapper>
     </>
