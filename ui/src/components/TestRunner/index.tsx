@@ -7,7 +7,7 @@ import styled from "styled-components";
 import { socket } from "helpers/socketConnection";
 import { getTestRunId, parseTests } from "helpers/testCases";
 import { getSupportedAssets } from "helpers/utils";
-import { TestCase } from "types/testCases";
+import { GroupedTestCases, TestCase } from "types/testCases";
 import { TestCases } from "../TestCases";
 
 // SEPs to send to server based on SEP selected in dropdown
@@ -61,7 +61,7 @@ export const TestRunner = () => {
   const [formData, setFormData] = useState(defaultFormData);
   const [serverFailure, setServerFailure] = useState("");
   const [isConfigNeeded, setIsConfigNeeded] = useState(false);
-  const [testRunArray, setTestRunArray] = useState([] as TestCase[]);
+  const [testRunArray, setTestRunArray] = useState([] as GroupedTestCases);
   const [testRunOrderMap, setTestRunOrderMap] = useState(
     {} as Record<string, number>,
   );
@@ -84,16 +84,43 @@ export const TestRunner = () => {
     setFormData(defaultFormData);
   }
 
+  function groupBySep(testRuns: TestCase[]): GroupedTestCases {
+    const groupedTestRuns = [];
+    let currentSep;
+    for (const testRun of testRuns) {
+      if (Number(testRun.test.sep) !== currentSep) {
+        currentSep = Number(testRun.test.sep);
+        groupedTestRuns.push({
+          progress: { running: 0, total: 0 },
+          sep: currentSep,
+          tests: [] as TestCase[],
+        });
+      }
+      const sepGroup = groupedTestRuns[groupedTestRuns.length - 1];
+      sepGroup.progress.total++;
+      sepGroup.tests.push(testRun);
+    }
+    return groupedTestRuns;
+  }
+
   // add/remove websocket listener for getTests on component mount/dismount
   useEffect(() => {
     socket.on("getTests", (tests) => {
       const testRunOrderMap: Record<string, number> = {};
       const testRuns = parseTests(tests);
-      let i = 0;
-      for (const testRun of testRuns)
-        testRunOrderMap[getTestRunId(testRun.test)] = i++;
+      let testIndex = 0;
+      let currentSep = "";
+      for (const testRun of testRuns) {
+        const testRunSep = testRun.test.sep;
+        if (testRunSep !== currentSep) {
+          currentSep = testRunSep;
+          testIndex = 0;
+        }
+        testRunOrderMap[getTestRunId(testRun.test)] = testIndex++;
+      }
+
       setTestRunOrderMap(testRunOrderMap);
-      setTestRunArray(testRuns);
+      setTestRunArray(groupBySep(testRuns));
       setRunState(RunState.awaitingRun);
     });
     return () => {
@@ -101,21 +128,31 @@ export const TestRunner = () => {
     };
   }, []);
 
+  const totalTestsRun = useRef(0);
+
   // add/remove websocket listener for runTests on component mount/dismount
   useEffect(() => {
+    const totalTests = Object.keys(testRunOrderMap).length;
     socket.on("runTests", ({ test, result }) => {
       const testRunArrayCopy = [...testRunArray];
-      const testRun = testRunArrayCopy[testRunOrderMap[getTestRunId(test)]];
-      testRun.result = result;
+      const sepArray = testRunArrayCopy.find(({ sep }) => sep === test.sep);
+      if (sepArray) {
+        const testRun = sepArray.tests[testRunOrderMap[getTestRunId(test)]];
+        if (result) {
+          sepArray.progress.running++;
+          totalTestsRun.current++;
+        }
+        testRun.result = result;
+      }
       setTestRunArray(testRunArrayCopy);
-      if (testRunArrayCopy.every((testRun) => testRun.result)) {
+      if (totalTestsRun.current === totalTests) {
         setRunState(RunState.done);
       }
     });
     return () => {
       socket.off("runTests");
     };
-  }, [testRunArray, testRunOrderMap]);
+  }, [totalTestsRun, testRunArray, testRunOrderMap]);
 
   // make getTests request at most once every 250 milliseconds
   const getTestsThrottled = useRef(
@@ -167,10 +204,15 @@ export const TestRunner = () => {
 
   // onClick handler for 'Reset' button
   const clearTestResults = () => {
+    totalTestsRun.current = 0;
     const testRunArrayCopy = [...testRunArray];
-    for (const testRun of testRunArrayCopy) {
-      testRun.result = undefined;
-    }
+    testRunArrayCopy.forEach((group) => {
+      group.progress.running = 0;
+      for (const testRun of group.tests) {
+        testRun.result = undefined;
+      }
+    });
+
     setTestRunArray(testRunArrayCopy);
     setRunState(RunState.awaitingRun);
   };
