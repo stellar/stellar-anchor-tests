@@ -4,7 +4,7 @@ export interface TestCase {
 }
 
 export type GroupedTestCases = {
-  progress: { running: number; total: number };
+  progress: { completed: number; total: number };
   sep: number;
   tests: TestCase[];
 }[];

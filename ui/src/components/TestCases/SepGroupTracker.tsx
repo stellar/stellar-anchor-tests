@@ -1,10 +1,10 @@
 export const SepGroupTracker: React.FC<{
-  currentlyRunning: number;
+  testsCompleted: number;
   testsTotal: number;
-}> = ({ currentlyRunning, testsTotal }) => {
+}> = ({ testsCompleted, testsTotal }) => {
   return (
     <>
-      Running {currentlyRunning} of {testsTotal}...
+      Running {testsCompleted} of {testsTotal}...
     </>
   );
 };

@@ -20,7 +20,7 @@ export const TestCases: React.FC<{ testCases: GroupedTestCases }> = ({
     <TestCasesWrapper>
       {testCases.map(
         (sepGroup: {
-          progress: { running: number; total: number };
+          progress: { completed: number; total: number };
           sep: number;
           tests: TestCase[];
         }) => {
@@ -28,7 +28,7 @@ export const TestCases: React.FC<{ testCases: GroupedTestCases }> = ({
             <div key={`sep-${sepGroup.sep}-tests`}>
               <SepBlock sep={sepGroup.sep}></SepBlock>
               <SepGroupTracker
-                currentlyRunning={sepGroup.progress.running}
+                testsCompleted={sepGroup.progress.completed}
                 testsTotal={sepGroup.progress.total}
               />
               {sepGroup.tests.map((testCase: TestCase) => {

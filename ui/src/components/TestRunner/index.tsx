@@ -91,7 +91,7 @@ export const TestRunner = () => {
       if (Number(testRun.test.sep) !== currentSep) {
         currentSep = Number(testRun.test.sep);
         groupedTestRuns.push({
-          progress: { running: 0, total: 0 },
+          progress: { completed: 0, total: 0 },
           sep: currentSep,
           tests: [] as TestCase[],
         });
@@ -128,31 +128,36 @@ export const TestRunner = () => {
     };
   }, []);
 
-  const totalTestsRun = useRef(0);
+  // track how many tests have been run and returned results
+  const numberOfTestsRun = useRef(0);
 
   // add/remove websocket listener for runTests on component mount/dismount
   useEffect(() => {
-    const totalTests = Object.keys(testRunOrderMap).length;
+    // the total number of tests we expect results for
+    const totalTestsToRun = Object.keys(testRunOrderMap).length;
+
     socket.on("runTests", ({ test, result }) => {
       const testRunArrayCopy = [...testRunArray];
       const sepArray = testRunArrayCopy.find(({ sep }) => sep === test.sep);
       if (sepArray) {
         const testRun = sepArray.tests[testRunOrderMap[getTestRunId(test)]];
         if (result) {
-          sepArray.progress.running++;
-          totalTestsRun.current++;
+          sepArray.progress.completed++;
+          numberOfTestsRun.current++;
         }
         testRun.result = result;
       }
       setTestRunArray(testRunArrayCopy);
-      if (totalTestsRun.current === totalTests) {
+
+      // if we've received results for all the tests we were expecting, we're done
+      if (numberOfTestsRun.current === totalTestsToRun) {
         setRunState(RunState.done);
       }
     });
     return () => {
       socket.off("runTests");
     };
-  }, [totalTestsRun, testRunArray, testRunOrderMap]);
+  }, [numberOfTestsRun, testRunArray, testRunOrderMap]);
 
   // make getTests request at most once every 250 milliseconds
   const getTestsThrottled = useRef(
@@ -204,10 +209,10 @@ export const TestRunner = () => {
 
   // onClick handler for 'Reset' button
   const clearTestResults = () => {
-    totalTestsRun.current = 0;
+    numberOfTestsRun.current = 0;
     const testRunArrayCopy = [...testRunArray];
     testRunArrayCopy.forEach((group) => {
-      group.progress.running = 0;
+      group.progress.completed = 0;
       for (const testRun of group.tests) {
         testRun.result = undefined;
       }
