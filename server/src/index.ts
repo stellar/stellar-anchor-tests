@@ -15,7 +15,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, { path: "/api", cors: { origin: "*" } });
 
-app.get("/health", (_req, res) => {
+app.get("/api/health", (_req, res) => {
   res.json({ status: "up" });
 });
 
