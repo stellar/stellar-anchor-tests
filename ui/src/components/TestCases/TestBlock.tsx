@@ -1,6 +1,5 @@
 import styled from "styled-components";
 
-import { COLOR_PALETTE } from "constants/styles";
 import { RunState, TestCase } from "types/testCases";
 import {
   FailedIcon,
@@ -61,12 +60,12 @@ export const TestBlock: React.FC<{
     }
     if (testCase.result) {
       if (Boolean(testCase.result.failureMode)) {
-        textColor = COLOR_PALETTE.failed;
-        bgColor = COLOR_PALETTE.failedBg;
+        textColor = "var(--pal-error)";
+        bgColor = "rgba(var(--pal-error-rgb), 0.08)";
         ProgressIcon = () => <FailedIcon />;
       } else {
-        textColor = COLOR_PALETTE.passed;
-        bgColor = COLOR_PALETTE.passedBg;
+        textColor = "var(--pal-success)";
+        bgColor = "rgba(var(--pal-success-rgb), 0.08)";
         ProgressIcon = () => <PassedIcon />;
       }
     }

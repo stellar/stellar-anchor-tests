@@ -1,6 +1,5 @@
 import styled from "styled-components";
 
-import { COLOR_PALETTE } from "constants/styles";
 import { RunState, TestCaseProgress } from "types/testCases";
 
 const SepGroupTrackerWrapper = styled.div`
@@ -9,7 +8,7 @@ const SepGroupTrackerWrapper = styled.div`
 
 const ErrorReport = styled.div`
   ${({ failed }: { failed: boolean }) =>
-    failed ? `color: ${COLOR_PALETTE.failed};` : ""}
+    failed ? `color: var(--pal-error);` : ""}
   margin-left: 1.5rem;
 `;
 
