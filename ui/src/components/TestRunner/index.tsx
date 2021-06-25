@@ -7,7 +7,7 @@ import styled from "styled-components";
 import { socket } from "helpers/socketConnection";
 import { getTestRunId, parseTests } from "helpers/testCases";
 import { getSupportedAssets } from "helpers/utils";
-import { GroupedTestCases, TestCase } from "types/testCases";
+import { GroupedTestCases, RunState, TestCase } from "types/testCases";
 import { TestCases } from "../TestCases";
 
 // SEPs to send to server based on SEP selected in dropdown
@@ -29,13 +29,6 @@ interface FormData {
   seps: Array<number>;
   assetCode?: string;
   sepConfig?: any;
-}
-
-enum RunState {
-  noTests = "noTests",
-  awaitingRun = "awaitingRun",
-  running = "running",
-  done = "done",
 }
 
 const ButtonWrapper = styled.div`
@@ -91,7 +84,7 @@ export const TestRunner = () => {
       if (Number(testRun.test.sep) !== currentSep) {
         currentSep = Number(testRun.test.sep);
         groupedTestRuns.push({
-          progress: { completed: 0, total: 0 },
+          progress: { passed: 0, failed: 0, total: 0 },
           sep: currentSep,
           tests: [] as TestCase[],
         });
@@ -142,7 +135,11 @@ export const TestRunner = () => {
       if (sepArray) {
         const testRun = sepArray.tests[testRunOrderMap[getTestRunId(test)]];
         if (result) {
-          sepArray.progress.completed++;
+          if (result.failureMode) {
+            sepArray.progress.failed++;
+          } else {
+            sepArray.progress.passed++;
+          }
           numberOfTestsRun.current++;
         }
         testRun.result = result;
@@ -212,7 +209,7 @@ export const TestRunner = () => {
     numberOfTestsRun.current = 0;
     const testRunArrayCopy = [...testRunArray];
     testRunArrayCopy.forEach((group) => {
-      group.progress.completed = 0;
+      group.progress.passed = group.progress.failed = 0;
       for (const testRun of group.tests) {
         testRun.result = undefined;
       }
@@ -411,7 +408,7 @@ export const TestRunner = () => {
         </ButtonWrapper>
       </TestConfigWrapper>
       <hr />
-      <TestCases testCases={testRunArray}></TestCases>
+      <TestCases runState={runState} testCases={testRunArray} />
     </>
   );
 };

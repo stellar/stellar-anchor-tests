@@ -2,10 +2,10 @@ import React from "react";
 import styled from "styled-components";
 
 import { getTestRunId } from "helpers/testCases";
-import { GroupedTestCases, TestCase } from "types/testCases";
-import { SepBlock } from "../SepBlock";
+import { GroupedTestCases, RunState, TestCase } from "types/testCases";
+import { SepBlock } from "./SepBlock";
 import { SepGroupTracker } from "./SepGroupTracker";
-import { TestBlock } from "../TestBlock";
+import { TestBlock } from "./TestBlock";
 
 export const SepUIOrder = [1, 10, 12, 6, 24, 31];
 
@@ -13,33 +13,46 @@ const TestCasesWrapper = styled.section`
   margin-top: 2rem;
 `;
 
-export const TestCases: React.FC<{ testCases: GroupedTestCases }> = ({
-  testCases,
-}) => (
+const SepGroupWrapper = styled.div`
+  border: 1px solid var(--pal-border-secondary);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+`;
+
+export const TestCases: React.FC<{
+  runState: RunState;
+  testCases: GroupedTestCases;
+}> = ({ runState, testCases }) => (
   <>
     <TestCasesWrapper>
       {testCases.map(
         (sepGroup: {
-          progress: { completed: number; total: number };
+          progress: { passed: number; failed: number; total: number };
           sep: number;
           tests: TestCase[];
         }) => {
           return (
-            <div key={`sep-${sepGroup.sep}-tests`}>
-              <SepBlock sep={sepGroup.sep}></SepBlock>
-              <SepGroupTracker
-                testsCompleted={sepGroup.progress.completed}
-                testsTotal={sepGroup.progress.total}
-              />
-              {sepGroup.tests.map((testCase: TestCase) => {
-                return (
-                  <TestBlock
-                    key={getTestRunId(testCase.test)}
-                    testCase={testCase}
-                  ></TestBlock>
-                );
-              })}
-            </div>
+            <SepGroupWrapper key={`sep-${sepGroup.sep}-tests`}>
+              <SepBlock
+                progress={sepGroup.progress}
+                runState={runState}
+                sep={sepGroup.sep}
+              >
+                <SepGroupTracker
+                  progress={sepGroup.progress}
+                  runState={runState}
+                />
+              </SepBlock>
+
+              {sepGroup.tests.map((testCase: TestCase, i: number) => (
+                <TestBlock
+                  key={getTestRunId(testCase.test)}
+                  isLastChild={i === sepGroup.tests.length - 1}
+                  runState={runState}
+                  testCase={testCase}
+                />
+              ))}
+            </SepGroupWrapper>
           );
         },
       )}
