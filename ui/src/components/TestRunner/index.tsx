@@ -37,7 +37,7 @@ const ButtonWrapper = styled.div`
 `;
 
 const TestConfigWrapper = styled.form`
-  margin-bottom: 2rem;
+  margin-bottom: 4.5rem;
   width: 25rem;
 `;
 
@@ -407,7 +407,6 @@ export const TestRunner = () => {
           )}
         </ButtonWrapper>
       </TestConfigWrapper>
-      <hr />
       <TestCases runState={runState} testCases={testRunArray} />
     </>
   );
