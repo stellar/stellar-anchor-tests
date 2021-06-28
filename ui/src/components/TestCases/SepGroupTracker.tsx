@@ -33,7 +33,9 @@ export const SepGroupTracker: React.FC<{
     if (runState !== RunState.awaitingRun) {
       return (
         <ErrorReport failed={Boolean(progress.failed)}>
-          {progress.failed} Error{progress.failed > 1 ? "s" : ""}
+          <strong>
+            {progress.failed} Error{progress.failed === 1 ? "" : "s"}
+          </strong>
         </ErrorReport>
       );
     }

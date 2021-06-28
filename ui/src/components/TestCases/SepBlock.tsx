@@ -15,8 +15,7 @@ const SepLink = styled.div`
   display: flex;
   justify-content: space-between;
   line-height: 1.75rem;
-  padding: 1.5rem;
-  padding-left: 1.5rem;
+  padding: 1.5rem 1rem 1.5rem 1.5rem;
   width: 100%;
 `;
 
