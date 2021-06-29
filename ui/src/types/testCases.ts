@@ -1,3 +1,10 @@
+export interface FormData {
+  homeDomain: string;
+  seps: Array<number>;
+  assetCode?: string;
+  sepConfig?: any;
+}
+
 export enum RunState {
   noTests = "noTests",
   awaitingRun = "awaitingRun",
