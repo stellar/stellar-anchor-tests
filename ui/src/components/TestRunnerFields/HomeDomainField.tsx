@@ -75,7 +75,7 @@ export const HomeDomainField = ({
     setDomainStr(domainVal);
   };
 
-  const fetchDomain = async (e: React.MouseEvent) => {
+  const fetchDomain = async (e: React.FormEvent) => {
     e.preventDefault();
 
     await getToml(domainStr);
