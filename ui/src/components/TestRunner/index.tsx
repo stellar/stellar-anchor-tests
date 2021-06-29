@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { Button, InfoBlock, Input, Select } from "@stellar/design-system";
+import { Button, InfoBlock, Input, Select, Modal } from "@stellar/design-system";
 import throttle from "lodash.throttle";
 import { StellarTomlResolver } from "stellar-sdk";
 import styled from "styled-components";
@@ -9,6 +9,7 @@ import { getTestRunId, parseTests } from "helpers/testCases";
 import { getSupportedAssets } from "helpers/utils";
 import { GroupedTestCases, RunState, TestCase } from "types/testCases";
 import { TestCases } from "../TestCases";
+import { ConfigModalContent } from "../ConfigModalContent";
 
 // SEPs to send to server based on SEP selected in dropdown
 const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
@@ -45,6 +46,14 @@ const ResetButtonWrapper = styled.div`
   margin-left: 1rem;
 `;
 
+const ConfigModalButtonWrapper = styled.div`
+  margin-left: 1rem;
+
+  .Button {
+    margin-top: 2.05rem; 
+  }
+`;
+
 const defaultFormData = {
   homeDomain: "",
   seps: [],
@@ -64,6 +73,7 @@ export const TestRunner = () => {
   );
   const [supportedAssets, setSupportedAssets] = useState([] as string[]);
   const [supportedSeps, setSupportedSeps] = useState([] as number[]);
+  const [configModalVisible, setConfigModalVisible] = useState(false);
 
   function resetAllState() {
     setRunState(RunState.noTests);
@@ -377,12 +387,18 @@ export const TestRunner = () => {
         )}
         {isConfigNeeded && (
           <ButtonWrapper>
+            <Modal visible={configModalVisible} onClose={() => setConfigModalVisible(false)}>
+              <ConfigModalContent></ConfigModalContent>
+            </Modal>
             <Input
               id="sepConfig"
               label="Upload Config"
               onChange={(e) => handleFileChange(e.target.files)}
               type="file"
             />
+            <ConfigModalButtonWrapper>
+              <Button onClick={() => setConfigModalVisible(true)} disabled={configModalVisible}>Info</Button>
+            </ConfigModalButtonWrapper>
           </ButtonWrapper>
         )}
         {serverFailure && (
