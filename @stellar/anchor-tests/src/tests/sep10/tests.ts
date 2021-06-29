@@ -12,7 +12,7 @@ import fetch from "node-fetch";
 import { Request } from "node-fetch";
 import { URL } from "url";
 
-import { Test, Config, Result, NetworkCall } from "../../types";
+import { Test, Config, Result, NetworkCall, Failure } from "../../types";
 import { makeRequest } from "../../helpers/request";
 import { makeFailure } from "../../helpers/failure";
 import { loadAccount, submitTransaction } from "../../helpers/horizon";
@@ -772,7 +772,7 @@ const postAuthBadRequest = async (
   result: Result,
   webAuthEndpoint: string,
   requestBody: any,
-  failureText: string,
+  unexpectedStatusCodeFailure: Failure,
 ): Promise<Result> => {
   const postAuthRequest = new Request(webAuthEndpoint, {
     method: "POST",
@@ -790,13 +790,7 @@ const postAuthBadRequest = async (
     return result;
   }
   if (postAuthCall.response.status !== 400) {
-    result.failure = {
-      name: "unexpected status code",
-      text(_args: any): string {
-        return failureText;
-      },
-      message: failureText,
-    };
+    result.failure = makeFailure(unexpectedStatusCodeFailure);
     result.expected = 400;
     result.actual = postAuthCall.response.status;
     return result;
@@ -837,7 +831,7 @@ const failsWithNoBody: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       {},
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -885,7 +879,7 @@ const failsWithNoClientSignature: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -903,7 +897,7 @@ const failsWithInvalidTransactionValue: Test = {
       text(_args: any): string {
         return (
           "A 400 Bad Request is expected if the 'transaction' " +
-          " value is not a base64-encoded transaction string."
+          "value is not a base64-encoded transaction string."
         );
       },
       links: {
@@ -924,7 +918,7 @@ const failsWithInvalidTransactionValue: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: { "not a transaction string": true } },
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -974,7 +968,7 @@ const failsIfChallengeNotSignedByServer: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: challengeXdr },
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -1022,7 +1016,7 @@ const extraClientSigners: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -1103,7 +1097,7 @@ const failsIfWeighBelowMediumThreshold: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -1272,7 +1266,7 @@ const failsWithDuplicateSignatures: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
-      this.failureModes.UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.UNEXPECTED_STATUS_CODE,
     );
     return result;
   },

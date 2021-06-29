@@ -16,6 +16,7 @@ export interface SerializedResult {
   skipped: boolean;
   expected?: string;
   actual?: string;
+  resourceLinks?: Record<string, string>;
 }
 
 export interface SerializedTestRun {
@@ -69,9 +70,11 @@ export async function serializeResult(
 ): Promise<SerializedResult> {
   let failureMode = null;
   let failureMessage = null;
+  let resourceLinks;
   if (result.failure) {
     failureMode = result.failure.name;
     failureMessage = result.failure.message || null;
+    if (result.failure.links) resourceLinks = result.failure.links;
   }
   const serializedResult: SerializedResult = {
     networkCalls: await Promise.all(
@@ -84,6 +87,7 @@ export async function serializeResult(
   if (result.expected)
     serializedResult.expected = JSON.stringify(result.expected);
   if (result.actual) serializedResult.actual = JSON.stringify(result.actual);
+  if (resourceLinks) serializedResult.resourceLinks = resourceLinks;
   return serializedResult;
 }
 
