@@ -1,13 +1,19 @@
 import { useRef, useEffect, useState } from "react";
 import { Button, InfoBlock, Input, Select } from "@stellar/design-system";
 import throttle from "lodash.throttle";
-import { StellarTomlResolver } from "stellar-sdk";
 import styled from "styled-components";
 
+import { ButtonWrapper } from "basics/ButtonWrapper";
 import { socket } from "helpers/socketConnection";
 import { getTestRunId, parseTests } from "helpers/testCases";
 import { getSupportedAssets } from "helpers/utils";
-import { GroupedTestCases, RunState, TestCase } from "types/testCases";
+import {
+  FormData,
+  GroupedTestCases,
+  RunState,
+  TestCase,
+} from "types/testCases";
+import { HomeDomainField } from "../TestRunnerFields/HomeDomainField";
 import { TestCases } from "../TestCases";
 
 // SEPs to send to server based on SEP selected in dropdown
@@ -23,18 +29,6 @@ const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
 const CONFIG_SEPS = [6, 12, 31];
 // SEPs that require an asset to use in tests
 const TRANSFER_SEPS = [6, 24, 31];
-
-interface FormData {
-  homeDomain: string;
-  seps: Array<number>;
-  assetCode?: string;
-  sepConfig?: any;
-}
-
-const ButtonWrapper = styled.div`
-  display: flex;
-  margin-top: 1rem;
-`;
 
 const TestConfigWrapper = styled.form`
   margin-bottom: 4.5rem;
@@ -65,7 +59,7 @@ export const TestRunner = () => {
   const [supportedAssets, setSupportedAssets] = useState([] as string[]);
   const [supportedSeps, setSupportedSeps] = useState([] as number[]);
 
-  function resetAllState() {
+  const resetAllState = () => {
     setRunState(RunState.noTests);
     setServerFailure("");
     setIsConfigNeeded(false);
@@ -75,9 +69,9 @@ export const TestRunner = () => {
     setTestRunArray([]);
     setTestRunOrderMap({});
     setFormData(defaultFormData);
-  }
+  };
 
-  function groupBySep(testRuns: TestCase[]): GroupedTestCases {
+  const groupBySep = (testRuns: TestCase[]) => {
     const groupedTestRuns = [];
     let currentSep;
     for (const testRun of testRuns) {
@@ -94,7 +88,10 @@ export const TestRunner = () => {
       sepGroup.tests.push(testRun);
     }
     return groupedTestRuns;
-  }
+  };
+
+  const validateFormData = () =>
+    !!formData.seps.length && !!formData.homeDomain;
 
   // add/remove websocket listener for getTests on component mount/dismount
   useEffect(() => {
@@ -167,26 +164,6 @@ export const TestRunner = () => {
     }, 250),
   );
 
-  // make toml requests at most once every 250 milliseconds
-  const getTomlThrottled = useRef(
-    throttle(async (homeDomain) => {
-      const homeDomainHost = new URL(homeDomain).host;
-      let tomlObj;
-      try {
-        tomlObj = await StellarTomlResolver.resolve(homeDomainHost);
-      } catch {
-        resetAllState();
-        setServerFailure("Unable to fetch SEP-1 stellar.toml file");
-        return;
-      }
-      setServerFailure("");
-      setToml(tomlObj);
-      //updateNetworkState(tomlObj.NETWORK_PASSPHRASE);
-      updateSupportedSepsState(tomlObj);
-      return tomlObj;
-    }, 250),
-  );
-
   const getSupportedAssetsRef = useRef(
     throttle(async (domain: string, sep: number) => {
       setSupportedAssets(await getSupportedAssets(domain, sep));
@@ -232,45 +209,6 @@ export const TestRunner = () => {
       setIsTestnet(undefined);
     }
   }*/
-
-  const updateSupportedSepsState = (tomlObj: { [key: string]: string }) => {
-    if (tomlObj) {
-      const newSupportedSeps = [1];
-      if (tomlObj.TRANSFER_SERVER) {
-        newSupportedSeps.push(6);
-      }
-      if (tomlObj.WEB_AUTH_ENDPOINT) {
-        newSupportedSeps.push(10);
-      }
-      if (tomlObj.KYC_SERVER) {
-        newSupportedSeps.push(12);
-      }
-      if (tomlObj.TRANSFER_SERVER_SEP0024) {
-        newSupportedSeps.push(24);
-      }
-      if (tomlObj.DIRECT_PAYMENT_SERVER) {
-        newSupportedSeps.push(31);
-      }
-      setSupportedSeps(newSupportedSeps);
-    } else {
-      setSupportedSeps([]);
-    }
-  };
-
-  const handleHomeDomainChange = async (value: string) => {
-    if (!value) {
-      resetAllState();
-      return;
-    }
-    if (!value.startsWith("http")) {
-      value = `https://${value}`;
-    }
-    await getTomlThrottled.current(value);
-    setFormData({
-      ...formData,
-      homeDomain: value,
-    });
-  };
 
   const updateSupportedAssetsState = async (sep: number | undefined) => {
     if (!sep || !TRANSFER_SEPS.includes(sep)) {
@@ -343,10 +281,13 @@ export const TestRunner = () => {
   return (
     <>
       <TestConfigWrapper>
-        <Input
-          id="homeDomain"
-          label="Home Domain"
-          onChange={(e) => handleHomeDomainChange(e.target.value)}
+        <HomeDomainField
+          formData={formData}
+          resetAllState={resetAllState}
+          setFormData={setFormData}
+          setServerFailure={setServerFailure}
+          setToml={setToml}
+          setSupportedSeps={setSupportedSeps}
         />
         {supportedSeps.length !== 0 && (
           <Select
@@ -390,22 +331,24 @@ export const TestRunner = () => {
             {serverFailure}
           </InfoBlock>
         )}
-        <ButtonWrapper>
-          <Button
-            onClick={handleSubmit}
-            disabled={
-              [RunState.running, RunState.noTests].includes(runState) ||
-              Boolean(serverFailure)
-            }
-          >
-            {runState !== RunState.running ? "Run Tests" : "Running..."}
-          </Button>
-          {runState === RunState.done && (
-            <ResetButtonWrapper>
-              <Button onClick={clearTestResults}>Reset</Button>
-            </ResetButtonWrapper>
-          )}
-        </ButtonWrapper>
+        {validateFormData() && (
+          <ButtonWrapper>
+            <Button
+              onClick={handleSubmit}
+              disabled={
+                [RunState.running, RunState.noTests].includes(runState) ||
+                Boolean(serverFailure)
+              }
+            >
+              {runState !== RunState.running ? "Run Tests" : "Running..."}
+            </Button>
+            {runState === RunState.done && (
+              <ResetButtonWrapper>
+                <Button onClick={clearTestResults}>Reset</Button>
+              </ResetButtonWrapper>
+            )}
+          </ButtonWrapper>
+        )}
       </TestConfigWrapper>
       <TestCases runState={runState} testCases={testRunArray} />
     </>
