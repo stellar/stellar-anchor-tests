@@ -21,6 +21,10 @@ export const hasKycServerUrl: Test = {
       text(_args: any): string {
         return "A KYC_SERVER attribute is required for SEP-12 implemenations";
       },
+      links: {
+        "SEP-12 Prerequisites":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#prerequisites",
+      },
     },
     NO_HTTPS: {
       name: "no https",
@@ -37,7 +41,8 @@ export const hasKycServerUrl: Test = {
   },
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    this.context.provides.kycServerUrl = this.context.expects.tomlObj.KYC_SERVER;
+    this.context.provides.kycServerUrl =
+      this.context.expects.tomlObj.KYC_SERVER;
     if (!this.context.provides.kycServerUrl) {
       result.failure = makeFailure(this.failureModes.NO_KYC_SERVER);
       return result;

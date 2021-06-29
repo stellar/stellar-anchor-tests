@@ -34,11 +34,14 @@ const invalidTransactionsSchema = {
   name: "invalid schema",
   text(args: any): string {
     return (
-      "The response body returned does not comply with the schema defined for the /transactions endpoint:\n\n" +
-      "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history\n\n" +
+      "The response body returned does not comply with the schema defined for the /transactions endpoint. " +
       "The errors returned from the schema validation:\n\n" +
       `${args.errors}`
     );
+  },
+  links: {
+    "Transactions Response":
+      "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
   },
 };
 
@@ -103,6 +106,10 @@ const transactionsIsPresentAfterDepositRequest: Test = {
       name: "transaction not found",
       text(args: any): string {
         return `A transaction record with id ${args.id} was not included in the response body.`;
+      },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
       },
     },
     ...genericFailures,
@@ -189,6 +196,10 @@ const transactionsIsPresentAfterWithdrawRequest: Test = {
       name: "transaction not found",
       text(args: any): string {
         return `A transaction record with id ${args.id} was not included in the response body.`;
+      },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
       },
     },
     ...genericFailures,
@@ -355,6 +366,10 @@ const returnsEmptyListForNewAccount: Test = {
           "When an account has not initiated any transactions, /transactions should return an empty list."
         );
       },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
+      },
     },
     INVALID_SCHEMA: invalidTransactionsSchema,
     ...postChallengeFailureModes,
@@ -436,6 +451,10 @@ const honorsLimitParam: Test = {
           "One transaction was expected because the 'limit=1' parameter was specified."
         );
       },
+      links: {
+        "Transactions Request":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
+      },
     },
     LIMIT_NOT_HONORED: {
       name: "limit parameter not honored",
@@ -444,6 +463,10 @@ const honorsLimitParam: Test = {
           "Too many transactions were returned in the /transactions response. " +
           "One transaction was expected because the 'limit=1' parameter was specified."
         );
+      },
+      links: {
+        "Transactions Request":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
       },
     },
     DEPOSIT_INVALID_SCHEMA:
@@ -572,6 +595,10 @@ const transactionsAreInDescendingOrder: Test = {
           "One transaction was expected because the 'limit=1' parameter was specified."
         );
       },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
+      },
     },
     DEPOSIT_INVALID_SCHEMA:
       returnsProperDepositSchemaForKnownAccounts.failureModes.INVALID_SCHEMA,
@@ -584,11 +611,19 @@ const transactionsAreInDescendingOrder: Test = {
           "A transaction record must be created for every successful POST /deposit request."
         );
       },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
+      },
     },
     NOT_DESCENDING_TRANSACTIONS: {
       name: "transaction are not in descending order",
       text(_args: any): string {
         return "The transaction recoreds returned were now in descending order by 'start_time'";
+      },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
       },
     },
     ...genericFailures,
@@ -721,6 +756,10 @@ const honorsNoOlderThanParam: Test = {
           "the 'no_older_than' parameter given."
         );
       },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
+      },
     },
     MISSING_TRANSACTIONS: {
       name: "missing transactions",
@@ -731,6 +770,10 @@ const honorsNoOlderThanParam: Test = {
           "successful POST /deposit request."
         );
       },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
+      },
     },
     MISSING_TRANSACTIONS_NO_OLDER_THAN: {
       name: "missing transactions",
@@ -740,6 +783,10 @@ const honorsNoOlderThanParam: Test = {
           "But less than two transactions were returned."
         );
       },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
+      },
     },
     TRANSACTION_EARLIER_THAN_PARAM: {
       name: "invalid transaction returned",
@@ -748,6 +795,10 @@ const honorsNoOlderThanParam: Test = {
           "A transaction that was created earlier than the 'no_older_than' parameter was " +
           "included in the response."
         );
+      },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
       },
     },
     TRANSACTIONS_INVALID_SCHEMA: invalidTransactionsSchema,
@@ -871,11 +922,19 @@ const honorsWithdrawTransactionKind: Test = {
       text(_args: any): string {
         return "Deposit transactions should not be returned when kind=withdrawal";
       },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
+      },
     },
     NO_TRANSACTIONS: {
       name: "no transactions returned",
       text(_args: any): string {
         return "No transactions were returned, even though a withdraw transaction was created";
+      },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
       },
     },
     INVALID_TRANSACTIONS_SCHMEA: invalidTransactionsSchema,
@@ -953,11 +1012,19 @@ const honorsDepositTransactionKind: Test = {
       text(_args: any): string {
         return "Withdraw transactions should not be returned when kind=deposit";
       },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
+      },
     },
     NO_TRANSACTIONS: {
       name: "no transactions returned",
       text(_args: any): string {
         return "No transactions were returned, even though a deposit transaction was created";
+      },
+      links: {
+        "Transactions Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history",
       },
     },
     INVALID_TRANSACTIONS_SCHMEA: invalidTransactionsSchema,

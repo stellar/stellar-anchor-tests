@@ -74,11 +74,14 @@ const canCreateTransaction: Test = {
       text(args: any): string {
         return (
           "The response body from POST /transactions does not match " +
-          "the schema defined by the protocol:\n\n" +
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#post-transactions\n\n" +
+          "the schema defined by the protocol. " +
           "Errors:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "POST Transaction Schema":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#post-transactions",
       },
     },
     ...genericFailures,
@@ -311,17 +314,24 @@ const hasValidTransactionJson: Test = {
       text(args: any): string {
         return (
           "The response body from GET /transactions/:id does not match " +
-          "the schema defined by the protocol:\n\n" +
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction\n\n" +
+          "the schema defined by the protocol. " +
           "Errors:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "Transactions Schema":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction",
       },
     },
     INVALID_ID: {
       name: "invalid 'id'",
       text(_args: any): string {
         return "The 'id' value returned in the response body does match the ID used to fetch the transaction";
+      },
+      links: {
+        "Transactions Schema":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction",
       },
     },
   },
