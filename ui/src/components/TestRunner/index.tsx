@@ -71,7 +71,7 @@ export const TestRunner = () => {
     setFormData(defaultFormData);
   };
 
-  const groupBySep = (testRuns: TestCase[]): GroupedTestCases => {
+  const groupBySep = (testRuns: TestCase[]) => {
     const groupedTestRuns = [];
     let currentSep;
     for (const testRun of testRuns) {
