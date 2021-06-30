@@ -65,9 +65,7 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
     }
     console.groupEnd(); // description group
     if (testRun.result.failure.links) {
-      const resources = Array.from(
-        Object.entries(testRun.result.failure.links),
-      );
+      const resources = Object.entries(testRun.result.failure.links);
       if (resources.length) {
         console.log(c.bold(`Resource Links:\n`));
       }
