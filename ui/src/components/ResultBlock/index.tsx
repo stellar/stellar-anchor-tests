@@ -3,7 +3,7 @@ import { Eyebrow, TextLink } from "@stellar/design-system";
 import styled from "styled-components";
 import { Response, Request } from "node-fetch";
 
-import { Log, LogTab } from "basics/Log";
+import { Log, LogIndent } from "basics/Log";
 
 const ResultBlockWrapperEl = styled.div`
   border-radius: 0.25rem;
@@ -72,21 +72,23 @@ export const ResultBlock: React.FC<{ result: any }> = ({ result }) => {
       <CollapsibleLogEl isCollapsed={isCollapsed}>
         <Log>
           Network Calls:
-          {result.networkCalls.map((networkCall: NetworkCall) => (
-            <LogTab>
+          {result.networkCalls.map((networkCall: NetworkCall, i: number) => (
+            <LogIndent key={`${networkCall.request.method}-${i}`}>
               {networkCall.request && (
                 <>
                   <div>Request:</div>
-                  <LogTab>
+                  <LogIndent>
                     {networkCall.request.method} {networkCall.request.url}
                     <div>Headers:</div>
-                    <LogTab>
+                    <LogIndent>
                       content-type:{" "}
                       {(
                         networkCall.request?.headers?.["Content-Type"] || []
-                      ).map((contentType: string) => contentType)}
-                    </LogTab>
-                  </LogTab>
+                      ).map((contentType: string) => (
+                        <span key={contentType}>contentType</span>
+                      ))}
+                    </LogIndent>
+                  </LogIndent>
 
                   <div>Body:</div>
                   <div>{JSON.stringify(networkCall.request.body)}</div>
@@ -96,24 +98,24 @@ export const ResultBlock: React.FC<{ result: any }> = ({ result }) => {
               {networkCall.response && (
                 <>
                   <div>Response:</div>
-                  <LogTab>
+                  <LogIndent>
                     <div>Status Code: {networkCall.response.status}</div>
                     <div>Headers:</div>
-                    <LogTab>
+                    <LogIndent>
                       {Object.entries(networkCall.response.headers || []).map(
                         ([headerKey, headerVal]) => (
-                          <div>
+                          <div key={`${headerKey}-${headerVal}`}>
                             {headerKey}: {headerVal}
                           </div>
                         ),
                       )}
-                    </LogTab>
+                    </LogIndent>
                     <div>Body:</div>
-                    <LogTab>{networkCall.response.body}</LogTab>
-                  </LogTab>
+                    <LogIndent>{networkCall.response.body}</LogIndent>
+                  </LogIndent>
                 </>
               )}
-            </LogTab>
+            </LogIndent>
           ))}
         </Log>
       </CollapsibleLogEl>

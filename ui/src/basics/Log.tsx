@@ -10,6 +10,6 @@ export const Log = styled.section`
   padding: 1.5rem;
 `;
 
-export const LogTab = styled.div`
+export const LogIndent = styled.div`
   margin-left: 0.5rem;
 `;
