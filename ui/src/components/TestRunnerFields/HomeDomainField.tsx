@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Button, Input } from "@stellar/design-system";
+import { Button, Input, TextLink } from "@stellar/design-system";
 import { StellarTomlResolver } from "stellar-sdk";
 
 import { FormData } from "types/testCases";
 import { ButtonWrapper } from "basics/ButtonWrapper";
+import { FieldWrapper } from "basics/FieldWrapper";
+import { TooltipInfoButton } from "basics/Tooltip";
 
 interface HomeDomainFieldProps {
   formData: FormData;
@@ -41,8 +43,14 @@ export const HomeDomainField = ({
       if (tomlObj.DIRECT_PAYMENT_SERVER) {
         newSupportedSeps.push(31);
       }
-      setSupportedSeps(newSupportedSeps);
+      if (newSupportedSeps.length) {
+        setServerFailure("");
+        setSupportedSeps(newSupportedSeps);
+      } else {
+        setServerFailure("The Stellar Info File does reference any supported SEP.");
+      }
     } else {
+      setServerFailure("");
       setSupportedSeps([]);
     }
   };
@@ -86,11 +94,20 @@ export const HomeDomainField = ({
   };
   return (
     <>
-      <Input
-        id="homeDomain"
-        label="Home Domain"
-        onChange={(e) => handleHomeDomainChange(e.target.value)}
-      />
+      <FieldWrapper>
+        <Input
+          id="homeDomain"
+          label="Home Domain"
+          onChange={(e) => handleHomeDomainChange(e.target.value)}
+        />
+        <TooltipInfoButton>
+          <>
+          <p>
+            Input the domain that hosts your anchor's <TextLink underline={true} href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md">Stellar Info File</TextLink>.
+          </p>
+          </>
+        </TooltipInfoButton>
+      </FieldWrapper>
       <ButtonWrapper>
         <Button
           variant={Button.variant.secondary}
