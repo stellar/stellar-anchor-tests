@@ -19,11 +19,14 @@ const invalidTransactionSchema: Failure = {
   name: "invalid schema",
   text(args: any): string {
     return (
-      "The response body returned does not comply with the schema defined for the /transaction endpoint:\n\n" +
-      "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#single-historical-transaction\n\n" +
+      "The response body returned does not comply with the schema defined for the /transaction endpoint. " +
       "The errors returned from the schema validation:\n\n" +
       `${args.errors}`
     );
+  },
+  links: {
+    "Transaction Schema":
+      "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#single-historical-transaction",
   },
 };
 

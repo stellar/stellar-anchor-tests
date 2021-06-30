@@ -16,6 +16,10 @@ export const connectionFailure: Failure = {
       `Make sure that CORS is enabled.`
     );
   },
+  links: {
+    "Cross-Origin Resource Sharing (CORS)":
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS",
+  },
 };
 
 export const unexpectedStatusCode: Failure = {

@@ -20,11 +20,14 @@ export const isCompliantWithSchema: Test = {
       name: "invalid schema",
       text(args: any): string {
         return (
-          "The response body returned does not comply with the schema defined for the /info endpoint:\n\n" +
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#info\n\n" +
+          "The response body returned does not comply with the schema defined for the /info endpoint. " +
           "The errors returned from the schema validation:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#info",
       },
     },
     ...genericFailures,
@@ -78,17 +81,29 @@ export const assetCodeEnabledForDeposit: Test = {
       text(args: any): string {
         return `${args.assetCode} is not present in the /info response`;
       },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-2",
+      },
     },
     CONFIGURED_ASSET_CODE_NOT_ENABLED: {
       name: "configured asset code not enabled",
       text(args: any): string {
         return `${args.assetCode} is not enabled for SEP-6`;
       },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-2",
+      },
     },
     NO_ASSET_CODES: {
       name: "no enabled assets",
       text(_args: any): string {
         return "There are no enabled assets in the /info response";
+      },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-2",
       },
     },
     ...genericFailures,
@@ -152,17 +167,29 @@ export const assetCodeEnabledForWithdraw: Test = {
       text(args: any): string {
         return `${args.assetCode} is not present in the /info response`;
       },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-2",
+      },
     },
     CONFIGURED_ASSET_CODE_NOT_ENABLED: {
       name: "configured asset code not enabled",
       text(args: any): string {
         return `${args.assetCode} is not enabled for SEP-6`;
       },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-2",
+      },
     },
     NO_ASSET_CODES: {
       name: "no enabled assets",
       text(_args: any): string {
         return "There are no enabled assets in the /info response";
+      },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-2",
       },
     },
     ...genericFailures,
@@ -227,6 +254,10 @@ const requiredDepositFieldsMatchConfiguration: Test = {
           "in the 'non_interactive_customer_info_needed' response body."
         );
       },
+      links: {
+        "Deposit Fields":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#for-each-deposit-asset-response-contains",
+      },
     },
     UNEXPECTED_FIELD: {
       name: "unexpected field",
@@ -289,6 +320,10 @@ const requiredWithdrawFieldsMatchConfiguration: Test = {
           "in the GET /info response body."
         );
       },
+      links: {
+        "Withdraw Fields":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#for-each-withdrawal-asset-response-contains",
+      },
     },
     UNEXPECTED_TYPE: {
       name: "unexpected type",
@@ -306,6 +341,10 @@ const requiredWithdrawFieldsMatchConfiguration: Test = {
           "A field specified in SEP-6's configuration is not specified " +
           "in the GET /info response body."
         );
+      },
+      links: {
+        "Withdraw Fields":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#for-each-withdrawal-asset-response-contains",
       },
     },
     UNEXPECTED_FIELD: {

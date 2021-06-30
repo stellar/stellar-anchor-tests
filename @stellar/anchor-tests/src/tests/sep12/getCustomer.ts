@@ -57,11 +57,14 @@ const newCustomerValidSchema: Test = {
       name: "invalid schema",
       text(args: any): string {
         return (
-          "The response body returned does not comply with the specification:\n\n" +
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#customer-get\n\n" +
+          "The response body returned does not comply with the specification. " +
           "The errors returned from the schema validation:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "GET Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#customer-get",
       },
     },
     UNEXPECTED_CUSTOMER_ID: {
@@ -72,11 +75,19 @@ const newCustomerValidSchema: Test = {
           "have an 'id' attribute in the response."
         );
       },
+      links: {
+        "GET Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#customer-get",
+      },
     },
     INVALID_CUSTOMER_STATUS: {
       name: "invalid customer status",
       text(_args: any): string {
         return "'NEEDS_INFO' is the expected status for a customer that has not been registered";
+      },
+      links: {
+        "GET Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#customer-get",
       },
     },
     ...genericFailures,
@@ -150,11 +161,14 @@ export const canFetchExistingCustomerById: Test = {
       name: "invalid schema",
       text(args: any): string {
         return (
-          "The response body returned does not comply with the specification:\n\n" +
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#customer-get\n\n" +
+          "The response body returned does not comply with the specification. " +
           "The errors returned from the schema validation:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "GET Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#customer-get",
       },
     },
     UNEXPECTED_STATUS: {
@@ -165,6 +179,10 @@ export const canFetchExistingCustomerById: Test = {
           "'NEEDS_INFO' status. Ensure the customer data provided in the SEP-12 configuration includes " +
           "all required properties."
         );
+      },
+      links: {
+        "GET Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#customer-get",
       },
     },
     ...genericFailures,
@@ -225,11 +243,14 @@ const canFetchExistingCustomerByAccount: Test = {
       name: "invalid schema",
       text(args: any): string {
         return (
-          "The response body returned does not comply with the specification:\n\n" +
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#customer-get\n\n" +
+          "The response body returned does not comply with the specification. " +
           "The errors returned from the schema validation:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "GET Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#customer-get",
       },
     },
     UNEXPECTED_STATUS: {
@@ -240,6 +261,10 @@ const canFetchExistingCustomerByAccount: Test = {
           "'NEEDS_INFO' status. Ensure the customer data provided in the SEP-12 configuration includes " +
           "all required properties."
         );
+      },
+      links: {
+        "GET Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#customer-get",
       },
     },
     ...genericFailures,

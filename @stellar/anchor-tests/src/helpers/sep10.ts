@@ -63,11 +63,19 @@ export const getChallengeFailureModes: Record<string, Failure> = {
     text(_args: any): string {
       return "Unable to fetch TOML";
     },
+    links: {
+      "SEP-1 Specification":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md",
+    },
   },
   NO_WEB_AUTH_ENDPOINT: {
     name: "no WEB_AUTH_ENDPOINT",
     text(_args: any): string {
       return "No WEB_AUTH_ENDPOINT in TOML file";
+    },
+    links: {
+      "SEP-1 Specification":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md",
     },
   },
   CONNECTION_ERROR: {
@@ -78,6 +86,10 @@ export const getChallengeFailureModes: Record<string, Failure> = {
         `\n\n${args.url}\n\n` +
         `Make sure that CORS is enabled.`
       );
+    },
+    links: {
+      "Cross-Origin Resource Sharing (CORS)":
+        "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS",
     },
   },
   UNEXPECTED_STATUS_CODE: {
@@ -97,9 +109,12 @@ export const getChallengeFailureModes: Record<string, Failure> = {
     text(_args: any): string {
       return (
         "GET /auth response bodies must include a 'transaction' attribute containing a challenge transaction." +
-        "See here for more information:\n\n" +
-        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response"
+        "See the documentation for more information."
       );
+    },
+    links: {
+      "SEP-10 Response":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
     },
   },
   DESERIALIZATION_FAILED: {
@@ -112,11 +127,19 @@ export const getChallengeFailureModes: Record<string, Failure> = {
         "'transaction' must be a base64-encoded string of the Stellar transaction XDR."
       );
     },
+    links: {
+      "SEP-10 Response":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+    },
   },
   INVALID_TRANSACTION_TYPE: {
     name: "invalid transaction type",
     text(_args: any): string {
       return "FeeBumpTransactions are not valid challenge transactions";
+    },
+    links: {
+      "SEP-10 Response":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
     },
   },
   NONZERO_SEQUENCE_NUMBER: {
@@ -127,6 +150,10 @@ export const getChallengeFailureModes: Record<string, Failure> = {
         "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response"
       );
     },
+    links: {
+      "SEP-10 Response":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+    },
   },
 };
 
@@ -135,6 +162,10 @@ export const postChallengeFailureModes: Record<string, Failure> = {
     name: "no token",
     text(_args: any): string {
       return "A 'token' attribute must be present in responses to valid POST /auth requests";
+    },
+    links: {
+      "SEP-10 Token":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#token",
     },
   },
   JWT_DECODE_FAILURE: {
@@ -145,17 +176,29 @@ export const postChallengeFailureModes: Record<string, Failure> = {
         `The jsonwebtoken library returned: ${args.error}`
       );
     },
+    links: {
+      "SEP-10 Token":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#token",
+    },
   },
   JWT_NOT_JSON: {
     name: "JWT contents is not JSON",
     text(_args: any): string {
-      return "jsonwebtoken was unable to parse the JWT's contents as JSON";
+      return "Unable to parse the JWT's contents as JSON";
+    },
+    links: {
+      "SEP-10 Token":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#token",
     },
   },
   INVALID_JWT_SCHEMA: {
     name: "invalid JWT content schema",
     text(args: any): string {
       return `${args.errors}`;
+    },
+    links: {
+      "SEP-10 Token":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#token",
     },
   },
   INVALID_JWT_SUB: {
@@ -165,6 +208,10 @@ export const postChallengeFailureModes: Record<string, Failure> = {
         "The 'sub' attribute must be the public key of the account " +
         "authenticating via SEP-10 - the client's public key."
       );
+    },
+    links: {
+      "SEP-10 Token":
+        "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#token",
     },
   },
   ...getChallengeFailureModes,
@@ -294,9 +341,8 @@ export async function postChallenge(
     result.actual = postAuthCall.response.status;
     return;
   }
-  const postAuthResponseContentType = postAuthCall.response.headers.get(
-    "Content-Type",
-  );
+  const postAuthResponseContentType =
+    postAuthCall.response.headers.get("Content-Type");
   if (
     !postAuthResponseContentType ||
     !postAuthResponseContentType.includes("application/json")
