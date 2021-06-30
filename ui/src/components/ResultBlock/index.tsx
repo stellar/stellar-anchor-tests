@@ -34,7 +34,7 @@ const CollapseBtnEl = styled.div`
 
 const CollapsibleLogEl = styled.section`
   max-height: ${({ isCollapsed }: { isCollapsed: boolean }) =>
-    isCollapsed ? "0rem" : "40rem"};
+    isCollapsed ? "0rem" : "45rem"};
   overflow: hidden;
   transition: all 0.25s ease-in-out;
 `;
@@ -106,7 +106,9 @@ export const ResultBlock: React.FC<{ result: any }> = ({ result }) => {
                   </LogIndent>
 
                   <div>Body:</div>
-                  <Json src={networkCall.request.body} />
+                  <LogIndent>
+                    <Json collapsed src={networkCall.request.body} />
+                  </LogIndent>
                 </>
               )}
 
