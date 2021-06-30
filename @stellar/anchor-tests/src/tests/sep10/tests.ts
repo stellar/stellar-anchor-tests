@@ -12,7 +12,7 @@ import fetch from "node-fetch";
 import { Request } from "node-fetch";
 import { URL } from "url";
 
-import { Test, Config, Result, NetworkCall } from "../../types";
+import { Test, Config, Result, NetworkCall, Failure } from "../../types";
 import { makeRequest } from "../../helpers/request";
 import { makeFailure } from "../../helpers/failure";
 import { loadAccount, submitTransaction } from "../../helpers/horizon";
@@ -42,6 +42,10 @@ export const hasWebAuthEndpoint: Test = {
       name: "not found",
       text(_args: any): string {
         return "The TOML file does not have a WEB_AUTH_ENDPOINT attribute";
+      },
+      links: {
+        "SEP-10 Abstract":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#abstract",
       },
     },
     NO_HTTPS: {
@@ -105,15 +109,22 @@ const hasSigningKey: Test = {
           "The value is the public key of the keypair used to sign SEP-10 challenge transactions."
         );
       },
+      links: {
+        "SEP-10 Abstract":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#abstract",
+      },
     },
     INVALID_SIGNING_KEY: {
       name: "invalid SIGNING_KEY",
       text(_args: any): string {
         return (
           "The SIGNING_KEY is not a valid Stellar keypair public key." +
-          "See the documentation for more information:\n\n" +
-          "https://developers.stellar.org/docs/glossary/accounts/#keypair"
+          "See the documentation for more information."
         );
+      },
+      links: {
+        "Stellar Keypairs":
+          "https://developers.stellar.org/docs/glossary/accounts/#keypair",
       },
     },
   },
@@ -156,11 +167,19 @@ const returnsValidChallengeResponse: Test = {
           `Make sure that CORS is enabled.`
         );
       },
+      links: {
+        "Cross-Origin Resource Sharing (CORS)":
+          "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS",
+      },
     },
     UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",
       text(_args: any): string {
         return "Responses must return a 200 status for valid requests.";
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
     BAD_CONTENT_TYPE: {
@@ -168,15 +187,22 @@ const returnsValidChallengeResponse: Test = {
       text(_args: any): string {
         return "Content-Type headers for GET /auth responses must be 'application/json'";
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+      },
     },
     NO_TRANSACTION: {
       name: "missing 'transaction' field",
       text(_args: any): string {
         return (
           "GET /auth response bodies must include a 'transaction' attribute containing a challenge transaction." +
-          "See here for more information:\n\n" +
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response"
+          "See the documentation for more information."
         );
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
     UNRECOGNIZED_RESPONSE_ATTRIBUTE: {
@@ -186,6 +212,10 @@ const returnsValidChallengeResponse: Test = {
           `An unrecognized response attribute(s) were included in the response: ${args.attributes}.` +
           "The accepted attributes are 'transaction' and `network_passphrase'."
         );
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
     UNRECOGNIZED_NETWORK_PASSPHRASE: {
@@ -198,6 +228,10 @@ const returnsValidChallengeResponse: Test = {
           `Got passphrase: ${args.passphrase}`
         );
       },
+      links: {
+        "Network Passphrases":
+          "https://developers.stellar.org/docs/glossary/network-passphrase/",
+      },
     },
     DESERIALIZATION_FAILED: {
       name: "transaction deserialization failed",
@@ -208,6 +242,10 @@ const returnsValidChallengeResponse: Test = {
           `With network passphrase: ${args.networkPassphrase}\n\n` +
           "'transaction' must be a base64-encoded string of the Stellar transaction XDR."
         );
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
     INVALID_TRANSACTION_TYPE: {
@@ -224,11 +262,19 @@ const returnsValidChallengeResponse: Test = {
           "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response"
         );
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+      },
     },
     SOURCE_ACCOUNT_NOT_SIGNING_KEY: {
       name: "source account doesn't match signing key",
       text(_args: any): string {
         return "Challenge transactions must have a source account matching the SIGNING_KEY in the TOML file.";
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
     MIN_TIME_TOO_EARLY: {
@@ -236,11 +282,19 @@ const returnsValidChallengeResponse: Test = {
       text(_args: any): string {
         return "The challenge transaction's minumum timebound is before the request for the challenge was made.";
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+      },
     },
     MIN_TIME_TOO_LATE: {
       name: "minimum timebound too late",
       text(_args: any): string {
         return "The challenge transaction's minimum timebound is after the challenge was received.";
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
     NO_MAX_TIME: {
@@ -251,11 +305,19 @@ const returnsValidChallengeResponse: Test = {
           "15 minutes from when the challenge was issued is recommended."
         );
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+      },
     },
     FIRST_OP_NOT_MANAGE_DATA: {
       name: "first operation not of type ManageData",
       text(_args: any): string {
         return "The first operation of a challenge transaction must be of type ManageData.";
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
     HOME_DOMAIN_NOT_IN_OP_KEY: {
@@ -266,11 +328,19 @@ const returnsValidChallengeResponse: Test = {
           "'<home domain> auth', where the home domain is the domain hosting the TOML file."
         );
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+      },
     },
     INVALID_FIRST_OP_VALUE: {
       name: "invalid first operation key value",
       text(_args: any): string {
         return "The value of the challenge's first ManageData operation must be a base64-encoded string of 48 bytes";
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
     NO_WEB_AUTH_DOMAIN_OP: {
@@ -281,11 +351,19 @@ const returnsValidChallengeResponse: Test = {
           " and value is the domain of the service issuing the challenge transaction."
         );
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+      },
     },
     INVALID_WEB_AUTH_DOMAIN: {
       name: "invalid 'web_auth_domain' value",
       text(_args: any): string {
         return "The 'web_auth_domain' value must be the WEB_AUTH_ENDPOINT domain.";
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
     INCLUDES_NON_MANAGE_DATA_OP: {
@@ -293,11 +371,19 @@ const returnsValidChallengeResponse: Test = {
       text(_args: any): string {
         return "All operations within a challenge transaction must be of type ManageData";
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+      },
     },
     INVALID_OP_SOURCE: {
       name: "invalid operation source",
       text(_args: any): string {
         return "Exluding the first, all operation source accounts must be the SIGNING_KEY";
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
     MISSING_SERVER_SIGNATURE: {
@@ -305,17 +391,29 @@ const returnsValidChallengeResponse: Test = {
       text(_args: any): string {
         return "Challenge transactions must be signed by the SIGNING_KEY from the TOML file.";
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+      },
     },
     INVALID_SERVER_SIGNATURE: {
       name: "invalid transaction signature",
       text(_args: any): string {
         return "The signature on the challenge transaction must be from the TOML's SIGNING_KEY";
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+      },
     },
     UNEXPECTED_SIGNATURES: {
       name: "unexpected transaction signature(s)",
       text(_args: any): string {
         return "Only one signature from SIGNING_KEY is accepted on challenge transactions.";
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
   },
@@ -498,11 +596,19 @@ const noAccount: Test = {
           `Make sure that CORS is enabled.`
         );
       },
+      links: {
+        "Cross-Origin Resource Sharing (CORS)":
+          "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS",
+      },
     },
     UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",
       text(_args: any): string {
         return "400 Bad Request is expected for requests without an 'account' parameter";
+      },
+      links: {
+        "SEP-10 Request":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#challenge",
       },
     },
     INVALID_ERROR_SCHEMA: {
@@ -510,11 +616,19 @@ const noAccount: Test = {
       text(_args: any): string {
         return "Error responses must contain an 'error' key and string value";
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
+      },
     },
     BAD_CONTENT_TYPE: {
       name: "bad content type",
       text(_args: any): string {
         return "Content-Type headers for GET /auth responses must be 'application/json'";
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response",
       },
     },
   },
@@ -658,7 +772,7 @@ const postAuthBadRequest = async (
   result: Result,
   webAuthEndpoint: string,
   requestBody: any,
-  failureText: string,
+  unexpectedStatusCodeFailure: Failure,
 ): Promise<Result> => {
   const postAuthRequest = new Request(webAuthEndpoint, {
     method: "POST",
@@ -676,13 +790,7 @@ const postAuthBadRequest = async (
     return result;
   }
   if (postAuthCall.response.status !== 400) {
-    result.failure = {
-      name: "unexpected status code",
-      text(_args: any): string {
-        return failureText;
-      },
-      message: failureText,
-    };
+    result.failure = makeFailure(unexpectedStatusCodeFailure);
     result.expected = 400;
     result.actual = postAuthCall.response.status;
     return result;
@@ -705,6 +813,10 @@ const failsWithNoBody: Test = {
           "'transaction' attribute in the body."
         );
       },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response-1",
+      },
     },
   },
   context: {
@@ -719,7 +831,7 @@ const failsWithNoBody: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       {},
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -738,6 +850,10 @@ const failsWithNoClientSignature: Test = {
           "A 400 Bad Request is expected if the challenge " +
           " is not signed by the client."
         );
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response-1",
       },
     },
     ...getChallengeFailureModes,
@@ -763,7 +879,7 @@ const failsWithNoClientSignature: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -781,8 +897,12 @@ const failsWithInvalidTransactionValue: Test = {
       text(_args: any): string {
         return (
           "A 400 Bad Request is expected if the 'transaction' " +
-          " value is not a base64-encoded transaction string."
+          "value is not a base64-encoded transaction string."
         );
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response-1",
       },
     },
   },
@@ -798,7 +918,7 @@ const failsWithInvalidTransactionValue: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: { "not a transaction string": true } },
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -818,6 +938,10 @@ const failsIfChallengeNotSignedByServer: Test = {
           "A 400 Bad Request is expected if the challenge " +
           " is not signed by the SIGNING_KEY from the TOML."
         );
+      },
+      links: {
+        "SEP-10 Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response-1",
       },
     },
   },
@@ -844,7 +968,7 @@ const failsIfChallengeNotSignedByServer: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: challengeXdr },
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -861,6 +985,10 @@ const extraClientSigners: Test = {
       name: "unexpected status code",
       text(_args: any): string {
         return "A 400 Bad Request is expected if the challenge has extra signatures.";
+      },
+      links: {
+        "SEP-10 Challenge Verification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#verification",
       },
     },
     ...getChallengeFailureModes,
@@ -888,7 +1016,7 @@ const extraClientSigners: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -915,6 +1043,10 @@ const failsIfWeighBelowMediumThreshold: Test = {
           "A 400 Bad Request is expected if the signature weight on the challenge is not greater than " +
           "or equal to the account's medium threshold."
         );
+      },
+      links: {
+        "SEP-10 Challenge Verification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#verification",
       },
     },
     ...getChallengeFailureModes,
@@ -965,7 +1097,7 @@ const failsIfWeighBelowMediumThreshold: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
-      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.POST_AUTH_UNEXPECTED_STATUS_CODE,
     );
   },
 };
@@ -985,6 +1117,10 @@ const signedByNonMasterSigner: Test = {
           "Challenge transactions signed by non-master signer(s) with weight greater than " +
           "or equal to the account's medium threshold are valid, but the request was rejected."
         );
+      },
+      links: {
+        "SEP-10 Challenge Verification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#verification",
       },
     },
   },
@@ -1076,6 +1212,10 @@ const failsWithDuplicateSignatures: Test = {
           "to perform without signatures from other signers."
         );
       },
+      links: {
+        "SEP-10 Challenge Verification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#verification",
+      },
     },
   },
   async run(_config: Config): Promise<Result> {
@@ -1126,7 +1266,7 @@ const failsWithDuplicateSignatures: Test = {
       result,
       this.context.expects.webAuthEndpoint,
       { transaction: challenge.toXDR() },
-      this.failureModes.UNEXPECTED_STATUS_CODE.text(),
+      this.failureModes.UNEXPECTED_STATUS_CODE,
     );
     return result;
   },
@@ -1155,6 +1295,10 @@ const multipleNonMasterSigners: Test = {
           "Challenges can be signed by multiple signers to reach the medium threshold of the account. " +
           "However, the SEP-10 server did not return a token for such a challenge."
         );
+      },
+      links: {
+        "SEP-10 Challenge Verification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#verification",
       },
     },
   },

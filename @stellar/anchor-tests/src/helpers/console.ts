@@ -64,6 +64,17 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
       console.log(`Received: ${testRun.result.actual}\n`);
     }
     console.groupEnd(); // description group
+    if (testRun.result.failure.links) {
+      const resources = Object.entries(testRun.result.failure.links);
+      if (resources.length) {
+        console.log(c.bold(`Resource Links:\n`));
+      }
+      console.group(); // resource links group
+      for (const [label, link] of resources) {
+        console.log(`${label}: ${link}\n`);
+      }
+      console.groupEnd(); // resource links group
+    }
   }
   if (verbose && testRun.result.failure && testRun.result.failure.links) {
     console.log(c.bold("Relevant Links:\n"));

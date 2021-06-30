@@ -48,9 +48,8 @@ const depositRequiresToken: Test = {
       // checked in assetCodeEnabledForDeposit
       throw "improperly configured";
     const result: Result = { networkCalls: [] };
-    const depositInfo = this.context.expects.sep6InfoObj.deposit[
-      config.assetCode
-    ];
+    const depositInfo =
+      this.context.expects.sep6InfoObj.deposit[config.assetCode];
     this.context.provides.authRequired = Boolean(
       depositInfo.authentication_required,
     );
@@ -105,6 +104,10 @@ const depositRequiresAssetCode: Test = {
           "400 Bad Request response bodies should include a " +
           "human-readable 'error' message"
         );
+      },
+      links: {
+        "Error Schema":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#6-error",
       },
     },
     ...genericFailures,
@@ -303,11 +306,14 @@ export const returnsProperSchemaForUnknownAccounts: Test = {
       name: "invalid schema",
       text(args: any): string {
         return (
-          "The response body returned does not comply with the schema defined for the /deposit endpoint:\n\n" +
-          `${args.reference}\n\n` +
+          "The response body returned does not comply with the schema defined for the /deposit endpoint. " +
           "The errors returned from the schema validation:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "Deposit Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#2-customer-information-needed-non-interactive",
       },
     },
     ...genericFailures,
@@ -355,8 +361,6 @@ export const returnsProperSchemaForUnknownAccounts: Test = {
     if (validatorResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
         errors: validatorResult.errors.join("\n"),
-        reference:
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#2-customer-information-needed-non-interactive",
       });
       return result;
     }
@@ -385,12 +389,16 @@ export const returnsProperSchemaForKnownAccounts: Test = {
       name: "invalid schema",
       text(args: any): string {
         return (
-          "The response body returned does not comply with the schema defined for the /deposit endpoint:\n\n" +
-          `${args.success}\n` +
-          `${args.customerInfoStatus}\n\n` +
+          "The response body returned does not comply with the schema defined for the /deposit endpoint. " +
           "The errors returned from the schema validation:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "Deposit Success Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#1-success-no-additional-information-needed",
+        "Deposit Customer Info Status Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#3-customer-information-status",
       },
     },
     ...genericFailures,
@@ -437,10 +445,6 @@ export const returnsProperSchemaForKnownAccounts: Test = {
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
         errors: validationResult.errors.join("\n"),
-        success:
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#1-success-no-additional-information-needed",
-        customerInfoStatus:
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#3-customer-information-status",
       });
       return result;
     }

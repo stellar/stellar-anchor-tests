@@ -22,6 +22,7 @@ import {
 } from "types/testCases";
 import { HomeDomainField } from "../TestRunnerFields/HomeDomainField";
 import { TestCases } from "../TestCases";
+import { ConfigModalContent } from "../ConfigModalContent";
 
 // SEPs to send to server based on SEP selected in dropdown
 const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
@@ -346,12 +347,7 @@ export const TestRunner = () => {
                 visible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
               >
-                <p>
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Pariatur eius beatae sint dolorem, excepturi quos enim, et
-                  ullam suscipit voluptates voluptas accusantium repellendus
-                  amet explicabo, iure veritatis aperiam alias molestiae.
-                </p>
+                <ConfigModalContent></ConfigModalContent>
               </Modal>
             </ButtonWrapper>
           </FieldWrapper>

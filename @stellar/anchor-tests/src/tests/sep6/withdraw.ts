@@ -48,9 +48,8 @@ const withdrawRequiresToken: Test = {
       // checked in assetCodeEnabledForWithdraw
       throw "improperly configured";
     const result: Result = { networkCalls: [] };
-    const withdrawInfo = this.context.expects.sep6InfoObj.withdraw[
-      config.assetCode
-    ];
+    const withdrawInfo =
+      this.context.expects.sep6InfoObj.withdraw[config.assetCode];
     this.context.provides.authRequired = Boolean(
       withdrawInfo.authentication_required,
     );
@@ -112,6 +111,10 @@ const withdrawRequiresAssetCode: Test = {
           "human-readable 'error' message"
         );
       },
+      links: {
+        "Error Schema":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#6-error",
+      },
     },
     ...genericFailures,
   },
@@ -127,9 +130,8 @@ const withdrawRequiresAssetCode: Test = {
           },
         }
       : {};
-    const withdrawInfo = this.context.expects.sep6InfoObj.withdraw[
-      config.assetCode
-    ];
+    const withdrawInfo =
+      this.context.expects.sep6InfoObj.withdraw[config.assetCode];
     const withdrawType = Object.keys(withdrawInfo.types)[0];
     const withdrawTypeFields =
       withdrawInfo.types[withdrawType].transactionFields || {};
@@ -181,9 +183,8 @@ const withdrawRequiresAccount: Test = {
       result.skipped = true;
       return result;
     }
-    const withdrawInfo = this.context.expects.sep6InfoObj.withdraw[
-      config.assetCode
-    ];
+    const withdrawInfo =
+      this.context.expects.sep6InfoObj.withdraw[config.assetCode];
     const withdrawType = Object.keys(withdrawInfo.types)[0];
     const withdrawTypeFields =
       withdrawInfo.types[withdrawType].transactionFields || {};
@@ -241,9 +242,8 @@ const withdrawRejectsInvalidAccount: Test = {
           },
         }
       : {};
-    const withdrawInfo = this.context.expects.sep6InfoObj.withdraw[
-      config.assetCode
-    ];
+    const withdrawInfo =
+      this.context.expects.sep6InfoObj.withdraw[config.assetCode];
     const withdrawType = Object.keys(withdrawInfo.types)[0];
     const withdrawTypeFields =
       withdrawInfo.types[withdrawType].transactionFields || {};
@@ -298,9 +298,8 @@ const withdrawRejectsUnsupportedAssetCode: Test = {
           },
         }
       : {};
-    const withdrawInfo = this.context.expects.sep6InfoObj.withdraw[
-      config.assetCode
-    ];
+    const withdrawInfo =
+      this.context.expects.sep6InfoObj.withdraw[config.assetCode];
     const withdrawType = Object.keys(withdrawInfo.types)[0];
     const withdrawTypeFields =
       withdrawInfo.types[withdrawType].transactionFields || {};
@@ -353,11 +352,14 @@ export const returnsProperSchemaForUnknownAccounts: Test = {
       name: "invalid schema",
       text(args: any): string {
         return (
-          "The response body returned does not comply with the schema defined for the /withdraw endpoint:\n\n" +
-          `${args.reference}\n\n` +
+          "The response body returned does not comply with the schema defined for the /withdraw endpoint. " +
           "The errors returned from the schema validation:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "Withdraw Schema":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#2-customer-information-needed-non-interactive",
       },
     },
     ...genericFailures,
@@ -385,9 +387,8 @@ export const returnsProperSchemaForUnknownAccounts: Test = {
           },
         }
       : {};
-    const withdrawInfo = this.context.expects.sep6InfoObj.withdraw[
-      config.assetCode
-    ];
+    const withdrawInfo =
+      this.context.expects.sep6InfoObj.withdraw[config.assetCode];
     const withdrawType = Object.keys(withdrawInfo.types)[0];
     const withdrawTypeFields =
       config.sepConfig["6"].withdraw.types[withdrawType].transactionFields ||
@@ -418,8 +419,6 @@ export const returnsProperSchemaForUnknownAccounts: Test = {
     if (validatorResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
         errors: validatorResult.errors.join("\n"),
-        reference:
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#2-customer-information-needed-non-interactive",
       });
       return result;
     }
@@ -448,12 +447,16 @@ export const returnsProperSchemaForKnownAccounts: Test = {
       name: "invalid schema",
       text(args: any): string {
         return (
-          "The response body returned does not comply with the schema defined for the /withdraw endpoint:\n\n" +
-          `${args.success}\n` +
-          `${args.customerInfoStatus}\n\n` +
+          "The response body returned does not comply with the schema defined for the /withdraw endpoint. " +
           "The errors returned from the schema validation:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "Withdraw Deposit Info Needed Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#2-customer-information-needed-non-interactive",
+        "Withdraw Customer Status Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#2-customer-information-needed-non-interactive",
       },
     },
     ...genericFailures,
@@ -474,9 +477,8 @@ export const returnsProperSchemaForKnownAccounts: Test = {
           },
         }
       : {};
-    const withdrawInfo = this.context.expects.sep6InfoObj.withdraw[
-      config.assetCode
-    ];
+    const withdrawInfo =
+      this.context.expects.sep6InfoObj.withdraw[config.assetCode];
     const withdrawType = Object.keys(withdrawInfo.types)[0];
     const withdrawTypeFields =
       config.sepConfig["6"].withdraw.types[withdrawType].transactionFields ||
@@ -513,10 +515,6 @@ export const returnsProperSchemaForKnownAccounts: Test = {
     if (validatorResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
         errors: validatorResult.errors.join("\n"),
-        success:
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#1-success-no-additional-information-needed-1",
-        customerInfoStatus:
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#3-customer-information-status",
       });
       return result;
     }
@@ -527,9 +525,6 @@ export const returnsProperSchemaForKnownAccounts: Test = {
       } catch {
         result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
           errors: "invalid Stellar public key",
-          success:
-            "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#1-success-no-additional-information-needed-1",
-          customerInfoStatus: "N/A",
         });
         return result;
       }
@@ -542,9 +537,6 @@ export const returnsProperSchemaForKnownAccounts: Test = {
       } catch {
         result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
           errors: "invalid 'memo' for 'memo_type'",
-          success:
-            "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#1-success-no-additional-information-needed-1",
-          customerInfoStatus: "N/A",
         });
         return result;
       }

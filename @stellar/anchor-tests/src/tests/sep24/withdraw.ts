@@ -19,11 +19,14 @@ export const invalidWithdrawSchema: Failure = {
   name: "invalid schema",
   text(args: any): string {
     return (
-      "The response body returned does not comply with the schema defined for the /withdraw endpoint:\n\n" +
-      "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#deposit-and-withdraw-shared-responses\n\n" +
+      "The response body returned does not comply with the schema defined for the /withdraw endpoint. " +
       "The errors returned from the schema validation:\n\n" +
       `${args.errors}`
     );
+  },
+  links: {
+    "Withdraw Response":
+      "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#2-interactive-customer-information-needed",
   },
 };
 
@@ -94,6 +97,10 @@ const withdrawRequiresAssetCode: Test = {
           "400 Bad Request response bodies should include a " +
           "human-readable 'error' message"
         );
+      },
+      links: {
+        "Error Schema":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#6-error",
       },
     },
     ...genericFailures,
