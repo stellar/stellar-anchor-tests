@@ -15,6 +15,10 @@ export const hasTransferServerUrl: Test = {
       text(_args: any): string {
         return "The stellar.toml file does not have a valid TRANSFER_SERVER_SEP0024 URL";
       },
+      links: {
+        "SEP-24 Prerequisites":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#prerequisites",
+      },
     },
     NO_HTTPS: {
       name: "no https",

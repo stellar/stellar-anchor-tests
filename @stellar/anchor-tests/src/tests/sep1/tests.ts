@@ -28,12 +28,18 @@ export const tomlExists: Test = {
       links: {
         "Cross-Origin Resource Sharing (CORS)":
           "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS",
+        "SEP-1 Specification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md#specification",
       },
     },
     TOML_UNEXPECTED_STATUS_CODE: {
       name: "unexpected status code",
       text: (_args: any) => {
         return "A HTTP 200 Success is expected for responses.";
+      },
+      links: {
+        "SEP-1 Specification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md#specification",
       },
     },
     TOML_BAD_CONTENT_TYPE: {
@@ -44,6 +50,10 @@ export const tomlExists: Test = {
           "header of 'application/toml' or 'text/plain'"
         );
       },
+      links: {
+        "SEP-1 Specification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md#specification",
+      },
     },
     TOML_PARSE_ERROR: {
       name: "parse error",
@@ -53,6 +63,10 @@ export const tomlExists: Test = {
           "https://toml.io/en/v1.0.0\n\nThe parsing library returned:\n\n" +
           `Line: ${args.line}\nColumn: ${args.column}\nError: ${args.message}`
         );
+      },
+      links: {
+        "SEP-1 Specification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md#specification",
       },
     },
   },
@@ -140,6 +154,10 @@ const validFileSize: Test = {
       text(args: any): string {
         return `The max file size is 100KB, but the file is ${args.kb}`;
       },
+      links: {
+        "SEP-1 Specification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md#specification",
+      },
     },
   },
   async run(_config: Config): Promise<Result> {
@@ -165,11 +183,19 @@ export const hasNetworkPassphrase: Test = {
       text(_args: any): string {
         return "NETWORK_PASSPHRASE is missing from the TOML file";
       },
+      links: {
+        "SEP-1 Specification":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md#general-information",
+      },
     },
     INVALID_PASSPHRASE: {
       name: "invalid NETWORK_PASSPHRASE",
       text(_args: any): string {
         return "NETWORK_PASSPHRASE is not one of the accepted values";
+      },
+      links: {
+        "Network Passphrases":
+          "https://developers.stellar.org/docs/glossary/network-passphrase/",
       },
     },
   },
@@ -214,6 +240,10 @@ const hasCurrenciesSection: Test = {
       text(_args: any): string {
         return "CURRENCIES is missing from the TOML file";
       },
+      links: {
+        "Currency Documentation":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md#currency-documentation",
+      },
     },
     INVALID_SCHEMA: {
       name: "invalid schema",
@@ -226,6 +256,10 @@ const hasCurrenciesSection: Test = {
           "The errors returned from the schema validation:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "Currency Documentation":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md#currency-documentation",
       },
     },
   },

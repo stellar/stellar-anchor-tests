@@ -25,12 +25,14 @@ const hasValidInfoSchema: Test = {
       name: "invalid schema",
       text(args: any): string {
         return (
-          "The response body from GET /info does not match " +
-          "the schema defined by the protocol:\n\n" +
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-info\n\n" +
+          "The response body from GET /info does not match the schema defined by the protocol. " +
           "Errors:\n\n" +
           `${args.errors}`
         );
+      },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#6-error",
       },
     },
     ...genericFailures,
@@ -81,17 +83,29 @@ export const hasExpectedAssetEnabled: Test = {
       text(args: any): string {
         return `The /info response body does not contain information for ${args.assetCode}`;
       },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#response",
+      },
     },
     NO_ASSET_CODES: {
       name: "no enabled assets",
       text(_args: any): string {
         return "There are no enabled assets in the /info response";
       },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#response",
+      },
     },
     ASSET_CODE_NOT_ENABLED: {
       name: "configured asset code not enabled",
       text(args: any): string {
         return `${args.assetCode} is not enabled for SEP-31`;
+      },
+      links: {
+        "Info Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#response",
       },
     },
   },
@@ -150,6 +164,10 @@ const hasExpectedTransactionFields: Test = {
           "in the /info response body."
         );
       },
+      links: {
+        "Fields Schema":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#fields-object-schema",
+      },
     },
     UNEXPECTED_FIELD: {
       name: "unexpected field",
@@ -166,9 +184,9 @@ const hasExpectedTransactionFields: Test = {
       // this is checked before tests are run
       throw new Error("improperly configured");
     const result: Result = { networkCalls: [] };
-    const responseTransactionFields = this.context.expects.sep31InfoObj.receive[
-      config.assetCode
-    ].fields.transaction;
+    const responseTransactionFields =
+      this.context.expects.sep31InfoObj.receive[config.assetCode].fields
+        .transaction;
     const responseTransactionFieldNames = Object.keys(
       responseTransactionFields,
     );

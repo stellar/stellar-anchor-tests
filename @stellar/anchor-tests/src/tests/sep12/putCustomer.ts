@@ -74,11 +74,19 @@ export const canCreateCustomer: Test = {
       text(_args: any): string {
         return "An 'id' attribute is required for PUT /customer success responses";
       },
+      links: {
+        "PUT Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#response-1",
+      },
     },
     BAD_ID_TYPE: {
       name: "bad 'id' data type",
       text(_args: any): string {
         return "The 'id' returned in PUT /customer in responses must be a string";
+      },
+      links: {
+        "PUT Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#response-1",
       },
     },
     ...genericFailures,
@@ -90,6 +98,10 @@ export const canCreateCustomer: Test = {
           `server error or invalid/missing data from the '${args.customer}' ` +
           "SEP-12 customer data provided."
         );
+      },
+      links: {
+        "PUT Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#response-1",
       },
     },
   },
@@ -126,9 +138,8 @@ export const canCreateCustomer: Test = {
       result.actual = putCustomerCall.response.status;
       return result;
     }
-    const responseContentType = putCustomerCall.response.headers.get(
-      "Content-Type",
-    );
+    const responseContentType =
+      putCustomerCall.response.headers.get("Content-Type");
     if (
       !responseContentType ||
       !responseContentType.includes("application/json")
@@ -182,11 +193,19 @@ export const differentMemosSameAccount: Test = {
       text(_args: any): string {
         return "An 'id' attribute is required for PUT /customer success responses";
       },
+      links: {
+        "PUT Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#response-1",
+      },
     },
     BAD_ID_TYPE: {
       name: "bad 'id' data type",
       text(_args: any): string {
         return "The 'id' returned in PUT /customer in responses must be a string";
+      },
+      links: {
+        "PUT Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#response-1",
       },
     },
     MEMO_DOESNT_DIFFERENTIATE: {
@@ -197,6 +216,10 @@ export const differentMemosSameAccount: Test = {
           "different memos, but the same customer ID was returned in both responses. " +
           "Memos are used to uniquely identify customers registered by the same account."
         );
+      },
+      links: {
+        "PUT Request":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request",
       },
     },
     ...genericFailures,

@@ -15,6 +15,10 @@ export const hasTransferServerUrl: Test = {
       text(_args: any): string {
         return "The stellar.toml file does not have a valid TRANSFER_SERVER URL";
       },
+      links: {
+        "SEP-6 Prerequisites":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#prerequisites",
+      },
     },
     NO_HTTPS: {
       name: "no https",
@@ -39,7 +43,8 @@ export const hasTransferServerUrl: Test = {
   },
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    this.context.provides.sep6TransferServerUrl = this.context.expects.tomlObj.TRANSFER_SERVER;
+    this.context.provides.sep6TransferServerUrl =
+      this.context.expects.tomlObj.TRANSFER_SERVER;
     if (!this.context.provides.sep6TransferServerUrl) {
       result.failure = makeFailure(this.failureModes.TRANSFER_SERVER_NOT_FOUND);
       return result;
