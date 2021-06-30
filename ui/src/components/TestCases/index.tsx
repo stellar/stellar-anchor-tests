@@ -45,7 +45,7 @@ interface SepTestsProps {
 
 const SepTests = styled.div`
   max-height: ${({ accordionMaxHeight, isOpen }: SepTestsProps) =>
-    isOpen ? `${accordionMaxHeight * 5}rem` : "0"};
+    isOpen ? `${accordionMaxHeight * 60}rem` : "0"};
   overflow: hidden;
   transition: all 0.5s ease-in-out;
 `;
