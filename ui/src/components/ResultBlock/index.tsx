@@ -3,11 +3,12 @@ import { Eyebrow, TextLink } from "@stellar/design-system";
 import styled from "styled-components";
 import { Response, Request } from "node-fetch";
 
+import { Json } from "basics/Json";
 import { Log, LogIndent } from "basics/Log";
 
 const ResultBlockWrapperEl = styled.div`
   border-radius: 0.25rem;
-  border: 1px solid transparent;
+  border: 1px solid #fbfaf7;
   padding: 1rem;
   padding-left: 2.5rem;
   width: 100%;
@@ -42,6 +43,17 @@ interface NetworkCall {
   request: Request & { headers: { [key: string]: string[] } };
   response: Response;
 }
+
+interface HeaderBlockProps {
+  headerKey: string;
+  headerVal: string;
+}
+
+const HeaderBlock = ({ headerKey, headerVal }: HeaderBlockProps) => (
+  <div>
+    {headerKey}: {headerVal}
+  </div>
+);
 
 export const ResultBlock: React.FC<{ result: any }> = ({ result }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -81,17 +93,20 @@ export const ResultBlock: React.FC<{ result: any }> = ({ result }) => {
                     {networkCall.request.method} {networkCall.request.url}
                     <div>Headers:</div>
                     <LogIndent>
-                      content-type:{" "}
-                      {(
-                        networkCall.request?.headers?.["Content-Type"] || []
-                      ).map((contentType: string) => (
-                        <span key={contentType}>contentType</span>
-                      ))}
+                      {Object.entries(networkCall.request.headers || []).map(
+                        ([headerKey, headerVal]) => (
+                          <HeaderBlock
+                            headerKey={headerKey}
+                            headerVal={headerVal.toString()}
+                            key={`${headerKey}-${headerVal}`}
+                          />
+                        ),
+                      )}
                     </LogIndent>
                   </LogIndent>
 
                   <div>Body:</div>
-                  <div>{JSON.stringify(networkCall.request.body)}</div>
+                  <Json src={networkCall.request.body} />
                 </>
               )}
 
@@ -104,9 +119,11 @@ export const ResultBlock: React.FC<{ result: any }> = ({ result }) => {
                     <LogIndent>
                       {Object.entries(networkCall.response.headers || []).map(
                         ([headerKey, headerVal]) => (
-                          <div key={`${headerKey}-${headerVal}`}>
-                            {headerKey}: {headerVal}
-                          </div>
+                          <HeaderBlock
+                            headerKey={headerKey}
+                            headerVal={headerVal}
+                            key={`${headerKey}-${headerVal}`}
+                          />
                         ),
                       )}
                     </LogIndent>
