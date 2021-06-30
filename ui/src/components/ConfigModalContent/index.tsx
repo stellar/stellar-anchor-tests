@@ -40,17 +40,17 @@ export const ConfigModalContent: React.FC = () => (
       }}></Json>
       <ul>
         <li>
-          <strong>deposit</strong>: contains a single "transactionFields" key
+          <strong>deposit</strong>: contains a single “transactionFields” key
           <ul>
-            <li><strong>transactionFields</strong>: contains the key-value pairs to use as parameters to GET /deposit requests. These items should correspond directly to the items outlined in GET /info's <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#for-each-deposit-asset-response-contains">fields</TextLink> object</li>
+            <li><strong>transactionFields</strong>: contains the key-value pairs to use as parameters to GET /deposit requests. These items should correspond directly to the items outlined in GET /info’s <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#for-each-deposit-asset-response-contains">fields</TextLink> object</li>
           </ul>
         </li>
         <li>
-          <strong>withdraw</strong>: contains a single "types" key
+          <strong>withdraw</strong>: contains a single “types” key
           <ul>
-            <li><strong>types</strong>: an object containing key-value pairs corresponding directly to GET /info's <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#for-each-withdrawal-asset-response-contains">types</TextLink> object. Currently, only the first type object specified is used.</li>
+            <li><strong>types</strong>: an object containing key-value pairs corresponding directly to GET /info’s <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#for-each-withdrawal-asset-response-contains">types</TextLink> object. Currently, only the first type object specified is used.</li>
             <ul>
-              <li><strong>transactionFields</strong>: contains the key-value pairs to use as parameters to GET /withdraw requests for "type".</li>
+              <li><strong>transactionFields</strong>: contains the key-value pairs to use as parameters to GET /withdraw requests for “type”.</li>
             </ul>
           </ul>
         </li>
@@ -96,12 +96,12 @@ export const ConfigModalContent: React.FC = () => (
       }}></Json>
       <ul>
         <li><strong>sendingAnchorClientSecret</strong>: the secret key for the Stellar keypair that should be used when authenticating with the receiving anchor via SEP-10</li>
-        <li><strong>sendingClientName</strong>: the key of the "customers" subobject that should be registered via SEP-12 as the sending client.</li>
-        <li><strong>receivingClientName</strong>: the key of the "customers" subobject that should be registered via SEP-12 as the receiving client.</li>
+        <li><strong>sendingClientName</strong>: the key of the “customers” subobject that should be registered via SEP-12 as the sending client.</li>
+        <li><strong>receivingClientName</strong>: the key of the “customers” subobject that should be registered via SEP-12 as the receiving client.</li>
         <li><strong>transactionFields</strong>: the <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#post-transactions">fields</TextLink> object that should be used in POST /transactions requests.</li>
       </ul>
       <p>
-        Note that there must be a subobject within SEP-12's <strong>customers</strong> configuration object for the <strong>sendingClientName</strong> and <strong>receivingClientName</strong> properties.
+        Note that there must be a subobject within SEP-12’s <strong>customers</strong> configuration object for the <strong>sendingClientName</strong> and <strong>receivingClientName</strong> properties.
       </p>
     </Modal.Body>
   </>
