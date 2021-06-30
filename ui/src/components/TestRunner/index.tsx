@@ -1,9 +1,16 @@
 import { useRef, useEffect, useState } from "react";
-import { Button, InfoBlock, Input, Select } from "@stellar/design-system";
+import {
+  Button,
+  InfoBlock,
+  Input,
+  Modal,
+  Select,
+} from "@stellar/design-system";
 import throttle from "lodash.throttle";
 import styled from "styled-components";
 
 import { ButtonWrapper } from "basics/ButtonWrapper";
+import { ModalInfoButton } from "basics/Tooltip";
 import { socket } from "helpers/socketConnection";
 import { getTestRunId, parseTests } from "helpers/testCases";
 import { getSupportedAssets } from "helpers/utils";
@@ -30,6 +37,12 @@ const CONFIG_SEPS = [6, 12, 31];
 // SEPs that require an asset to use in tests
 const TRANSFER_SEPS = [6, 24, 31];
 
+const FieldWrapper = styled.div`
+  align-items: center;
+  display: flex;
+  position: relative;
+`;
+
 const TestConfigWrapper = styled.form`
   margin-bottom: 4.5rem;
   width: 25rem;
@@ -46,6 +59,7 @@ const defaultFormData = {
 
 export const TestRunner = () => {
   const [formData, setFormData] = useState(defaultFormData);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [serverFailure, setServerFailure] = useState("");
   const [isConfigNeeded, setIsConfigNeeded] = useState(false);
   const [testRunArray, setTestRunArray] = useState([] as GroupedTestCases);
@@ -317,14 +331,29 @@ export const TestRunner = () => {
           </Select>
         )}
         {isConfigNeeded && (
-          <ButtonWrapper>
-            <Input
-              id="sepConfig"
-              label="Upload Config"
-              onChange={(e) => handleFileChange(e.target.files)}
-              type="file"
-            />
-          </ButtonWrapper>
+          <FieldWrapper>
+            <ButtonWrapper>
+              <Input
+                id="sepConfig"
+                label="Upload Config"
+                onChange={(e) => handleFileChange(e.target.files)}
+                type="file"
+              />
+              <ModalInfoButton onClick={() => setIsModalVisible(true)} />
+
+              <Modal
+                visible={isModalVisible}
+                onClose={() => setIsModalVisible(false)}
+              >
+                <p>
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                  Pariatur eius beatae sint dolorem, excepturi quos enim, et
+                  ullam suscipit voluptates voluptas accusantium repellendus
+                  amet explicabo, iure veritatis aperiam alias molestiae.
+                </p>
+              </Modal>
+            </ButtonWrapper>
+          </FieldWrapper>
         )}
         {serverFailure && (
           <InfoBlock variant={InfoBlock.variant.error}>
