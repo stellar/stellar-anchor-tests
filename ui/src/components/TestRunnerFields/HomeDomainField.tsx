@@ -57,7 +57,13 @@ export const HomeDomainField = ({
 
   // make toml requests at most once every 250 milliseconds
   const getToml = async (homeDomain: string) => {
-    const homeDomainHost = new URL(homeDomain).host;
+    let homeDomainHost;
+    try {
+      homeDomainHost = new URL(homeDomain).host;
+    } catch {
+      setServerFailure("Invalid URL");
+      return;
+    }
     let tomlObj;
     try {
       tomlObj = await StellarTomlResolver.resolve(homeDomainHost);
