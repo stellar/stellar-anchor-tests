@@ -72,7 +72,7 @@ export const HomeDomainField = ({
       setServerFailure("Unable to fetch SEP-1 stellar.toml file");
       return;
     }
-    setServerFailure("");
+    resetAllState();
     setToml(tomlObj);
     //updateNetworkState(tomlObj.NETWORK_PASSPHRASE);
     updateSupportedSepsState(tomlObj);
