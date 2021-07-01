@@ -101,11 +101,9 @@ export const HomeDomainField = ({
           onChange={(e) => handleHomeDomainChange(e.target.value)}
         />
         <TooltipInfoButton>
-          <>
           <p>
-            Input the domain that hosts your anchor's <TextLink underline={true} href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md">Stellar Info File</TextLink>.
+            Input the domain that hosts your anchor’s <TextLink underline href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md">Stellar Info File</TextLink>.
           </p>
-          </>
         </TooltipInfoButton>
       </FieldWrapper>
       <ButtonWrapper>

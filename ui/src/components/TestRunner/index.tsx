@@ -302,7 +302,6 @@ export const TestRunner = () => {
         />
         {supportedSeps.length !== 0 && (
           <FieldWrapper>
-            <>
             <Select
               id="seps"
               label="sep"
@@ -325,7 +324,6 @@ export const TestRunner = () => {
               </p>
               </>
             </TooltipInfoButton>
-            </>
           </FieldWrapper>
         )}
         {supportedAssets.length !== 0 && (
@@ -342,11 +340,9 @@ export const TestRunner = () => {
               ))}
             </Select>
             <TooltipInfoButton>
-            <>
-            <p>
-              Select the asset code to use when making requests to the anchor. The options displayed are generated based on the asset codes present in the anchors GET /info response.
-            </p>
-            </>
+              <p>
+                Select the asset code to use when making requests to the anchor. The options displayed are generated based on the asset codes present in the anchors GET /info response.
+              </p>
             </TooltipInfoButton>
           </FieldWrapper>
         )}
