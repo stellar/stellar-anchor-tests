@@ -5,14 +5,13 @@ import {
   Input,
   Modal,
   Select,
-  TextLink
+  TextLink,
 } from "@stellar/design-system";
 import throttle from "lodash.throttle";
 import styled from "styled-components";
 
-import { ButtonWrapper } from "basics/ButtonWrapper";
 import { FieldWrapper } from "basics/FieldWrapper";
-import { ModalInfoButton, TooltipInfoButton  } from "basics/Tooltip";
+import { ModalInfoButton, TooltipInfoButton } from "basics/Tooltip";
 import { socket } from "helpers/socketConnection";
 import { getTestRunId, parseTests } from "helpers/testCases";
 import { getSupportedAssets } from "helpers/utils";
@@ -183,7 +182,7 @@ export const TestRunner = () => {
       if (fetchedSupportedAssets.length)
         setFormData({
           ...formData,
-          assetCode: fetchedSupportedAssets[0]
+          assetCode: fetchedSupportedAssets[0],
         });
     }, 250),
   );
@@ -292,13 +291,15 @@ export const TestRunner = () => {
         try {
           sepConfigObj = JSON.parse(e?.target?.result as string);
         } catch {
-          setServerFailure("Unable to parse config file JSON. Try correcting the format using a validator.");
+          setServerFailure(
+            "Unable to parse config file JSON. Try correcting the format using a validator.",
+          );
           return;
         }
         setServerFailure("");
         setFormData({
           ...formData,
-          sepConfig: sepConfigObj
+          sepConfig: sepConfigObj,
         });
       };
     }
@@ -331,12 +332,22 @@ export const TestRunner = () => {
             </Select>
             <TooltipInfoButton>
               <>
-              <p>
-                Select one of the SEPs to test. The options displayed are generated based on the attributes present in the anchor's <TextLink underline={true} href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md">Stellar Info File</TextLink>.
-              </p>
-              <p>
-                <strong>Note</strong>: Running tests for a particular SEP will run tests for all SEPs that it requires. For example, running SEP-10 tests will also run SEP-1 tests.
-              </p>
+                <p>
+                  Select one of the SEPs to test. The options displayed are
+                  generated based on the attributes present in the anchor's{" "}
+                  <TextLink
+                    underline={true}
+                    href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md"
+                  >
+                    Stellar Info File
+                  </TextLink>
+                  .
+                </p>
+                <p>
+                  <strong>Note</strong>: Running tests for a particular SEP will
+                  run tests for all SEPs that it requires. For example, running
+                  SEP-10 tests will also run SEP-1 tests.
+                </p>
               </>
             </TooltipInfoButton>
           </FieldWrapper>
@@ -356,29 +367,29 @@ export const TestRunner = () => {
             </Select>
             <TooltipInfoButton>
               <p>
-                Select the asset code to use when making requests to the anchor. The options displayed are generated based on the asset codes present in the anchors GET /info response.
+                Select the asset code to use when making requests to the anchor.
+                The options displayed are generated based on the asset codes
+                present in the anchors GET /info response.
               </p>
             </TooltipInfoButton>
           </FieldWrapper>
         )}
         {isConfigNeeded && (
           <FieldWrapper>
-            <ButtonWrapper>
-              <Input
-                id="sepConfig"
-                label="Upload Config"
-                onChange={(e) => handleFileChange(e.target.files)}
-                type="file"
-              />
-              <ModalInfoButton onClick={() => setIsModalVisible(true)} />
+            <Input
+              id="sepConfig"
+              label="Upload Config"
+              onChange={(e) => handleFileChange(e.target.files)}
+              type="file"
+            />
+            <ModalInfoButton onClick={() => setIsModalVisible(true)} />
 
-              <Modal
-                visible={isModalVisible}
-                onClose={() => setIsModalVisible(false)}
-              >
-                <ConfigModalContent></ConfigModalContent>
-              </Modal>
-            </ButtonWrapper>
+            <Modal
+              visible={isModalVisible}
+              onClose={() => setIsModalVisible(false)}
+            >
+              <ConfigModalContent></ConfigModalContent>
+            </Modal>
           </FieldWrapper>
         )}
         {serverFailure && (
@@ -387,22 +398,24 @@ export const TestRunner = () => {
           </InfoBlock>
         )}
         {validateFormData() && (
-          <ButtonWrapper>
-            <Button
-              onClick={handleSubmit}
-              disabled={
-                [RunState.running, RunState.noTests].includes(runState) ||
-                Boolean(serverFailure)
-              }
-            >
-              {runState !== RunState.running ? "Run Tests" : "Running..."}
-            </Button>
-            {runState === RunState.done && (
-              <ResetButtonWrapper>
-                <Button onClick={clearTestResults}>Reset</Button>
-              </ResetButtonWrapper>
-            )}
-          </ButtonWrapper>
+          <FieldWrapper>
+            <FieldWrapper>
+              <Button
+                onClick={handleSubmit}
+                disabled={
+                  [RunState.running, RunState.noTests].includes(runState) ||
+                  Boolean(serverFailure)
+                }
+              >
+                {runState !== RunState.running ? "Run Tests" : "Running..."}
+              </Button>
+              {runState === RunState.done && (
+                <ResetButtonWrapper>
+                  <Button onClick={clearTestResults}>Reset</Button>
+                </ResetButtonWrapper>
+              )}
+            </FieldWrapper>
+          </FieldWrapper>
         )}
       </TestConfigWrapper>
       <TestCases runState={runState} testCases={testRunArray} />
