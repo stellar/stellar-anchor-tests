@@ -52,6 +52,7 @@ const ResetButtonWrapper = styled.div`
 const defaultFormData = {
   homeDomain: "",
   seps: [],
+  verbose: true,
 } as FormData;
 
 export const TestRunner = () => {

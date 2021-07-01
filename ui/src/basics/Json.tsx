@@ -2,17 +2,17 @@ import ReactJson, { ReactJsonViewProps } from "react-json-view";
 
 const JSON_COLOR = {
   background: "#292d3e", // SDS --pal-example-code
-  color: "#ffffff" // SDS --pal-brand-primary-on
-} 
+  color: "#ffffff", // SDS --pal-brand-primary-on
+};
 
-export const Json = ({ src }: ReactJsonViewProps) => (
+export const Json = ({ collapsed = false, src }: ReactJsonViewProps) => (
   <ReactJson
     src={src}
     name={null}
     collapseStringsAfterLength={15}
     displayDataTypes={false}
     displayObjectSize={false}
-    collapsed={false}
+    collapsed={collapsed}
     theme={{
       base00: JSON_COLOR.background,
       base01: JSON_COLOR.background,
@@ -29,7 +29,7 @@ export const Json = ({ src }: ReactJsonViewProps) => (
       base0C: JSON_COLOR.color,
       base0D: JSON_COLOR.color,
       base0E: JSON_COLOR.color,
-      base0F: JSON_COLOR.color
+      base0F: JSON_COLOR.color,
     }}
   />
 );
