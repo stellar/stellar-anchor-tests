@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Eyebrow, TextLink } from "@stellar/design-system";
 import styled from "styled-components";
-import { Response, Request } from "node-fetch";
 
 import { Json } from "basics/Json";
 import { Log, LogIndent } from "basics/Log";
+import { Result, NetworkCall } from "types/testCases";
 
 const ResultBlockWrapperEl = styled.div`
   border-radius: 0.25rem;
@@ -28,6 +28,10 @@ const ResultLineEl = styled.div`
   margin: 0.5rem 0;
 `;
 
+const ResourceLinkEl = styled.li`
+  font-size: 0.875rem;
+`;
+
 const CollapseBtnEl = styled.div`
   margin: 1rem 0;
 `;
@@ -41,11 +45,6 @@ const CollapsibleLogEl = styled.section`
   transition: all 0.25s ease-in-out;
 `;
 
-interface NetworkCall {
-  request: Request & { headers: { [key: string]: string[] } };
-  response: Response;
-}
-
 interface HeaderBlockProps {
   headerKey: string;
   headerVal: string;
@@ -57,7 +56,7 @@ const HeaderBlock = ({ headerKey, headerVal }: HeaderBlockProps) => (
   </div>
 );
 
-export const ResultBlock: React.FC<{ result: any }> = ({ result }) => {
+export const ResultBlock: React.FC<{ result: Result }> = ({ result }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
   return (
     <ResultBlockWrapperEl>
@@ -77,6 +76,19 @@ export const ResultBlock: React.FC<{ result: any }> = ({ result }) => {
           Received: <strong>{result.actual}</strong>
         </ResultLineEl>
       </ResultSectionEl>
+      {result.resourceLinks && (
+        <ResultSectionEl>
+          <Eyebrow>Resource Links:</Eyebrow>
+          <ul>
+            {Object.entries(result.resourceLinks || []).map(([title, link]) => (
+              <ResourceLinkEl>
+                <TextLink href={link}>{title}</TextLink>
+              </ResourceLinkEl>
+            ))}
+          </ul>
+        </ResultSectionEl>
+      )}
+
       <CollapseBtnEl>
         <TextLink onClick={() => setIsCollapsed(!isCollapsed)}>
           {isCollapsed ? "Show" : "Collapse"} full error
