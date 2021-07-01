@@ -33,8 +33,10 @@ const CollapseBtnEl = styled.div`
 `;
 
 const CollapsibleLogEl = styled.section`
+  background: var(--pal-example-code);
+  border-radius: 0.5rem;
   max-height: ${({ isCollapsed }: { isCollapsed: boolean }) =>
-    isCollapsed ? "0rem" : "45rem"};
+    isCollapsed ? "0rem" : "60rem"};
   overflow: hidden;
   transition: all 0.25s ease-in-out;
 `;
