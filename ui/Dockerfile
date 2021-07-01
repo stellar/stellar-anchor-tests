@@ -13,10 +13,7 @@ RUN apt-get update && apt-get install -y gnupg1 libtool build-essential
 
 WORKDIR /app
 
-# TODO: add analytics env vars
-#
-# ARG REACT_APP_AMPLITUDE_KEY
-# ENV REACT_APP_AMPLITUDE_KEY $REACT_APP_AMPLITUDE_KEY
+# TODO: add Sentry
 # ARG REACT_APP_SENTRY_KEY
 # ENV REACT_APP_SENTRY_KEY $REACT_APP_SENTRY_KEY
 
