@@ -84,7 +84,7 @@ export const ResultBlock: React.FC<{ result: Result }> = ({ result }) => {
           <Eyebrow>Resource Links:</Eyebrow>
           <ul>
             {Object.entries(result.resourceLinks || []).map(([title, link]) => (
-              <ResourceLinkEl>
+              <ResourceLinkEl key={title}>
                 <TextLink href={link}>{title}</TextLink>
               </ResourceLinkEl>
             ))}
