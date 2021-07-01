@@ -73,17 +73,36 @@ export interface Sep12Config {
    * A map containing objects that can be used in the body of
    * [PUT /customer](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md) requests.
    *
-   * SEP-6 requires one customer object.
-   *
-   * SEP-12 requires two customer objects.
-   *
-   * SEP-31 requires two customer objects.
+   * 4 unique customer objects are required.
    *
    * If binary data types are required for registering customers via SEP-12, a relative or absolute path of the
    * file should be provided as the value for the associated
    * [SEP-9](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0009.md) attribute.
    */
   customers: Record<string, any>;
+
+  /**
+   * The name of the key within `customers` whose object contains the data that should be used when creating
+   * the a customer. Specifically, the data will be used in the "can create a customer" SEP-12 test.
+   */
+  createCustomer: string;
+
+  /**
+   * The name of the key within the `customers` whose object contains the data that should be used when creating,
+   * and then immediately deleting, a customer. Specifically, the data will be used in the "can delete a customer"
+   * SEP-12 test. This cannot be the same value assigned to `createCustomer`.
+   */
+  deleteCustomer: string;
+
+  /**
+   * This configuration attribute is required unless SEP-31's `sendingClientName` and `receivingClientName`
+   * attributes are provided.
+   *
+   * An array containing two strings, both of which must be keys within the `customers` object. These strings
+   * cannot be the same and must not match `createCustomer` or `deleteCustomer` values. Specifically, these
+   * customers will be created in the "memos differentiate customers registered by the same account" test.
+   */
+  sameAccountDifferentMemos?: [string, string];
 }
 
 /**

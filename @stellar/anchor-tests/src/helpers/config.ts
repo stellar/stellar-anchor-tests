@@ -76,11 +76,28 @@ function checkSepConfigObj(config: Config) {
           "SEP-12's customer data",
       );
     }
+    if (
+      config.sepConfig["31"].sendingClientName ===
+      config.sepConfig["31"].receivingClientName
+    ) {
+      throw new ConfigError(
+        `SEP-31's 'sendingClientName' and 'receivingClientName' cannot match`,
+      );
+    }
   }
   if (config.seps.includes(12)) {
     if (!config.sepConfig || !config.sepConfig["12"]) {
       throw new ConfigError(
         "SEP 12 configuration is required to run SEP 6, 12, or 31 tests.",
+      );
+    }
+    if (
+      !config.sepConfig["31"] &&
+      !config.sepConfig["12"].sameAccountDifferentMemos
+    ) {
+      throw new ConfigError(
+        "SEP-12's 'sameAccountDifferentMemos' configuration must be present without SEP-31's " +
+          "'sendingClientName' and 'receivingClientName'",
       );
     }
     for (const customerName in config.sepConfig["12"].customers) {
@@ -117,15 +134,6 @@ function checkSepConfigObj(config: Config) {
     if (!config.sepConfig || !config.sepConfig["6"]) {
       throw new ConfigError(
         "SEP 6 configuration is required to run SEP-6 tests.",
-      );
-    }
-    if (
-      !config.sepConfig["12"] ||
-      !config.sepConfig["12"].customers ||
-      Object.keys(config.sepConfig["12"].customers).length < 1
-    ) {
-      throw new ConfigError(
-        "One customer record in SEP-12's configuration is required to run SEP-6 tests.",
       );
     }
   }
