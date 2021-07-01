@@ -293,9 +293,10 @@ export const TestRunner = () => {
         try {
           sepConfigObj = JSON.parse(e?.target?.result as string);
         } catch {
-          setServerFailure("Unable to parse config file JSON.");
+          setServerFailure("Unable to parse config file JSON. Try correcting the format using a validator.");
           return;
         }
+        setServerFailure("");
         setFormData({
           ...formData,
           sepConfig: sepConfigObj
