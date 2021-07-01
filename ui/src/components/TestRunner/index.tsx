@@ -191,8 +191,6 @@ export const TestRunner = () => {
   const handleSubmit = () => {
     clearTestResults();
     setRunState(RunState.running);
-    console.log("emmitting runTests");
-    console.log(formData);
     socket.emit("runTests", formData, (error: Error) => {
       setServerFailure(
         `server failure occurred: ${error.name}: ${error.message}`,
