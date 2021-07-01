@@ -22,7 +22,7 @@ export function makeSep12Request(requestData: any): Request {
       }
     }
   } else {
-    requestBody = JSON.stringify(requestData);
+    requestBody = JSON.stringify(requestData.data);
     requestData.headers["Content-Type"] = "application/json";
   }
   return new Request(requestData.url, {
