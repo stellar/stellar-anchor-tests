@@ -178,7 +178,13 @@ export const TestRunner = () => {
 
   const getSupportedAssetsRef = useRef(
     throttle(async (domain: string, sep: number) => {
-      setSupportedAssets(await getSupportedAssets(domain, sep));
+      const fetchedSupportedAssets = await getSupportedAssets(domain, sep);
+      setSupportedAssets(fetchedSupportedAssets);
+      if (fetchedSupportedAssets.length)
+        setFormData({
+          ...formData,
+          assetCode: fetchedSupportedAssets[0]
+        });
     }, 250),
   );
 
@@ -282,9 +288,17 @@ export const TestRunner = () => {
       const fileReader = new FileReader();
       fileReader.readAsText(files[0], "UTF-8");
       fileReader.onload = (e) => {
+        let sepConfigObj;
+        try {
+          sepConfigObj = JSON.parse(e?.target?.result as string);
+        } catch {
+          setServerFailure("Unable to parse config file JSON. Try correcting the format using a validator.");
+          return;
+        }
+        setServerFailure("");
         setFormData({
           ...formData,
-          sepConfig: JSON.parse(e?.target?.result as string),
+          sepConfig: sepConfigObj
         });
       };
     }
