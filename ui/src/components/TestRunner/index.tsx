@@ -5,12 +5,14 @@ import {
   Input,
   Modal,
   Select,
+  TextLink
 } from "@stellar/design-system";
 import throttle from "lodash.throttle";
 import styled from "styled-components";
 
 import { ButtonWrapper } from "basics/ButtonWrapper";
-import { ModalInfoButton } from "basics/Tooltip";
+import { FieldWrapper } from "basics/FieldWrapper";
+import { ModalInfoButton, TooltipInfoButton  } from "basics/Tooltip";
 import { socket } from "helpers/socketConnection";
 import { getTestRunId, parseTests } from "helpers/testCases";
 import { getSupportedAssets } from "helpers/utils";
@@ -37,12 +39,6 @@ const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
 const CONFIG_SEPS = [6, 12, 31];
 // SEPs that require an asset to use in tests
 const TRANSFER_SEPS = [6, 24, 31];
-
-const FieldWrapper = styled.div`
-  align-items: center;
-  display: flex;
-  position: relative;
-`;
 
 const TestConfigWrapper = styled.form`
   margin-bottom: 4.5rem;
@@ -305,31 +301,50 @@ export const TestRunner = () => {
           setSupportedSeps={setSupportedSeps}
         />
         {supportedSeps.length !== 0 && (
-          <Select
-            id="seps"
-            label="sep"
-            onChange={(e) => handleSepChange(e.target.value)}
-          >
-            <option></option>
-            {supportedSeps.map((sepNum) => (
-              <option key={sepNum} value={String(sepNum)}>
-                SEP-{sepNum}
-              </option>
-            ))}
-          </Select>
+          <FieldWrapper>
+            <Select
+              id="seps"
+              label="sep"
+              onChange={(e) => handleSepChange(e.target.value)}
+            >
+              <option></option>
+              {supportedSeps.map((sepNum) => (
+                <option key={sepNum} value={String(sepNum)}>
+                  SEP-{sepNum}
+                </option>
+              ))}
+            </Select>
+            <TooltipInfoButton>
+              <>
+              <p>
+                Select one of the SEPs to test. The options displayed are generated based on the attributes present in the anchor's <TextLink underline={true} href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md">Stellar Info File</TextLink>.
+              </p>
+              <p>
+                <strong>Note</strong>: Running tests for a particular SEP will run tests for all SEPs that it requires. For example, running SEP-10 tests will also run SEP-1 tests.
+              </p>
+              </>
+            </TooltipInfoButton>
+          </FieldWrapper>
         )}
         {supportedAssets.length !== 0 && (
-          <Select
-            id="assetCode"
-            label="Asset"
-            onChange={(e) => handleAssetCodeChange(e.target.value)}
-          >
-            {supportedAssets.map((assetCode) => (
-              <option key={assetCode} value={assetCode}>
-                {assetCode}
-              </option>
-            ))}
-          </Select>
+          <FieldWrapper>
+            <Select
+              id="assetCode"
+              label="Asset"
+              onChange={(e) => handleAssetCodeChange(e.target.value)}
+            >
+              {supportedAssets.map((assetCode) => (
+                <option key={assetCode} value={assetCode}>
+                  {assetCode}
+                </option>
+              ))}
+            </Select>
+            <TooltipInfoButton>
+              <p>
+                Select the asset code to use when making requests to the anchor. The options displayed are generated based on the asset codes present in the anchors GET /info response.
+              </p>
+            </TooltipInfoButton>
+          </FieldWrapper>
         )}
         {isConfigNeeded && (
           <FieldWrapper>

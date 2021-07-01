@@ -14,8 +14,7 @@ export const InfoButton = styled.div`
   svg {
     width: 100%;
     height: 100%;
-    // TODO: add info icon color to SDS
-    fill: #ccc;
+    fill: var(--pal-background-tertiary);
     position: absolute;
     top: 0;
     left: 0;
@@ -32,13 +31,17 @@ const InfoButtonTooltipEl = styled.div`
   margin-top: 1.25rem;
   padding: 1rem 1.5rem;
   position: absolute;
-  right: -0.5rem;
   top: 4.2rem;
-  z-index: var(--z-index-tooltip);
+  right: -5.5rem;
+  z-index: 1;
   visibility: hidden;
 
   &[data-hidden="false"] {
     visibility: visible;
+  }
+
+  p {
+    color: inherit;
   }
 
   a {
@@ -97,9 +100,9 @@ export const TooltipInfoButton = ({
         <Icon.Info />
       </InfoButton>
 
-      <InfoButtonTooltipEl ref={infoEl} data-hidden={!isInfoVisible}>
+      {isInfoVisible && <InfoButtonTooltipEl ref={infoEl} data-hidden={!isInfoVisible}>
         {children}
-      </InfoButtonTooltipEl>
+      </InfoButtonTooltipEl>}
     </>
   );
 };
