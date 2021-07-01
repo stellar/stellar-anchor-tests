@@ -68,14 +68,17 @@ export const ResultBlock: React.FC<{ result: Result }> = ({ result }) => {
         <Eyebrow>Description:</Eyebrow>
         {result.failureMessage}
       </ResultSectionEl>
-      <ResultSectionEl>
-        <ResultLineEl>
-          Expected: <strong>{result.expected}</strong>
-        </ResultLineEl>
-        <ResultLineEl>
-          Received: <strong>{result.actual}</strong>
-        </ResultLineEl>
-      </ResultSectionEl>
+      {result.expected && result.actual && (
+        <ResultSectionEl>
+          <ResultLineEl>
+            Expected: <strong>{result.expected}</strong>
+          </ResultLineEl>
+          <ResultLineEl>
+            Received: <strong>{result.actual}</strong>
+          </ResultLineEl>
+        </ResultSectionEl>
+      )}
+
       {result.resourceLinks && (
         <ResultSectionEl>
           <Eyebrow>Resource Links:</Eyebrow>
