@@ -5,17 +5,17 @@ MAINTAINER SDF Ops Team <ops@stellar.org>
 ARG SERVER_HOST
 ENV REACT_APP_SERVER_HOST=$SERVER_HOST
 
+ARG REACT_APP_AMPLITUDE_KEY
+ENV REACT_APP_AMPLITUDE_KEY $REACT_APP_AMPLITUDE_KEY
+
+ARG REACT_APP_SENTRY_KEY
+ENV REACT_APP_SENTRY_KEY $REACT_APP_SENTRY_KEY
+
 RUN mkdir -p /app/ui
 RUN apt-get update && apt-get install -y gnupg1 libtool build-essential
 
 WORKDIR /app
 
-# TODO: add analytics env vars
-#
-# ARG REACT_APP_AMPLITUDE_KEY
-# ENV REACT_APP_AMPLITUDE_KEY $REACT_APP_AMPLITUDE_KEY
-# ARG REACT_APP_SENTRY_KEY
-# ENV REACT_APP_SENTRY_KEY $REACT_APP_SENTRY_KEY
 
 RUN apt-get update && apt-get install -y gnupg curl git make apt-transport-https && \
     curl -sSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - && \

@@ -62,26 +62,41 @@ export const ConfigModalContent: React.FC = () => (
       </p>
       <Json src={{
         "customers": {
-          "sep6Customer": {
+          "toBeCreated": {
             "first_name": "John",
             "last_name": "Doe",
             "email_address": "joe@email.com",
             "bank_number": "123",
             "bank_account_number": "123",
           },
+          "sendingClient": {
+            "first_name": "Tomer",
+            "last_name": "Weller",
+            "email_address": "tomer@stellar.org"
+          },
+          "receivingClient": {
+            "first_name": "Lydia",
+            "last_name": "Wagner",
+            "email_address": "lydia@stellar.org"
+          },
           "toBeDeleted": {
             "first_name": "Jane",
             "last_name": "Doe",
             "email_address": "jane@email.com"
           }
-        }
+        },
+        "createCustomer": "toBeCreated",
+        "deleteCustomer": "toBeDeleted",
+        "sameAccountDifferentMemos": ["sendingClient", "receivingClient"]
       }}></Json>
       <ul>
-        <li><strong>customers</strong>: an object containing subobjects for each customer that will be registered with the anchor. The key-value pairs within each subobject must be the <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0009.md">SEP-9</TextLink> attributes the anchor requires.</li>
+        <li><strong>customers</strong>: an object containing subobjects for each customer that will be registered with the anchor. The key-value pairs within each subobject must be the <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0009.md">SEP-9</TextLink> attributes the anchor requires. Currently four customers are required.</li>
+        <li><strong>createCustomer</strong>: a string matching one of the keys within the customers object.</li>
+        <li><strong>deleteCustomer</strong>: a string matching one of the keys within the customers object.</li>
+        <li><strong>sameAccountDifferentMemos</strong>: an array with two strings, each of which must be keys in the customers object. Only required if SEP-31 configuration is not present.</li>
       </ul>
       <p>
-        Currently two customer subobjects are required. 
-        The customer represented by the first subobject will be used in SEP-6 deposit and withdraw requests, while the last subobject will be used to test the DELETE /customer endpoint.
+        Each customers key assigned to the other attributes must be unique.
       </p>
 
       <Heading4>SEP-31</Heading4>
