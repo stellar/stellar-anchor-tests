@@ -9,7 +9,7 @@ TAG ?= stellar/stellar-anchor-tests-ui:$(LABEL)
 BUILD_DATE := $(shell date --utc --rfc-3339=seconds)
 
 docker-build:
-	$(SUDO) docker build --build-arg SERVER_HOST=$(SERVER_HOST) --pull --label org.opencontainers.image.created="$(BUILD_DATE)" -f Dockerfile -t $(TAG) ..
+	$(SUDO) docker build --build-arg SERVER_HOST=$(SERVER_HOST) --build-arg REACT_APP_AMPLITUDE_KEY=$(AMPLITUDE_KEY) --pull --label org.opencontainers.image.created="$(BUILD_DATE)" -f Dockerfile -t $(TAG) ..
 
 docker-push:
 	$(SUDO) docker push $(TAG)
