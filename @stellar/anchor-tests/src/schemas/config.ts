@@ -5,9 +5,25 @@ export const sep12ConfigSchema = {
   properties: {
     customers: {
       type: "object",
+      minProperties: 4,
+    },
+    createCustomer: {
+      type: "string",
+    },
+    deleteCustomer: {
+      type: "string",
+    },
+    sameAccountDifferentMemos: {
+      type: "array",
+      minItems: 2,
+      maxItems: 2,
+      uniqueItems: true,
+      items: {
+        type: "string",
+      },
     },
   },
-  required: ["customers"],
+  required: ["customers", "createCustomer", "deleteCustomer"],
 };
 
 export const sep31ConfigSchema = {

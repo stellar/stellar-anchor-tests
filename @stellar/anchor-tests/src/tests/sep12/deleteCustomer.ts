@@ -11,17 +11,6 @@ import { canFetchExistingCustomerById } from "./getCustomer";
 import { postChallenge } from "../../helpers/sep10";
 import { makeRequest } from "../../helpers/request";
 
-function getCustomersFromConfig(config: Config): [string[], any[]] {
-  if (
-    !config.sepConfig ||
-    !config.sepConfig["12"] ||
-    !config.sepConfig["12"].customers
-  )
-    throw "SEP-12 customer data is missing from the configuration object";
-  const customers = config.sepConfig["12"].customers;
-  return [Object.keys(customers), Object.values(customers)];
-}
-
 const requiresJwtToken: Test = {
   assertion: "requires a SEP-10 JWT",
   sep: 12,
@@ -80,7 +69,17 @@ const canDeleteCustomer: Test = {
       this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
     );
-    const [_, customerValues] = getCustomersFromConfig(config);
+    if (
+      !config.sepConfig ||
+      !config.sepConfig["12"] ||
+      !config.sepConfig["12"].customers ||
+      !config.sepConfig["12"].deleteCustomer ||
+      !config.sepConfig["12"].customers[config.sepConfig["12"].deleteCustomer]
+    ) {
+      throw new Error(
+        "SEP-12 configuration data missing, expected 'deleteCustomer' in 'customers'",
+      );
+    }
     const putCustomerCall = {
       request: new Request(this.context.expects.kycServerUrl + "/customer", {
         method: "PUT",
@@ -90,7 +89,9 @@ const canDeleteCustomer: Test = {
         },
         body: JSON.stringify({
           account: clientKeypair.publicKey(),
-          ...customerValues[3],
+          ...config.sepConfig["12"].customers[
+            config.sepConfig["12"].deleteCustomer
+          ],
         }),
       }),
     };

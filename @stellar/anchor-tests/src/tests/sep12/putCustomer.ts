@@ -14,17 +14,6 @@ import { postChallenge } from "../../helpers/sep10";
 const putCustomerGroup = "PUT /customer";
 const tests: Test[] = [];
 
-function getCustomersFromConfig(config: Config): [string[], any[]] {
-  if (
-    !config.sepConfig ||
-    !config.sepConfig["12"] ||
-    !config.sepConfig["12"].customers
-  )
-    throw "SEP-12 customer data is missing from the configuration object";
-  const customers = config.sepConfig["12"].customers;
-  return [Object.keys(customers), Object.values(customers)];
-}
-
 const requiresJwt: Test = {
   assertion: "requires a SEP-10 JWT",
   sep: 12,
@@ -39,11 +28,24 @@ const requiresJwt: Test = {
   failureModes: genericFailures,
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    const [_, customerValues] = getCustomersFromConfig(config);
+    if (
+      !config.sepConfig ||
+      !config.sepConfig["12"] ||
+      !config.sepConfig["12"].customers ||
+      !config.sepConfig["12"].createCustomer ||
+      !config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer]
+    ) {
+      throw new Error(
+        "SEP-12 configuration data is missing, expected a key within the " +
+          "'customers' object matching the value assigned to 'createCustomer'",
+      );
+    }
+    const customerValues =
+      config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer];
     const putCustomerCall: NetworkCall = {
       request: new Request(this.context.expects.kycServerUrl + "/customer", {
         method: "PUT",
-        body: customerValues[0],
+        body: customerValues,
       }),
     };
     result.networkCalls.push(putCustomerCall);
@@ -107,12 +109,25 @@ export const canCreateCustomer: Test = {
   },
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    const [customerNames, customerValues] = getCustomersFromConfig(config);
+    if (
+      !config.sepConfig ||
+      !config.sepConfig["12"] ||
+      !config.sepConfig["12"].customers ||
+      !config.sepConfig["12"].createCustomer ||
+      !config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer]
+    ) {
+      throw new Error(
+        "SEP-12 configuration data is missing, expected a key within the " +
+          "'customers' object matching the value assigned to 'createCustomer'",
+      );
+    }
+    const customerValues =
+      config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer];
     const putCustomerRequest = makeSep12Request({
       url: this.context.expects.kycServerUrl + "/customer",
       data: {
         account: this.context.expects.clientKeypair.publicKey(),
-        ...customerValues[0],
+        ...customerValues,
       },
       headers: {
         Authorization: `Bearer ${this.context.expects.token}`,
@@ -132,7 +147,7 @@ export const canCreateCustomer: Test = {
     }
     if (putCustomerCall.response.status !== 202) {
       result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE, {
-        customer: customerNames[0],
+        customer: config.sepConfig["12"].createCustomer,
       });
       result.expected = 202;
       result.actual = putCustomerCall.response.status;
@@ -251,9 +266,30 @@ export const differentMemosSameAccount: Test = {
         config.sepConfig["31"].sendingAnchorClientSecret,
       );
     } else {
-      const [_, customerValues] = getCustomersFromConfig(config);
-      sendingCustomerData = customerValues[1];
-      receivingCustomerData = customerValues[2];
+      if (
+        !config.sepConfig ||
+        !config.sepConfig["12"] ||
+        !config.sepConfig["12"].sameAccountDifferentMemos ||
+        !config.sepConfig["12"].customers ||
+        !config.sepConfig["12"].customers[
+          config.sepConfig["12"].sameAccountDifferentMemos[0]
+        ] ||
+        config.sepConfig["12"].customers[
+          config.sepConfig["12"].sameAccountDifferentMemos[1]
+        ]
+      ) {
+        throw new Error(
+          "SEP-12 configuration data missing, expected 'sameAccountDifferentMemos' customers",
+        );
+      }
+      sendingCustomerData =
+        config.sepConfig["12"].customers[
+          config.sepConfig["12"].sameAccountDifferentMemos[0]
+        ];
+      receivingCustomerData =
+        config.sepConfig["12"].customers[
+          config.sepConfig["12"].sameAccountDifferentMemos[1]
+        ];
       this.context.provides.sendingAnchorClientKeypair = Keypair.random();
     }
     this.context.provides.sendingCustomerMemo = Memo.hash(
