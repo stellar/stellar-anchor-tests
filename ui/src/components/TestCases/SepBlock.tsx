@@ -71,7 +71,7 @@ export const SepBlock: React.FC<{
       } else {
         ProgressIcon = <PassedIcon />;
       }
-    } else {
+    } else if (runState === RunState.running) {
       ProgressIcon = <LoadingIcon />;
     }
     return ProgressIcon;
