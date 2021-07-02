@@ -1,6 +1,8 @@
 # Stellar Anchor Tests Monorepo
 
-This repository is a container for three applications
+Live at [anchor-tests.stellar.org](https://anchor-tests.stellar.org)
+
+This repository is a container for three applications.
 
 - [@stellar/anchor-tests](./@stellar/anchor-tests)
 	- A library and CLI for testing stellar anchors. Will be published to npm.
