@@ -65,18 +65,15 @@ export const SepBlock: React.FC<{
 }> = ({ children, progress, runState, sep }) => {
   const generateProgressIcon = () => {
     let ProgressIcon = <IdleIcon />;
-    if (runState === RunState.running) {
+    if (progress.passed + progress.failed === progress.total) {
+      if (progress.failed) {
+        ProgressIcon = <FailedIcon />;
+      } else {
+        ProgressIcon = <PassedIcon />;
+      }
+    } else {
       ProgressIcon = <LoadingIcon />;
     }
-
-    if (progress.passed + progress.failed === progress.total) {
-      ProgressIcon = <PassedIcon />;
-    }
-
-    if (progress.failed && runState === RunState.done) {
-      ProgressIcon = <FailedIcon />;
-    }
-
     return ProgressIcon;
   };
 
