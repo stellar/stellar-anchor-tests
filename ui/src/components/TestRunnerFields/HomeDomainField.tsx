@@ -3,7 +3,6 @@ import { Button, Input, TextLink } from "@stellar/design-system";
 import { StellarTomlResolver } from "stellar-sdk";
 
 import { FormData } from "types/testCases";
-import { ButtonWrapper } from "basics/ButtonWrapper";
 import { FieldWrapper } from "basics/FieldWrapper";
 import { TooltipInfoButton } from "basics/Tooltip";
 
@@ -47,7 +46,9 @@ export const HomeDomainField = ({
         setServerFailure("");
         setSupportedSeps(newSupportedSeps);
       } else {
-        setServerFailure("The Stellar Info File does reference any supported SEP.");
+        setServerFailure(
+          "The Stellar Info File does reference any supported SEP.",
+        );
       }
     } else {
       setServerFailure("");
@@ -108,18 +109,25 @@ export const HomeDomainField = ({
         />
         <TooltipInfoButton>
           <p>
-            Input the domain that hosts your anchor’s <TextLink underline href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md">Stellar Info File</TextLink>.
+            Input the domain that hosts your anchor’s{" "}
+            <TextLink
+              underline
+              href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md"
+            >
+              Stellar Info File
+            </TextLink>
+            .
           </p>
         </TooltipInfoButton>
       </FieldWrapper>
-      <ButtonWrapper>
+      <FieldWrapper>
         <Button
           variant={Button.variant.secondary}
           onClick={(e) => fetchDomain(e)}
         >
           Fetch Stellar Info File
         </Button>
-      </ButtonWrapper>
+      </FieldWrapper>
     </>
   );
 };
