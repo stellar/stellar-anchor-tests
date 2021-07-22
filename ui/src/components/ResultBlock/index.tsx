@@ -108,23 +108,35 @@ export const ResultBlock: React.FC<{ result: Result }> = ({ result }) => {
                   <div>Request:</div>
                   <LogIndent>
                     {networkCall.request.method} {networkCall.request.url}
-                    <div>Headers:</div>
-                    <LogIndent>
-                      {Object.entries(networkCall.request.headers || []).map(
-                        ([headerKey, headerVal]) => (
-                          <HeaderBlock
-                            headerKey={headerKey}
-                            headerVal={headerVal.toString()}
-                            key={`${headerKey}-${headerVal}`}
-                          />
-                        ),
-                      )}
-                    </LogIndent>
-                  </LogIndent>
-
-                  <div>Body:</div>
-                  <LogIndent>
-                    <Json collapsed src={networkCall.request.body} />
+                    {Object.keys(networkCall.request.headers).length && (
+                      <>
+                        <div>Headers:</div>
+                        <LogIndent>
+                          {Object.entries(networkCall.request.headers || []).map(
+                            ([headerKey, headerVal]) => (
+                              <HeaderBlock
+                                headerKey={headerKey}
+                                headerVal={headerVal.toString()}
+                                key={`${headerKey}-${headerVal}`}
+                              />
+                            ),
+                          )}
+                        </LogIndent>
+                      </>
+                    )}
+                    {networkCall.request.body && (
+                      <>
+                        <div>Body:</div>
+                        <LogIndent>
+                          {typeof networkCall.request.body === "object" && (
+                            <Json collapsed src={networkCall.request.body} />
+                          )}
+                          {typeof networkCall.request.body !== "object" && (
+                            networkCall.request.body
+                          )}
+                        </LogIndent>
+                      </>
+                    )}
                   </LogIndent>
                 </>
               )}
@@ -134,20 +146,26 @@ export const ResultBlock: React.FC<{ result: Result }> = ({ result }) => {
                   <div>Response:</div>
                   <LogIndent>
                     <div>Status Code: {networkCall.response.status}</div>
-                    <div>Headers:</div>
-                    <LogIndent>
-                      {Object.entries(networkCall.response.headers || []).map(
-                        ([headerKey, headerVal]) => (
-                          <HeaderBlock
-                            headerKey={headerKey}
-                            headerVal={headerVal}
-                            key={`${headerKey}-${headerVal}`}
-                          />
-                        ),
-                      )}
-                    </LogIndent>
+                    {Object.keys(networkCall.response.headers).length && (
+                      <>
+                        <div>Headers:</div>
+                        <LogIndent>
+                          {Object.entries(networkCall.response.headers || []).map(
+                            ([headerKey, headerVal]) => (
+                              <HeaderBlock
+                                headerKey={headerKey}
+                                headerVal={headerVal}
+                                key={`${headerKey}-${headerVal}`}
+                              />
+                            ),
+                          )}
+                        </LogIndent>
+                      </>
+                    )}
                     <div>Body:</div>
-                    <LogIndent>{networkCall.response.body}</LogIndent>
+                    <LogIndent>
+                      <Json collapsed src={networkCall.response.body} />
+                    </LogIndent>
                   </LogIndent>
                 </>
               )}
