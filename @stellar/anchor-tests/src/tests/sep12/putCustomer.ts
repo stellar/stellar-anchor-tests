@@ -274,7 +274,7 @@ export const differentMemosSameAccount: Test = {
         !config.sepConfig["12"].customers[
           config.sepConfig["12"].sameAccountDifferentMemos[0]
         ] ||
-        config.sepConfig["12"].customers[
+        !config.sepConfig["12"].customers[
           config.sepConfig["12"].sameAccountDifferentMemos[1]
         ]
       ) {
