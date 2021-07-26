@@ -147,19 +147,19 @@ async function* runTestsRecur(
   config: Config,
   chain: Test[],
   globalContext: { [key: string]: any },
-  ranTests: Record<string, TestRun>,
+  ranTestsPassFail: Record<string, boolean>,
 ): AsyncGenerator<TestRun> {
   for (const test of tests) {
     if (containsTest(chain, test)) {
       throw new CyclicDependencyError(test);
-    } else if (testString(test) in ranTests) {
-      if (!ranTests[testString(test)].result.failure) {
+    } else if (testString(test) in ranTestsPassFail) {
+      if (ranTestsPassFail[testString(test)]) {
         continue;
       } else {
         throw new FailedDependencyError(test);
       }
     }
-    //let skippedDependency: TestRun | undefined = undefined;
+    ranTestsPassFail[testString(test)] = true;
     let failedDependencyError: FailedDependencyError | undefined = undefined;
     let cycleError: CyclicDependencyError | undefined = undefined;
     if (test.dependencies) {
@@ -170,7 +170,7 @@ async function* runTestsRecur(
           config,
           chain,
           globalContext,
-          ranTests,
+          ranTestsPassFail,
         )) {
           yield testRun;
           if (testRun.result.failure) {
@@ -203,6 +203,7 @@ async function* runTestsRecur(
           return (cycleError as CyclicDependencyError).message;
         },
       };
+      ranTestsPassFail[testString(test)] = false;
       yield {
         test: test,
         result: {
@@ -217,6 +218,7 @@ async function* runTestsRecur(
           return (failedDependencyError as FailedDependencyError).message;
         },
       };
+      ranTestsPassFail[testString(test)] = false;
       yield {
         test: test,
         result: {
@@ -230,6 +232,7 @@ async function* runTestsRecur(
         test,
       );
       if (expectedContextFailure) {
+        ranTestsPassFail[testString(test)] = false;
         yield {
           test: test,
           result: {
@@ -240,13 +243,13 @@ async function* runTestsRecur(
         continue;
       }
       const testRun = await runTest(test, config);
-      ranTests[testString(test)] = testRun;
       if (!testRun.result.failure) {
         const providedContextFailure = updateWithProvidedContext(
           globalContext,
           test,
         );
         if (providedContextFailure) {
+          ranTestsPassFail[testString(test)] = false;
           yield {
             test: test,
             result: {
@@ -256,6 +259,8 @@ async function* runTestsRecur(
           };
           continue;
         }
+      } else {
+        ranTestsPassFail[testString(test)] = false;
       }
       yield testRun;
     }
