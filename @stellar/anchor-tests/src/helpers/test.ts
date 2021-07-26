@@ -174,6 +174,7 @@ async function* runTestsRecur(
         )) {
           yield testRun;
           if (testRun.result.failure) {
+            chain.pop();
             throw new FailedDependencyError(testRun.test);
           }
         }
@@ -189,6 +190,7 @@ async function* runTestsRecur(
           failedDependencyError = error;
         } else {
           // unexpected exception
+          chain.pop();
           throw error;
         }
       }
