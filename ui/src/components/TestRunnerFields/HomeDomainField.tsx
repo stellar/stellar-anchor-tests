@@ -122,7 +122,6 @@ export const HomeDomainField = ({
       </FieldWrapper>
       <FieldWrapper>
         <Button
-          variant={Button.variant.secondary}
           onClick={(e) => fetchDomain(e)}
         >
           Fetch Stellar Info File

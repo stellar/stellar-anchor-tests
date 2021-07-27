@@ -21,6 +21,8 @@ import {
   RunState,
   TestCase,
 } from "types/testCases";
+import { CustomerImageConfig } from "types/config";
+import { ImageUploadModalContent } from "../ImageUploadModalContent";
 import { HomeDomainField } from "../TestRunnerFields/HomeDomainField";
 import { TestCases } from "../TestCases";
 import { ConfigModalContent } from "../ConfigModalContent";
@@ -69,11 +71,16 @@ export const TestRunner = () => {
   );
   const [supportedAssets, setSupportedAssets] = useState([] as string[]);
   const [supportedSeps, setSupportedSeps] = useState([] as number[]);
+  const [customerImageConfig, setCustomerImageConfig] = useState(
+    {} as Record<string, CustomerImageConfig>
+  );
+  const [isImageUploadModalVisible, setIsImageUploadModalVisible] = useState(false);
 
   const resetAllState = () => {
     setRunState(RunState.noTests);
     setServerFailure("");
     setIsConfigNeeded(false);
+    setCustomerImageConfig({});
     setSupportedAssets([]);
     setSupportedSeps([]);
     setToml(undefined);
@@ -375,22 +382,42 @@ export const TestRunner = () => {
           </FieldWrapper>
         )}
         {isConfigNeeded && (
-          <FieldWrapper>
-            <Input
-              id="sepConfig"
-              label="Upload Config"
-              onChange={(e) => handleFileChange(e.target.files)}
-              type="file"
-            />
-            <ModalInfoButton onClick={() => setIsModalVisible(true)} />
+          <>
+            <FieldWrapper>
+              <Input
+                id="sepConfig"
+                label="Upload Config"
+                onChange={(e) => handleFileChange(e.target.files)}
+                type="file"
+              />
+              <ModalInfoButton onClick={() => setIsModalVisible(true)} />
 
-            <Modal
-              visible={isModalVisible}
-              onClose={() => setIsModalVisible(false)}
-            >
-              <ConfigModalContent></ConfigModalContent>
-            </Modal>
-          </FieldWrapper>
+              <Modal
+                visible={isModalVisible}
+                onClose={() => setIsModalVisible(false)}
+              >
+                <ConfigModalContent></ConfigModalContent>
+              </Modal>
+            </FieldWrapper>
+            <FieldWrapper>
+              <Button 
+                onClick={(e) => { e.preventDefault(); setIsImageUploadModalVisible(true); } }
+                disabled={!Boolean(formData.sepConfig && formData.sepConfig["12"])}
+              >
+                Upload Images
+              </Button>
+              <Modal
+                visible={isImageUploadModalVisible}
+                onClose={() => setIsImageUploadModalVisible(false)}
+              >
+                <ImageUploadModalContent 
+                  imageConfig={customerImageConfig}
+                  setImageConfig={setCustomerImageConfig}
+                  sep12Config={formData.sepConfig ? formData.sepConfig["12"] : undefined}
+                ></ImageUploadModalContent>
+              </Modal>
+            </FieldWrapper>
+          </>
         )}
         {serverFailure && (
           <InfoBlock variant={InfoBlock.variant.error}>
@@ -404,7 +431,8 @@ export const TestRunner = () => {
                 onClick={handleSubmit}
                 disabled={
                   [RunState.running, RunState.noTests].includes(runState) ||
-                  Boolean(serverFailure)
+                  Boolean(serverFailure) ||
+                  Boolean(isConfigNeeded && !formData.sepConfig)
                 }
               >
                 {runState !== RunState.running ? "Run Tests" : "Running..."}
