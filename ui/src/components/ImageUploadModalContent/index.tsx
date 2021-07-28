@@ -142,7 +142,7 @@ const ImageUploadForm: React.FC<ImageFormProps> = ({
       )}
       {imageData[index].fileName && (
         <>
-          <label>UPLOADED IMAGE</label>
+          <label>UPLOAD IMAGE</label>
           <UploadedFileWrapper>
             {imageData[index].fileName}
             <Button
@@ -201,13 +201,15 @@ export const ImageUploadModalContent: React.FC<ImageModalProps> = ({
             <ImageFormContainer key={"form-container-" + i}>
               <HeadingWrapper>
                 <Eyebrow style={eyebrowStyle}>{i + 1}.</Eyebrow>
-                <Button
-                  variant={Button.variant.secondary}
-                  style={xFormButtonStyle}
-                  onClick={() => removeForm(i)}
-                >
-                  Remove Form
-                </Button>
+                {i != 0 && (
+                  <Button
+                    variant={Button.variant.secondary}
+                    style={xFormButtonStyle}
+                    onClick={() => removeForm(i)}
+                  >
+                    Remove Form
+                  </Button>
+                )}
               </HeadingWrapper>
               <ImageUploadForm
                 customerNames={Object.keys(sep12Config.customers)}
@@ -218,8 +220,12 @@ export const ImageUploadModalContent: React.FC<ImageModalProps> = ({
             </ImageFormContainer>
           );
         })}
-        <Button id="addImageUploadFormButton" onClick={addImageUploadForm}>
-          Add Image
+        <Button
+          id="addImageUploadFormButton"
+          onClick={addImageUploadForm}
+          disabled={!imageData.every((i) => Boolean(i.fileName))}
+        >
+          Add Form
         </Button>
       </Modal.Body>
     </>
