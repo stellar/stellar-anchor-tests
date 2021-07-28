@@ -96,6 +96,13 @@ const ImageUploadForm: React.FC<ImageFormProps> = ({
     setImageData(imageDataCopy);
   };
 
+  useEffect(() => {
+    const updates: ImageFormData = {};
+    if (!imageData[index].customerKey) updates.customerKey = customerNames[0];
+    if (!imageData[index].imageType) updates.imageType = "photo_id_front";
+    if (Object.keys(updates).length) updateImageData(updates);
+  }, []);
+
   return (
     <>
       <Select
@@ -201,7 +208,7 @@ export const ImageUploadModalContent: React.FC<ImageModalProps> = ({
             <ImageFormContainer key={"form-container-" + i}>
               <HeadingWrapper>
                 <Eyebrow style={eyebrowStyle}>{i + 1}.</Eyebrow>
-                {i != 0 && (
+                {i !== 0 && (
                   <Button
                     variant={Button.variant.secondary}
                     style={xFormButtonStyle}

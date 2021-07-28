@@ -195,11 +195,39 @@ export const TestRunner = () => {
     }, 250),
   );
 
+  const mergeImageData = (fd: FormData, cid: ImageFormData[]) => {
+    if (!fd.sepConfig || !fd.sepConfig["12"] || !fd.sepConfig["12"].customers)
+      return fd;
+    // create a deep copy of the subobjects that will be altered
+    const formDataCopy = {
+      ...fd,
+      sepConfig: {
+        ...fd.sepConfig,
+        "12": {
+          ...fd.sepConfig["12"],
+          customers: {
+            ...fd.sepConfig["12"].customers,
+          },
+        },
+      },
+    };
+    for (const ifd of cid) {
+      if (!ifd.customerKey || !ifd.imageType || !ifd.image) continue;
+      const customerCopy = {
+        ...formDataCopy.sepConfig["12"].customers[ifd.customerKey],
+      };
+      customerCopy[ifd.imageType] = ifd.image;
+      formDataCopy.sepConfig["12"].customers[ifd.customerKey] = customerCopy;
+    }
+    return formDataCopy;
+  };
+
   // onClick handler for 'Run Tests' button
   const handleSubmit = () => {
     clearTestResults();
     setRunState(RunState.running);
-    socket.emit("runTests", formData, (error: Error) => {
+    const formDataWithImages = mergeImageData(formData, customerImageData);
+    socket.emit("runTests", formDataWithImages, (error: Error) => {
       setServerFailure(
         `server failure occurred: ${error.name}: ${error.message}`,
       );
@@ -291,26 +319,46 @@ export const TestRunner = () => {
   };
 
   const handleFileChange = (files: FileList | null) => {
-    if (files?.length) {
-      const fileReader = new FileReader();
-      fileReader.readAsText(files[0], "UTF-8");
-      fileReader.onload = (e) => {
-        let sepConfigObj;
-        try {
-          sepConfigObj = JSON.parse(e?.target?.result as string);
-        } catch {
-          setServerFailure(
-            "Unable to parse config file JSON. Try correcting the format using a validator.",
-          );
-          return;
+    if (!files?.length) return;
+    const fileReader = new FileReader();
+    fileReader.readAsText(files[0], "UTF-8");
+    fileReader.onload = (e) => {
+      let sepConfigObj;
+      try {
+        sepConfigObj = JSON.parse(e?.target?.result as string);
+      } catch {
+        setServerFailure(
+          "Unable to parse config file JSON. Try correcting the format using a validator.",
+        );
+        return;
+      }
+      setServerFailure("");
+      setFormData({
+        ...formData,
+        sepConfig: sepConfigObj,
+      });
+      // remove any images for customers that are not in the SEP-12 config object
+      const sep12Customers = sepConfigObj["12"]?.customers;
+      if (Object.keys(sep12Customers).length) {
+        let i = 0;
+        let customerImageDataCopy = [...customerImageData];
+        while (i < customerImageDataCopy.length) {
+          const customerKey = customerImageDataCopy[i].customerKey;
+          if (customerKey && !sep12Customers[customerKey]) {
+            customerImageDataCopy = customerImageDataCopy
+              .slice(0, i)
+              .concat(
+                customerImageDataCopy.slice(
+                  i + 1,
+                  customerImageDataCopy.length,
+                ),
+              );
+          } else {
+            i++;
+          }
         }
-        setServerFailure("");
-        setFormData({
-          ...formData,
-          sepConfig: sepConfigObj,
-        });
-      };
-    }
+      }
+    };
   };
 
   return (
