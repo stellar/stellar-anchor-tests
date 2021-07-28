@@ -21,7 +21,7 @@ import {
   RunState,
   TestCase,
 } from "types/testCases";
-import { CustomerImageConfig } from "types/config";
+import { ImageFormData } from "types/config";
 import { ImageUploadModalContent } from "../ImageUploadModalContent";
 import { HomeDomainField } from "../TestRunnerFields/HomeDomainField";
 import { TestCases } from "../TestCases";
@@ -71,16 +71,17 @@ export const TestRunner = () => {
   );
   const [supportedAssets, setSupportedAssets] = useState([] as string[]);
   const [supportedSeps, setSupportedSeps] = useState([] as number[]);
-  const [customerImageConfig, setCustomerImageConfig] = useState(
-    {} as Record<string, CustomerImageConfig>
+  const [customerImageData, setCustomerImageData] = useState(
+    [] as ImageFormData[],
   );
-  const [isImageUploadModalVisible, setIsImageUploadModalVisible] = useState(false);
+  const [isImageUploadModalVisible, setIsImageUploadModalVisible] =
+    useState(false);
 
   const resetAllState = () => {
     setRunState(RunState.noTests);
     setServerFailure("");
     setIsConfigNeeded(false);
-    setCustomerImageConfig({});
+    setCustomerImageData([]);
     setSupportedAssets([]);
     setSupportedSeps([]);
     setToml(undefined);
@@ -400,9 +401,14 @@ export const TestRunner = () => {
               </Modal>
             </FieldWrapper>
             <FieldWrapper>
-              <Button 
-                onClick={(e) => { e.preventDefault(); setIsImageUploadModalVisible(true); } }
-                disabled={!Boolean(formData.sepConfig && formData.sepConfig["12"])}
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsImageUploadModalVisible(true);
+                }}
+                disabled={
+                  !Boolean(formData.sepConfig && formData.sepConfig["12"])
+                }
               >
                 Upload Images
               </Button>
@@ -410,10 +416,12 @@ export const TestRunner = () => {
                 visible={isImageUploadModalVisible}
                 onClose={() => setIsImageUploadModalVisible(false)}
               >
-                <ImageUploadModalContent 
-                  imageConfig={customerImageConfig}
-                  setImageConfig={setCustomerImageConfig}
-                  sep12Config={formData.sepConfig ? formData.sepConfig["12"] : undefined}
+                <ImageUploadModalContent
+                  imageData={customerImageData}
+                  setImageData={setCustomerImageData}
+                  sep12Config={
+                    formData.sepConfig ? formData.sepConfig["12"] : undefined
+                  }
                 ></ImageUploadModalContent>
               </Modal>
             </FieldWrapper>

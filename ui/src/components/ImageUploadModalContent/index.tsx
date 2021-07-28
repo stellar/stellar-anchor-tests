@@ -1,35 +1,99 @@
 import React from "react";
-import { useState } from "react";
-import { Modal, Heading4, Select, Input, Button } from "@stellar/design-system";
-import { CustomerImageConfig } from "types/config";
+import { useEffect, useCallback } from "react";
+import styled from "styled-components";
+import {
+  Modal,
+  Heading4,
+  Eyebrow,
+  Select,
+  Input,
+  Button,
+} from "@stellar/design-system";
+import { ImageFormData } from "types/config";
 
 interface ImageModalProps {
-  imageConfig: Record<string, CustomerImageConfig>;
-  setImageConfig: (ic: Record<string, CustomerImageConfig>) => void;
+  imageData: ImageFormData[];
+  setImageData: (data: ImageFormData[]) => void;
   sep12Config: any;
-}
-
-interface ImageFormData {
-  customerKey: string;
-  imageType: string;
-  fileName: string;
-  image: Buffer;
 }
 
 interface ImageFormProps {
   customerNames: string[];
-  formData?: ImageFormData;
+  imageData: ImageFormData[];
+  setImageData: (data: ImageFormData[]) => void;
+  index: number;
 }
 
-const ImageUploadForm: React.FC<ImageFormProps> = (props) => {
-  const [imageFormData, setImageFormData] = useState(
-    props.formData || ({} as ImageFormData),
-  );
+const ImageFormContainer = styled.div`
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+`;
+
+const HeadingWrapper = styled.div`
+  display: flex;
+  position: relative;
+`;
+
+const xFormButtonStyle = {
+  marginLeft: "auto",
+  padding: "0rem 0.5rem",
+  lineHeight: "1.56rem",
+};
+
+const xFileButtonStyle = {
+  marginLeft: "auto",
+  padding: "0rem 0.5rem",
+  lineHeight: "1.56rem",
+};
+
+const eyebrowStyle = {
+  fontSize: "1rem",
+};
+
+const UploadedFileWrapper = styled.div`
+  margin: 0.5rem 0rem;
+  align-items: center;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  display: flex;
+  position: relative;
+  border: 1px;
+  border-style: ridge;
+  border-color: rgba(0, 0, 0, 0.25);
+  border-radius: 0.25rem;
+  color: var(--pal-text-primary);
+`;
+
+const ImageUploadForm: React.FC<ImageFormProps> = ({
+  customerNames,
+  imageData,
+  setImageData,
+  index,
+}) => {
+  const updateImageData = (updates: object) => {
+    const imageDataCopy = [...imageData];
+    const formDataCopy = { ...imageDataCopy[index], ...updates };
+    imageDataCopy[index] = formDataCopy;
+    setImageData(imageDataCopy);
+  };
 
   const handleFileChange = async (files: FileList | null) => {
     if (!files?.length) return;
     const buf = Buffer.from(await files[0].arrayBuffer());
-    setImageFormData({ ...imageFormData, image: buf, fileName: files[0].name });
+    updateImageData({ image: buf, fileName: files[0].name });
+  };
+
+  const removeFile = (_index: number) => {
+    const imageDataCopy = [...imageData];
+    const formDataCopy = {
+      ...imageDataCopy[index],
+      image: undefined,
+      fileName: undefined,
+    };
+    imageDataCopy[index] = formDataCopy;
+    setImageData(imageDataCopy);
   };
 
   return (
@@ -37,11 +101,10 @@ const ImageUploadForm: React.FC<ImageFormProps> = (props) => {
       <Select
         id="customerKey"
         label="Customer Key"
-        onChange={(e) =>
-          setImageFormData({ ...imageFormData, customerKey: e.target.value })
-        }
+        onChange={(e) => updateImageData({ customerKey: e.target.value })}
+        value={imageData[index].customerKey}
       >
-        {props.customerNames.map((ck) => (
+        {customerNames.map((ck) => (
           <option key={ck} value={ck}>
             {ck}
           </option>
@@ -50,27 +113,26 @@ const ImageUploadForm: React.FC<ImageFormProps> = (props) => {
       <Select
         id="imageType"
         label="Image Type"
-        onChange={(e) =>
-          setImageFormData({ ...imageFormData, imageType: e.target.value })
-        }
+        onChange={(e) => updateImageData({ imageType: e.target.value })}
+        value={imageData[index].imageType}
       >
-        <option key="photo_id_front" value="PhotoIdFront">
+        <option key="photo_id_front" value="photo_id_front">
           Photo ID (front)
         </option>
-        <option key="photo_id_back" value="PhotoIdBack">
+        <option key="photo_id_back" value="photo_id_back">
           Photo ID (back)
         </option>
         <option
           key="notary_approval_of_photo_id"
-          value="NotaryApprovalOfPhotoId"
+          value="notary_approval_of_photo_id"
         >
           Notary Approval of Photo ID
         </option>
-        <option key="photo_proof_residence" value="PhotoProofResidence">
+        <option key="photo_proof_residence" value="photo_proof_residence">
           Photo Proof of Residence
         </option>
       </Select>
-      {!imageFormData.fileName && (
+      {!imageData[index].fileName && (
         <Input
           id="imageFile"
           type="file"
@@ -78,16 +140,44 @@ const ImageUploadForm: React.FC<ImageFormProps> = (props) => {
           onChange={(e) => handleFileChange(e.target.files)}
         />
       )}
-      {imageFormData.fileName && <p>{imageFormData.fileName}</p>}
+      {imageData[index].fileName && (
+        <>
+          <label>UPLOADED IMAGE</label>
+          <UploadedFileWrapper>
+            {imageData[index].fileName}
+            <Button
+              variant={Button.variant.secondary}
+              style={xFileButtonStyle}
+              onClick={() => removeFile(index)}
+            >
+              Remove File
+            </Button>
+          </UploadedFileWrapper>
+        </>
+      )}
     </>
   );
 };
 
 export const ImageUploadModalContent: React.FC<ImageModalProps> = ({
-  imageConfig,
+  imageData,
+  setImageData,
   sep12Config,
 }) => {
-  const addImageUploadForm = () => {};
+  const addImageUploadForm = useCallback(() => {
+    setImageData([...imageData, {}]);
+  }, [imageData, setImageData]);
+
+  const removeForm = (index: number) => {
+    const imageDataCopy = imageData
+      .slice(0, index)
+      .concat(imageData.slice(index + 1));
+    setImageData(imageDataCopy);
+  };
+
+  useEffect(() => {
+    if (!imageData.length) addImageUploadForm();
+  }, [addImageUploadForm, imageData.length]);
 
   return (
     <>
@@ -106,30 +196,28 @@ export const ImageUploadModalContent: React.FC<ImageModalProps> = ({
           upload, and upload the file.
         </p>
         <Heading4>Customer Images</Heading4>
-        {Object.entries(imageConfig).map(
-          ([customerKey, customerImageConfig]) => {
-            return (
-              <>
-                {Object.entries(customerImageConfig).map(
-                  ([imageType, imageNameAndBuffer]) => {
-                    return (
-                      <ImageUploadForm
-                        customerNames={Object.keys(sep12Config.customers)}
-                        formData={{
-                          customerKey: customerKey,
-                          imageType: imageType,
-                          fileName: imageNameAndBuffer[0],
-                          image: imageNameAndBuffer[1],
-                        }}
-                      />
-                    );
-                  },
-                )}
-              </>
-            );
-          },
-        )}
-        <ImageUploadForm customerNames={Object.keys(sep12Config.customers)} />
+        {imageData.map((_, i) => {
+          return (
+            <ImageFormContainer key={"form-container-" + i}>
+              <HeadingWrapper>
+                <Eyebrow style={eyebrowStyle}>{i + 1}.</Eyebrow>
+                <Button
+                  variant={Button.variant.secondary}
+                  style={xFormButtonStyle}
+                  onClick={() => removeForm(i)}
+                >
+                  Remove Form
+                </Button>
+              </HeadingWrapper>
+              <ImageUploadForm
+                customerNames={Object.keys(sep12Config.customers)}
+                imageData={imageData}
+                setImageData={setImageData}
+                index={i}
+              />
+            </ImageFormContainer>
+          );
+        })}
         <Button id="addImageUploadFormButton" onClick={addImageUploadForm}>
           Add Image
         </Button>
