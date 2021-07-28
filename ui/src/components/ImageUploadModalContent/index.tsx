@@ -72,12 +72,15 @@ const ImageUploadForm: React.FC<ImageFormProps> = ({
   setImageData,
   index,
 }) => {
-  const updateImageData = (updates: object) => {
-    const imageDataCopy = [...imageData];
-    const formDataCopy = { ...imageDataCopy[index], ...updates };
-    imageDataCopy[index] = formDataCopy;
-    setImageData(imageDataCopy);
-  };
+  const updateImageData = useCallback(
+    (updates: object) => {
+      const imageDataCopy = [...imageData];
+      const formDataCopy = { ...imageDataCopy[index], ...updates };
+      imageDataCopy[index] = formDataCopy;
+      setImageData(imageDataCopy);
+    },
+    [imageData, setImageData, index],
+  );
 
   const handleFileChange = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -101,7 +104,7 @@ const ImageUploadForm: React.FC<ImageFormProps> = ({
     if (!imageData[index].customerKey) updates.customerKey = customerNames[0];
     if (!imageData[index].imageType) updates.imageType = "photo_id_front";
     if (Object.keys(updates).length) updateImageData(updates);
-  }, []);
+  }, [customerNames, imageData, index, updateImageData]);
 
   return (
     <>

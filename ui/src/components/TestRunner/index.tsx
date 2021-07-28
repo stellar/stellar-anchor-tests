@@ -319,7 +319,14 @@ export const TestRunner = () => {
   };
 
   const handleFileChange = (files: FileList | null) => {
-    if (!files?.length) return;
+    if (!files?.length) {
+      setServerFailure("");
+      setFormData({
+        ...formData,
+        sepConfig: undefined,
+      });
+      return;
+    }
     const fileReader = new FileReader();
     fileReader.readAsText(files[0], "UTF-8");
     fileReader.onload = (e) => {
