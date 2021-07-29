@@ -67,7 +67,9 @@ export const HomeDomainField = ({
     }
     let tomlObj;
     try {
-      tomlObj = await StellarTomlResolver.resolve(homeDomainHost);
+      tomlObj = await StellarTomlResolver.resolve(homeDomainHost, {
+        allowHttp: homeDomain.startsWith("http:"),
+      });
     } catch {
       resetAllState();
       setServerFailure("Unable to fetch SEP-1 stellar.toml file");
@@ -121,11 +123,7 @@ export const HomeDomainField = ({
         </TooltipInfoButton>
       </FieldWrapper>
       <FieldWrapper>
-        <Button
-          onClick={(e) => fetchDomain(e)}
-        >
-          Fetch Stellar Info File
-        </Button>
+        <Button onClick={(e) => fetchDomain(e)}>Fetch Stellar Info File</Button>
       </FieldWrapper>
     </>
   );
