@@ -474,7 +474,7 @@ export const TestRunner = () => {
                   !Boolean(formData.sepConfig && formData.sepConfig["12"])
                 }
               >
-                Upload Files
+                Upload Customer Files
               </Button>
               {customerImageData.some((cid) => Boolean(cid.fileName)) && (
                 <p style={numUploadedFilesStyle}>
