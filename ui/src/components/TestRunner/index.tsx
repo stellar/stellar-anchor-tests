@@ -219,6 +219,7 @@ export const TestRunner = () => {
       customerCopy[ifd.imageType] = {
         data: ifd.image,
         contentType: ifd.fileType,
+        fileName: ifd.fileName,
       };
       formDataCopy.sepConfig["12"].customers[ifd.customerKey] = customerCopy;
     }
