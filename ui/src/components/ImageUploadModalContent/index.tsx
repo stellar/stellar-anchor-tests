@@ -15,6 +15,7 @@ interface ImageModalProps {
   imageData: ImageFormData[];
   setImageData: (data: ImageFormData[]) => void;
   sep12Config: any;
+  setIsImageUploadModalVisible: (isVisible: boolean) => void;
 }
 
 interface ImageFormProps {
@@ -48,6 +49,19 @@ const xFileButtonStyle = {
 
 const eyebrowStyle = {
   fontSize: "1rem",
+};
+
+const BottomButtonsWrapper = styled.div`
+  display: flex;
+  position: relative;
+`;
+
+const DoneButtonStyle = {
+  marginLeft: "1rem",
+};
+
+const AddFormButtonStyle = {
+  marginLeft: "auto",
 };
 
 const UploadedFileWrapper = styled.div`
@@ -179,6 +193,7 @@ export const ImageUploadModalContent: React.FC<ImageModalProps> = ({
   imageData,
   setImageData,
   sep12Config,
+  setIsImageUploadModalVisible,
 }) => {
   const addImageUploadForm = useCallback(() => {
     setImageData([...imageData, {}]);
@@ -236,13 +251,23 @@ export const ImageUploadModalContent: React.FC<ImageModalProps> = ({
             </ImageFormContainer>
           );
         })}
-        <Button
-          id="addImageUploadFormButton"
-          onClick={addImageUploadForm}
-          disabled={!imageData.every((i) => Boolean(i.fileName))}
-        >
-          Add Form
-        </Button>
+        <BottomButtonsWrapper>
+          <Button
+            id="addImageUploadFormButton"
+            onClick={addImageUploadForm}
+            disabled={!imageData.every((i) => Boolean(i.fileName))}
+            style={AddFormButtonStyle}
+          >
+            + New Form
+          </Button>
+          <Button
+            id="doneUploadFormButton"
+            onClick={() => setIsImageUploadModalVisible(false)}
+            style={DoneButtonStyle}
+          >
+            Done
+          </Button>
+        </BottomButtonsWrapper>
       </Modal.Body>
     </>
   );

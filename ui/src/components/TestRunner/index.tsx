@@ -50,6 +50,10 @@ const ResetButtonWrapper = styled.div`
   margin-left: 1rem;
 `;
 
+const numUploadedFilesStyle = {
+  paddingLeft: "1rem",
+};
+
 const defaultFormData = {
   homeDomain: "",
   seps: [],
@@ -472,6 +476,22 @@ export const TestRunner = () => {
               >
                 Upload Files
               </Button>
+              {customerImageData.some((cid) => Boolean(cid.fileName)) && (
+                <p style={numUploadedFilesStyle}>
+                  {customerImageData.reduce(
+                    (prev, cur) => prev + (cur.fileName ? 1 : 0),
+                    0,
+                  )}{" "}
+                  file
+                  {customerImageData.reduce(
+                    (prev, cur) => prev + (cur.fileName ? 1 : 0),
+                    0,
+                  ) > 1
+                    ? "s"
+                    : ""}{" "}
+                  uploaded
+                </p>
+              )}
               <Modal
                 visible={isImageUploadModalVisible}
                 onClose={() => setIsImageUploadModalVisible(false)}
@@ -482,6 +502,7 @@ export const TestRunner = () => {
                   sep12Config={
                     formData.sepConfig ? formData.sepConfig["12"] : undefined
                   }
+                  setIsImageUploadModalVisible={setIsImageUploadModalVisible}
                 ></ImageUploadModalContent>
               </Modal>
             </FieldWrapper>
