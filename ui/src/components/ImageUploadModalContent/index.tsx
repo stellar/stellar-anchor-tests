@@ -85,7 +85,11 @@ const ImageUploadForm: React.FC<ImageFormProps> = ({
   const handleFileChange = async (files: FileList | null) => {
     if (!files?.length) return;
     const buf = Buffer.from(await files[0].arrayBuffer());
-    updateImageData({ image: buf, fileName: files[0].name });
+    updateImageData({
+      image: buf,
+      fileName: files[0].name,
+      fileType: files[0].type,
+    });
   };
 
   const removeFile = (_index: number) => {
@@ -94,6 +98,7 @@ const ImageUploadForm: React.FC<ImageFormProps> = ({
       ...imageDataCopy[index],
       image: undefined,
       fileName: undefined,
+      fileType: undefined,
     };
     imageDataCopy[index] = formDataCopy;
     setImageData(imageDataCopy);
@@ -122,7 +127,7 @@ const ImageUploadForm: React.FC<ImageFormProps> = ({
       </Select>
       <Select
         id="imageType"
-        label="Image Type"
+        label="Document Type"
         onChange={(e) => updateImageData({ imageType: e.target.value })}
         value={imageData[index].imageType}
       >
@@ -146,13 +151,14 @@ const ImageUploadForm: React.FC<ImageFormProps> = ({
         <Input
           id="imageFile"
           type="file"
-          label="Upload Image"
+          label="Upload File"
           onChange={(e) => handleFileChange(e.target.files)}
+          accept="image/*,.pdf"
         />
       )}
       {imageData[index].fileName && (
         <>
-          <label>UPLOAD IMAGE</label>
+          <label>UPLOAD FILE</label>
           <UploadedFileWrapper>
             {imageData[index].fileName}
             <Button
@@ -191,21 +197,21 @@ export const ImageUploadModalContent: React.FC<ImageModalProps> = ({
 
   return (
     <>
-      <Modal.Heading>Upload Customer Images</Modal.Heading>
+      <Modal.Heading>Upload Customer Files</Modal.Heading>
       <Modal.Body>
         <p>
-          Anchors often require images of customer documents as a part of the
-          KYC process. For example, an anchor may require a user's photo ID
-          before allowing a withdrawal of funds over a certain limit. If your
-          anchor does not require any images of customer records, you can close
-          this window and continue testing.
+          Anchors often require files, usually images, of customer documents as
+          a part of the KYC process. For example, an anchor may require a user's
+          photo ID before allowing a withdrawal of funds over a certain limit.
+          If your anchor does not require any images of customer records, you
+          can close this window and continue testing.
         </p>
         <p>
-          To associate an image with a customer, select the customer from the
+          To associate a file with a customer, select the customer from the
           dropdown menu below, specify the type of document you would like to
           upload, and upload the file.
         </p>
-        <Heading4>Customer Images</Heading4>
+        <Heading4>Customer Files</Heading4>
         {imageData.map((_, i) => {
           return (
             <ImageFormContainer key={"form-container-" + i}>

@@ -216,7 +216,10 @@ export const TestRunner = () => {
       const customerCopy = {
         ...formDataCopy.sepConfig["12"].customers[ifd.customerKey],
       };
-      customerCopy[ifd.imageType] = ifd.image;
+      customerCopy[ifd.imageType] = {
+        data: ifd.image,
+        contentType: ifd.fileType,
+      };
       formDataCopy.sepConfig["12"].customers[ifd.customerKey] = customerCopy;
     }
     return formDataCopy;
@@ -445,6 +448,7 @@ export const TestRunner = () => {
                 label="Upload Config"
                 onChange={(e) => handleFileChange(e.target.files)}
                 type="file"
+                accept="application/json"
               />
               <ModalInfoButton onClick={() => setIsModalVisible(true)} />
 
@@ -465,7 +469,7 @@ export const TestRunner = () => {
                   !Boolean(formData.sepConfig && formData.sepConfig["12"])
                 }
               >
-                Upload Images
+                Upload Files
               </Button>
               <Modal
                 visible={isImageUploadModalVisible}
