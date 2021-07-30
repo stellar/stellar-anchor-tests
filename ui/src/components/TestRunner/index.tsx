@@ -315,6 +315,7 @@ export const TestRunner = () => {
           setServerFailure={setServerFailure}
           setToml={setToml}
           setSupportedSeps={setSupportedSeps}
+          toml={toml}
         />
         {supportedSeps.length !== 0 && (
           <FieldWrapper>

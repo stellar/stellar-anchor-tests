@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { Button, Input, TextLink } from "@stellar/design-system";
-import { StellarTomlResolver } from "stellar-sdk";
+import StellarSdk, { StellarTomlResolver } from "stellar-sdk";
+import styled from "styled-components";
 
 import { FormData } from "types/testCases";
 import { FieldWrapper } from "basics/FieldWrapper";
 import { TooltipInfoButton } from "basics/Tooltip";
+
+const NetworkTag = styled.div`
+  margin-top: 1.25rem;
+`;
 
 interface HomeDomainFieldProps {
   formData: FormData;
@@ -13,6 +18,7 @@ interface HomeDomainFieldProps {
   setServerFailure: (serverFailure: string) => void;
   setToml: (toml: {}) => void;
   setSupportedSeps: (supportedSeps: number[]) => void;
+  toml: undefined | { [key in string]: string };
 }
 
 export const HomeDomainField = ({
@@ -22,6 +28,7 @@ export const HomeDomainField = ({
   setServerFailure,
   setToml,
   setSupportedSeps,
+  toml,
 }: HomeDomainFieldProps) => {
   const [domainStr, setDomainStr] = useState("");
   const updateSupportedSepsState = (tomlObj: { [key: string]: string }) => {
@@ -93,7 +100,8 @@ export const HomeDomainField = ({
   const fetchDomain = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await getToml(domainStr);
+    const toml = await getToml(domainStr);
+    console.log(toml);
     setFormData({
       ...formData,
       homeDomain: domainStr,
@@ -119,6 +127,13 @@ export const HomeDomainField = ({
             .
           </p>
         </TooltipInfoButton>
+        {toml?.NETWORK_PASSPHRASE && (
+          <NetworkTag>
+            {toml.NETWORK_PASSPHRASE === StellarSdk.Networks.TESTNET
+              ? "TESTNET"
+              : "MAINNET"}
+          </NetworkTag>
+        )}
       </FieldWrapper>
       <FieldWrapper>
         <Button
