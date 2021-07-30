@@ -21,6 +21,8 @@ import {
   RunState,
   TestCase,
 } from "types/testCases";
+import { ImageFormData } from "types/config";
+import { ImageUploadModalContent } from "../ImageUploadModalContent";
 import { HomeDomainField } from "../TestRunnerFields/HomeDomainField";
 import { TestCases } from "../TestCases";
 import { ConfigModalContent } from "../ConfigModalContent";
@@ -48,6 +50,10 @@ const ResetButtonWrapper = styled.div`
   margin-left: 1rem;
 `;
 
+const numUploadedFilesStyle = {
+  paddingLeft: "1rem",
+};
+
 const defaultFormData = {
   homeDomain: "",
   seps: [],
@@ -69,11 +75,17 @@ export const TestRunner = () => {
   );
   const [supportedAssets, setSupportedAssets] = useState([] as string[]);
   const [supportedSeps, setSupportedSeps] = useState([] as number[]);
+  const [customerImageData, setCustomerImageData] = useState(
+    [] as ImageFormData[],
+  );
+  const [isImageUploadModalVisible, setIsImageUploadModalVisible] =
+    useState(false);
 
   const resetAllState = () => {
     setRunState(RunState.noTests);
     setServerFailure("");
     setIsConfigNeeded(false);
+    setCustomerImageData([]);
     setSupportedAssets([]);
     setSupportedSeps([]);
     setToml(undefined);
@@ -187,11 +199,43 @@ export const TestRunner = () => {
     }, 250),
   );
 
+  const mergeImageData = (fd: FormData, cid: ImageFormData[]) => {
+    if (!fd.sepConfig || !fd.sepConfig["12"] || !fd.sepConfig["12"].customers)
+      return fd;
+    // create a deep copy of the subobjects that will be altered
+    const formDataCopy = {
+      ...fd,
+      sepConfig: {
+        ...fd.sepConfig,
+        "12": {
+          ...fd.sepConfig["12"],
+          customers: {
+            ...fd.sepConfig["12"].customers,
+          },
+        },
+      },
+    };
+    for (const ifd of cid) {
+      if (!ifd.customerKey || !ifd.imageType || !ifd.image) continue;
+      const customerCopy = {
+        ...formDataCopy.sepConfig["12"].customers[ifd.customerKey],
+      };
+      customerCopy[ifd.imageType] = {
+        data: ifd.image,
+        contentType: ifd.fileType,
+        fileName: ifd.fileName,
+      };
+      formDataCopy.sepConfig["12"].customers[ifd.customerKey] = customerCopy;
+    }
+    return formDataCopy;
+  };
+
   // onClick handler for 'Run Tests' button
   const handleSubmit = () => {
     clearTestResults();
     setRunState(RunState.running);
-    socket.emit("runTests", formData, (error: Error) => {
+    const formDataWithImages = mergeImageData(formData, customerImageData);
+    socket.emit("runTests", formDataWithImages, (error: Error) => {
       setServerFailure(
         `server failure occurred: ${error.name}: ${error.message}`,
       );
@@ -283,26 +327,53 @@ export const TestRunner = () => {
   };
 
   const handleFileChange = (files: FileList | null) => {
-    if (files?.length) {
-      const fileReader = new FileReader();
-      fileReader.readAsText(files[0], "UTF-8");
-      fileReader.onload = (e) => {
-        let sepConfigObj;
-        try {
-          sepConfigObj = JSON.parse(e?.target?.result as string);
-        } catch {
-          setServerFailure(
-            "Unable to parse config file JSON. Try correcting the format using a validator.",
-          );
-          return;
-        }
-        setServerFailure("");
-        setFormData({
-          ...formData,
-          sepConfig: sepConfigObj,
-        });
-      };
+    if (!files?.length) {
+      setServerFailure("");
+      setFormData({
+        ...formData,
+        sepConfig: undefined,
+      });
+      return;
     }
+    const fileReader = new FileReader();
+    fileReader.readAsText(files[0], "UTF-8");
+    fileReader.onload = (e) => {
+      let sepConfigObj;
+      try {
+        sepConfigObj = JSON.parse(e?.target?.result as string);
+      } catch {
+        setServerFailure(
+          "Unable to parse config file JSON. Try correcting the format using a validator.",
+        );
+        return;
+      }
+      setServerFailure("");
+      setFormData({
+        ...formData,
+        sepConfig: sepConfigObj,
+      });
+      // remove any images for customers that are not in the SEP-12 config object
+      const sep12Customers = sepConfigObj["12"]?.customers;
+      if (Object.keys(sep12Customers).length) {
+        let i = 0;
+        let customerImageDataCopy = [...customerImageData];
+        while (i < customerImageDataCopy.length) {
+          const customerKey = customerImageDataCopy[i].customerKey;
+          if (customerKey && !sep12Customers[customerKey]) {
+            customerImageDataCopy = customerImageDataCopy
+              .slice(0, i)
+              .concat(
+                customerImageDataCopy.slice(
+                  i + 1,
+                  customerImageDataCopy.length,
+                ),
+              );
+          } else {
+            i++;
+          }
+        }
+      }
+    };
   };
 
   return (
@@ -375,22 +446,67 @@ export const TestRunner = () => {
           </FieldWrapper>
         )}
         {isConfigNeeded && (
-          <FieldWrapper>
-            <Input
-              id="sepConfig"
-              label="Upload Config"
-              onChange={(e) => handleFileChange(e.target.files)}
-              type="file"
-            />
-            <ModalInfoButton onClick={() => setIsModalVisible(true)} />
+          <>
+            <FieldWrapper>
+              <Input
+                id="sepConfig"
+                label="Upload Config"
+                onChange={(e) => handleFileChange(e.target.files)}
+                type="file"
+                accept="application/json"
+              />
+              <ModalInfoButton onClick={() => setIsModalVisible(true)} />
 
-            <Modal
-              visible={isModalVisible}
-              onClose={() => setIsModalVisible(false)}
-            >
-              <ConfigModalContent></ConfigModalContent>
-            </Modal>
-          </FieldWrapper>
+              <Modal
+                visible={isModalVisible}
+                onClose={() => setIsModalVisible(false)}
+              >
+                <ConfigModalContent></ConfigModalContent>
+              </Modal>
+            </FieldWrapper>
+            <FieldWrapper>
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsImageUploadModalVisible(true);
+                }}
+                disabled={
+                  !Boolean(formData.sepConfig && formData.sepConfig["12"])
+                }
+              >
+                Upload Customer Files
+              </Button>
+              {customerImageData.some((cid) => Boolean(cid.fileName)) && (
+                <p style={numUploadedFilesStyle}>
+                  {customerImageData.reduce(
+                    (prev, cur) => prev + (cur.fileName ? 1 : 0),
+                    0,
+                  )}{" "}
+                  file
+                  {customerImageData.reduce(
+                    (prev, cur) => prev + (cur.fileName ? 1 : 0),
+                    0,
+                  ) > 1
+                    ? "s"
+                    : ""}{" "}
+                  uploaded
+                </p>
+              )}
+              <Modal
+                visible={isImageUploadModalVisible}
+                onClose={() => setIsImageUploadModalVisible(false)}
+              >
+                <ImageUploadModalContent
+                  imageData={customerImageData}
+                  setImageData={setCustomerImageData}
+                  sep12Config={
+                    formData.sepConfig ? formData.sepConfig["12"] : undefined
+                  }
+                  setIsImageUploadModalVisible={setIsImageUploadModalVisible}
+                ></ImageUploadModalContent>
+              </Modal>
+            </FieldWrapper>
+          </>
         )}
         {serverFailure && (
           <InfoBlock variant={InfoBlock.variant.error}>
@@ -404,7 +520,8 @@ export const TestRunner = () => {
                 onClick={handleSubmit}
                 disabled={
                   [RunState.running, RunState.noTests].includes(runState) ||
-                  Boolean(serverFailure)
+                  Boolean(serverFailure) ||
+                  Boolean(isConfigNeeded && !formData.sepConfig)
                 }
               >
                 {runState !== RunState.running ? "Run Tests" : "Running..."}
