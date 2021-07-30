@@ -8,14 +8,24 @@ export function makeSep12Request(requestData: any): Request {
   if (hasBinaryFields(requestData.data)) {
     requestBody = new FormData();
     for (const key in requestData.data) {
-      if (requestData.data[key] instanceof ReadStream) {
-        const stats = statSync(requestData.data[key].path);
-        requestBody.append(key, requestData.data[key], {
+      if (
+        typeof requestData.data[key] === "object" &&
+        requestData.data[key].data instanceof ReadStream
+      ) {
+        const stats = statSync(requestData.data[key].data.path);
+        requestBody.append(key, requestData.data[key].data, {
           knownLength: stats.size,
+          contentType: requestData.data[key].contentType,
+          filename: requestData.data[key].fileName,
         });
-      } else if (requestData.data[key] instanceof Buffer) {
-        requestBody.append(key, requestData.data[key], {
-          knownLength: requestData.data[key].length,
+      } else if (
+        typeof requestData.data[key] === "object" &&
+        requestData.data[key].data instanceof Buffer
+      ) {
+        requestBody.append(key, requestData.data[key].data, {
+          knownLength: requestData.data[key].data.length,
+          contentType: requestData.data[key].contentType,
+          filename: requestData.data[key].fileName,
         });
       } else {
         requestBody.append(key, requestData.data[key]);

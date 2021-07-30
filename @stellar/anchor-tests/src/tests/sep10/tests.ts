@@ -529,7 +529,6 @@ const returnsValidChallengeResponse: Test = {
       Buffer.from(firstOpDataValue.toString(), "base64").length !== 48
     ) {
       result.failure = makeFailure(this.failureModes.INVALID_FIRST_OP_VALUE);
-      if (firstOpDataValue) console.log(firstOpDataValue.length);
       return result;
     }
     let webAuthDomainOp;

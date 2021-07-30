@@ -3,7 +3,7 @@ import { Networks, Keypair } from "stellar-sdk";
 import { validate } from "jsonschema";
 import { parse } from "toml";
 import { existsSync, createReadStream } from "fs";
-import { isAbsolute, resolve } from "path";
+import { isAbsolute, resolve, basename } from "path";
 
 import { Config } from "../types";
 import { configSchema } from "../schemas/config";
@@ -104,15 +104,18 @@ function checkSepConfigObj(config: Config) {
       const customerData = config.sepConfig["12"].customers[customerName];
       for (const binaryField of binaryFields) {
         if (!customerData[binaryField]) continue;
-        if (
-          typeof customerData[binaryField] !== "string" &&
-          !(customerData[binaryField] instanceof Buffer)
-        ) {
+        if (!["string", "object"].includes(typeof customerData[binaryField])) {
           throw new ConfigError(
             "unrecognized type for binary customer field, " +
-              `expected file path string or Buffer.`,
+              "expected file path string or an object",
           );
         }
+        const extToContentType: Record<string, string> = {
+          png: "image/png",
+          jpg: "image/jpeg",
+          jpeg: "image/jpeg",
+          pdf: "application/pdf",
+        };
         if (typeof customerData[binaryField] === "string") {
           if (!isAbsolute(customerData[binaryField])) {
             customerData[binaryField] = resolve(customerData[binaryField]);
@@ -123,9 +126,33 @@ function checkSepConfigObj(config: Config) {
                 `${customerData[binaryField]}`,
             );
           }
-          customerData[binaryField] = createReadStream(
-            customerData[binaryField],
-          );
+          const filePathParts = customerData[binaryField].split(".");
+          customerData[binaryField] = {
+            data: createReadStream(customerData[binaryField]),
+            contentType:
+              extToContentType[filePathParts[filePathParts.length - 1]],
+            fileName: basename(customerData[binaryField]),
+          };
+        } else {
+          if (
+            !customerData[binaryField].data ||
+            !(customerData[binaryField].data instanceof Buffer)
+          ) {
+            throw new ConfigError(
+              `${binaryField} data must be a buffer, ` +
+                `got ${typeof customerData[binaryField]}`,
+            );
+          } else if (
+            !customerData[binaryField].contentType ||
+            Object.keys(extToContentType).includes(
+              customerData[binaryField].contentType,
+            )
+          ) {
+            throw new ConfigError(
+              `${binaryField} content type is not one of the accepted values:` +
+                `${Object.keys(extToContentType)}`,
+            );
+          }
         }
       }
     }
