@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Input, TextLink } from "@stellar/design-system";
+import { Button, Input, Tag, TextLink } from "@stellar/design-system";
 import StellarSdk, { StellarTomlResolver } from "stellar-sdk";
 import styled from "styled-components";
 
@@ -9,6 +9,7 @@ import { TooltipInfoButton } from "basics/Tooltip";
 
 const NetworkTag = styled.div`
   margin-top: 1.25rem;
+  padding: 0.5rem;
 `;
 
 interface HomeDomainFieldProps {
@@ -131,9 +132,11 @@ export const HomeDomainField = ({
         </TooltipInfoButton>
         {toml?.NETWORK_PASSPHRASE && (
           <NetworkTag>
-            {toml.NETWORK_PASSPHRASE === StellarSdk.Networks.TESTNET
-              ? "TESTNET"
-              : "MAINNET"}
+            <Tag variant={Tag.variant.highlight}>
+              {toml.NETWORK_PASSPHRASE === StellarSdk.Networks.TESTNET
+                ? "TESTNET"
+                : "MAINNET"}
+            </Tag>
           </NetworkTag>
         )}
       </FieldWrapper>
