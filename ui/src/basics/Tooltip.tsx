@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { Icon } from "@stellar/design-system";
+import { FIELD_WIDTH } from "constants/styles";
 
 export const InfoButton = styled.div`
   cursor: pointer;
@@ -27,14 +28,16 @@ const InfoButtonTooltipEl = styled.div`
   color: var(--pal-brand-primary-on);
   cursor: default;
   font-size: 0.875rem;
+  left: calc(${FIELD_WIDTH} + 2rem);
   line-height: 1.5rem;
   margin-top: 1.25rem;
   padding: 1rem 1.5rem;
   position: absolute;
-  top: 4.2rem;
+  top: -1.5rem;
   right: -5.5rem;
-  z-index: 1;
   visibility: hidden;
+  width: ${FIELD_WIDTH};
+  z-index: 1;
 
   &[data-hidden="false"] {
     visibility: visible;
@@ -100,9 +103,11 @@ export const TooltipInfoButton = ({
         <Icon.Info />
       </InfoButton>
 
-      {isInfoVisible && <InfoButtonTooltipEl ref={infoEl} data-hidden={!isInfoVisible}>
-        {children}
-      </InfoButtonTooltipEl>}
+      {isInfoVisible && (
+        <InfoButtonTooltipEl ref={infoEl} data-hidden={!isInfoVisible}>
+          {children}
+        </InfoButtonTooltipEl>
+      )}
     </>
   );
 };
