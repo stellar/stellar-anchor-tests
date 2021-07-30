@@ -22,10 +22,10 @@ import {
   TestCase,
 } from "types/testCases";
 import { ImageFormData } from "types/config";
-import { ImageUploadModalContent } from "../ImageUploadModalContent";
-import { HomeDomainField } from "../TestRunnerFields/HomeDomainField";
-import { TestCases } from "../TestCases";
-import { ConfigModalContent } from "../ConfigModalContent";
+import { ImageUploadModalContent } from "components/ImageUploadModalContent";
+import { HomeDomainField } from "components/TestRunnerFields/HomeDomainField";
+import { TestCases } from "components/TestCases";
+import { ConfigModalContent } from "components/ConfigModalContent";
 
 // SEPs to send to server based on SEP selected in dropdown
 const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
