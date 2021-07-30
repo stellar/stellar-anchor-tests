@@ -7,7 +7,8 @@ import { Log, LogIndent } from "basics/Log";
 import { Result, NetworkCall } from "types/testCases";
 
 const ResultBlockWrapperEl = styled.div`
-  border-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
   border: 1px solid var(--pal-border-primary);
   padding: 1rem;
   padding-left: 2.5rem;
