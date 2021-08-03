@@ -1,14 +1,12 @@
-import { TextLink } from "@stellar/design-system";
+import { PieProgress, TextLink } from "@stellar/design-system";
 import React from "react";
 import styled from "styled-components";
 
-import { RunState, TestCaseProgress } from "types/testCases";
-import {
-  FailedIcon,
-  IdleIcon,
-  LoadingIcon,
-  PassedIcon,
-} from "./basics/ProgressIcons";
+import { TestCaseProgress } from "types/testCases";
+
+const PieProgressWrapper = styled.div`
+  margin-right: 1.25rem;
+`;
 
 const SepLink = styled.div`
   border-bottom: 1px solid var(--pal-border-secondary);
@@ -60,27 +58,16 @@ const sepData: any = {
 export const SepBlock: React.FC<{
   children: React.ReactNode;
   progress: TestCaseProgress;
-  runState: RunState;
   sep: number;
-}> = ({ children, progress, runState, sep }) => {
-  const generateProgressIcon = () => {
-    let ProgressIcon = <IdleIcon />;
-    if (progress.passed + progress.failed === progress.total) {
-      if (progress.failed) {
-        ProgressIcon = <FailedIcon />;
-      } else {
-        ProgressIcon = <PassedIcon />;
-      }
-    } else if (runState === RunState.running) {
-      ProgressIcon = <LoadingIcon />;
-    }
-    return ProgressIcon;
-  };
+}> = ({ children, progress, sep }) => {
+  const { total, failed, passed } = progress;
 
   return (
     <SepLink>
       <SepInfo>
-        {generateProgressIcon()}
+        <PieProgressWrapper>
+          <PieProgress total={total} failed={failed} passed={passed} />
+        </PieProgressWrapper>
 
         <TextLink href={sepData[sep].source}>
           SEP-{sep}: {sepData[sep].name}

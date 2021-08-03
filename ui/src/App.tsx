@@ -23,6 +23,7 @@ export const App = () => {
   return (
     <>
       <Layout.Header
+        hasDarkModeToggle
         projectTitle="Anchor Validator"
         projectLink="https://www.stellar.org"
       >
