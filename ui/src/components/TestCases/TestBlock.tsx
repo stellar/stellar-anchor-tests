@@ -13,10 +13,17 @@ const TestBlockWrapper = styled.div`
   padding: 0 1.5rem;
 `;
 
+interface TestBlockRowProps {
+  hasFailure: boolean;
+  isLastChild: boolean;
+}
+
 const TestBlockRow = styled.div`
   align-items: center;
-  border-bottom: 1px solid
-    ${({ isLastChild }: { isLastChild: boolean }) =>
+  border-bottom: ${({ hasFailure }: TestBlockRowProps) =>
+      hasFailure ? "0" : "1"}px
+    solid
+    ${({ isLastChild }: TestBlockRowProps) =>
       isLastChild ? "transparent" : "var(--pal-border-secondary)"};
   display: flex;
   padding: 1.3rem;
@@ -77,7 +84,10 @@ export const TestBlock: React.FC<{
 
   return (
     <TestBlockWrapper>
-      <TestBlockRow isLastChild={isLastChild}>
+      <TestBlockRow
+        hasFailure={Boolean(testCase?.result?.failureMode)}
+        isLastChild={isLastChild}
+      >
         <ProgressIcon />
         <TestInfo>
           <div>{testCase.test.assertion}</div>
