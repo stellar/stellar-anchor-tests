@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { App } from "./views/App";
+import { App } from "./App";
 import reportWebVitals from "./reportWebVitals";
 
 // Import global CSS from Stellar Design System

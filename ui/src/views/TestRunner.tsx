@@ -10,6 +10,7 @@ import {
 import throttle from "lodash.throttle";
 import styled from "styled-components";
 
+import { FIELD_WIDTH } from "constants/styles";
 import { FieldWrapper } from "basics/FieldWrapper";
 import { ModalInfoButton, TooltipInfoButton } from "basics/Tooltip";
 import { socket } from "helpers/socketConnection";
@@ -22,10 +23,10 @@ import {
   TestCase,
 } from "types/testCases";
 import { ImageFormData } from "types/config";
-import { ImageUploadModalContent } from "../ImageUploadModalContent";
-import { HomeDomainField } from "../TestRunnerFields/HomeDomainField";
-import { TestCases } from "../TestCases";
-import { ConfigModalContent } from "../ConfigModalContent";
+import { ImageUploadModalContent } from "components/ImageUploadModalContent";
+import { HomeDomainField } from "components/TestRunnerFields/HomeDomainField";
+import { TestCases } from "components/TestCases";
+import { ConfigModalContent } from "components/ConfigModalContent";
 
 // SEPs to send to server based on SEP selected in dropdown
 const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
@@ -43,7 +44,7 @@ const TRANSFER_SEPS = [6, 24, 31];
 
 const TestConfigWrapper = styled.form`
   margin-bottom: 4.5rem;
-  width: 25rem;
+  width: ${FIELD_WIDTH};
 `;
 
 const ResetButtonWrapper = styled.div`
@@ -386,6 +387,7 @@ export const TestRunner = () => {
           setServerFailure={setServerFailure}
           setToml={setToml}
           setSupportedSeps={setSupportedSeps}
+          toml={toml}
         />
         {supportedSeps.length !== 0 && (
           <FieldWrapper>

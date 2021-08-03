@@ -5,7 +5,7 @@ import { Layout } from "@stellar/design-system";
 
 import { METRIC_NAMES } from "constants/metricNames";
 import { emitMetric } from "helpers/metrics";
-import { TestRunner } from "components/TestRunner";
+import { TestRunner } from "views/TestRunner";
 
 if (process.env.REACT_APP_SENTRY_KEY) {
   Sentry.init({
