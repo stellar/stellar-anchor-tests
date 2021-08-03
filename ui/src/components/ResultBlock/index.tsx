@@ -7,8 +7,9 @@ import { Log, LogIndent } from "basics/Log";
 import { Result, NetworkCall } from "types/testCases";
 
 const ResultBlockWrapperEl = styled.div`
-  border-radius: 0.25rem;
-  border: 1px solid #fbfaf7;
+  border-bottom-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+  border: 1px solid var(--pal-border-primary);
   padding: 1rem;
   padding-left: 2.5rem;
   width: 100%;
@@ -112,15 +113,15 @@ export const ResultBlock: React.FC<{ result: Result }> = ({ result }) => {
                       <>
                         <div>Headers:</div>
                         <LogIndent>
-                          {Object.entries(networkCall.request.headers || []).map(
-                            ([headerKey, headerVal]) => (
-                              <HeaderBlock
-                                headerKey={headerKey}
-                                headerVal={headerVal.toString()}
-                                key={`${headerKey}-${headerVal}`}
-                              />
-                            ),
-                          )}
+                          {Object.entries(
+                            networkCall.request.headers || [],
+                          ).map(([headerKey, headerVal]) => (
+                            <HeaderBlock
+                              headerKey={headerKey}
+                              headerVal={headerVal.toString()}
+                              key={`${headerKey}-${headerVal}`}
+                            />
+                          ))}
                         </LogIndent>
                       </>
                     )}
@@ -131,9 +132,8 @@ export const ResultBlock: React.FC<{ result: Result }> = ({ result }) => {
                           {typeof networkCall.request.body === "object" && (
                             <Json collapsed src={networkCall.request.body} />
                           )}
-                          {typeof networkCall.request.body !== "object" && (
-                            networkCall.request.body
-                          )}
+                          {typeof networkCall.request.body !== "object" &&
+                            networkCall.request.body}
                         </LogIndent>
                       </>
                     )}
@@ -150,15 +150,15 @@ export const ResultBlock: React.FC<{ result: Result }> = ({ result }) => {
                       <>
                         <div>Headers:</div>
                         <LogIndent>
-                          {Object.entries(networkCall.response.headers || []).map(
-                            ([headerKey, headerVal]) => (
-                              <HeaderBlock
-                                headerKey={headerKey}
-                                headerVal={headerVal}
-                                key={`${headerKey}-${headerVal}`}
-                              />
-                            ),
-                          )}
+                          {Object.entries(
+                            networkCall.response.headers || [],
+                          ).map(([headerKey, headerVal]) => (
+                            <HeaderBlock
+                              headerKey={headerKey}
+                              headerVal={headerVal}
+                              key={`${headerKey}-${headerVal}`}
+                            />
+                          ))}
                         </LogIndent>
                       </>
                     )}
