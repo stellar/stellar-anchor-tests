@@ -10,6 +10,7 @@ import {
 import throttle from "lodash.throttle";
 import styled from "styled-components";
 
+import { FIELD_WIDTH } from "constants/styles";
 import { FieldWrapper } from "basics/FieldWrapper";
 import { ModalInfoButton, TooltipInfoButton } from "basics/Tooltip";
 import { socket } from "helpers/socketConnection";
@@ -43,7 +44,7 @@ const TRANSFER_SEPS = [6, 24, 31];
 
 const TestConfigWrapper = styled.form`
   margin-bottom: 4.5rem;
-  width: 25rem;
+  width: ${FIELD_WIDTH};
 `;
 
 const ResetButtonWrapper = styled.div`
