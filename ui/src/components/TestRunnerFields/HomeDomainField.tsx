@@ -3,6 +3,7 @@ import { Button, Input, Tag, TextLink } from "@stellar/design-system";
 import StellarSdk, { StellarTomlResolver } from "stellar-sdk";
 import styled from "styled-components";
 
+import { FIELD_WIDTH } from "constants/styles";
 import { FormData } from "types/testCases";
 import { FieldWrapper } from "basics/FieldWrapper";
 import { TooltipInfoButton } from "basics/Tooltip";
@@ -10,6 +11,8 @@ import { TooltipInfoButton } from "basics/Tooltip";
 const NetworkTag = styled.div`
   margin-top: 1.25rem;
   padding: 0.5rem;
+  position: absolute;
+  left: ${FIELD_WIDTH};
 `;
 
 interface HomeDomainFieldProps {
