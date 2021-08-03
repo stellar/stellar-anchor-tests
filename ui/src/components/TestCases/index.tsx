@@ -86,11 +86,7 @@ export const TestCases: React.FC<{
             const sepGroupAccordionState = !!accordianState[sepGroup.sep];
             return (
               <SepGroupWrapper key={`sep-${sepGroup.sep}-tests`}>
-                <SepBlock
-                  progress={sepGroup.progress}
-                  runState={runState}
-                  sep={sepGroup.sep}
-                >
+                <SepBlock progress={sepGroup.progress} sep={sepGroup.sep}>
                   <SepBlockRight>
                     <SepGroupTracker
                       progress={sepGroup.progress}
