@@ -4,10 +4,10 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
-## [Unreleased](https://github.com/stellar/stellar-anchor-tests/compare/v0.1.6...master)
+## [v0.1.7](https://github.com/stellar/stellar-anchor-tests/compare/v0.1.6...master)
 
 ### Add
-- Use `type` parameter in SEP-12 `GET /customer` requests for nonexistent customers
+- Use `type` parameter in SEP-12 `GET /customer` requests
 
 ## [v0.1.6](https://github.com/stellar/stellar-anchor-tests/compare/v0.1.5...v0.1.6)
 
