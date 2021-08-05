@@ -1,6 +1,7 @@
 import { Request } from "node-fetch";
 import { validate } from "jsonschema";
 import { Keypair } from "stellar-sdk";
+import { URLSearchParams } from "url";
 
 import { Test, Config, Result, NetworkCall } from "../../types";
 import { hasNetworkPassphrase } from "../sep1/tests";
@@ -14,6 +15,17 @@ import { canCreateCustomer } from "./putCustomer";
 
 const getCustomerGroup = "GET /customer";
 const tests: Test[] = [];
+
+const hasCreateCustomer = (config: Config): Boolean =>
+  Boolean(
+    config?.sepConfig?.["12"]?.customers?.[
+      config?.sepConfig?.["12"]?.createCustomer
+    ],
+  );
+const getCreateCustomerType = (config: Config): string | undefined =>
+  config?.sepConfig?.["12"]?.customers?.[
+    config?.sepConfig?.["12"]?.createCustomer
+  ].type;
 
 const requiresJwtToken: Test = {
   assertion: "requires a SEP-10 JWT",
@@ -92,7 +104,13 @@ const newCustomerValidSchema: Test = {
     },
     ...genericFailures,
   },
-  async run(_config: Config): Promise<Result> {
+  async run(config: Config): Promise<Result> {
+    if (!hasCreateCustomer(config)) {
+      throw new Error(
+        "SEP-12 configuration data is missing, expected a key within the " +
+          "'customers' object matching the value assigned to 'createCustomer'",
+      );
+    }
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const token = await postChallenge(
@@ -102,10 +120,16 @@ const newCustomerValidSchema: Test = {
       result,
     );
     if (!token) return result;
+    const customerType = getCreateCustomerType(config);
+    const requestParamsObj: Record<string, string> = {
+      account: clientKeypair.publicKey(),
+    };
+    if (customerType) requestParamsObj["type"] = customerType;
+    const searchParams = new URLSearchParams(requestParamsObj);
     const getCustomerCall: NetworkCall = {
       request: new Request(
         this.context.expects.kycServerUrl +
-          `/customer?account=${clientKeypair.publicKey()}`,
+          `/customer?${searchParams.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -113,6 +137,7 @@ const newCustomerValidSchema: Test = {
         },
       ),
     };
+    result.networkCalls.push(getCustomerCall);
     const getCustomerBody = await makeRequest(
       getCustomerCall,
       200,
@@ -187,12 +212,24 @@ export const canFetchExistingCustomerById: Test = {
     },
     ...genericFailures,
   },
-  async run(_config: Config): Promise<Result> {
+  async run(config: Config): Promise<Result> {
+    if (!hasCreateCustomer(config)) {
+      throw new Error(
+        "SEP-12 configuration data is missing, expected a key within the " +
+          "'customers' object matching the value assigned to 'createCustomer'",
+      );
+    }
     const result: Result = { networkCalls: [] };
+    const customerType = getCreateCustomerType(config);
+    const requestParamsObj: Record<string, string> = {
+      id: this.context.expects.customerId,
+    };
+    if (customerType) requestParamsObj["type"] = customerType;
+    const searchParams = new URLSearchParams(requestParamsObj);
     const getCustomerCall: NetworkCall = {
       request: new Request(
         this.context.expects.kycServerUrl +
-          `/customer?id=${this.context.expects.customerId}`,
+          `/customer?${searchParams.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -269,12 +306,24 @@ const canFetchExistingCustomerByAccount: Test = {
     },
     ...genericFailures,
   },
-  async run(_config: Config): Promise<Result> {
+  async run(config: Config): Promise<Result> {
+    if (!hasCreateCustomer(config)) {
+      throw new Error(
+        "SEP-12 configuration data is missing, expected a key within the " +
+          "'customers' object matching the value assigned to 'createCustomer'",
+      );
+    }
     const result: Result = { networkCalls: [] };
+    const customerType = getCreateCustomerType(config);
+    const requestParamsObj: Record<string, string> = {
+      account: this.context.expects.clientKeypair.publicKey(),
+    };
+    if (customerType) requestParamsObj["type"] = customerType;
+    const searchParams = new URLSearchParams(requestParamsObj);
     const getCustomerCall: NetworkCall = {
       request: new Request(
         this.context.expects.kycServerUrl +
-          `/customer?account=${this.context.expects.clientKeypair.publicKey()}`,
+          `/customer?${searchParams.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
