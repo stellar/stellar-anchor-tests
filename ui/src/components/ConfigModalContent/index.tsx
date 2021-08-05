@@ -128,7 +128,11 @@ export const ConfigModalContent: React.FC = () => (
           <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0009.md">
             SEP-9
           </TextLink>{" "}
-          attributes the anchor requires. Currently four customers are required.
+          attributes the anchor requires, as well as the
+          <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#type-specification">
+            type
+          </TextLink>{" "}
+          of the customer. Currently four customers are required.
         </li>
         <li>
           <strong>createCustomer</strong>: a string matching one of the keys
