@@ -16,6 +16,17 @@ import { canCreateCustomer } from "./putCustomer";
 const getCustomerGroup = "GET /customer";
 const tests: Test[] = [];
 
+const hasCreateCustomer = (config: Config): Boolean =>
+  Boolean(
+    config?.sepConfig?.["12"]?.customers?.[
+      config?.sepConfig?.["12"]?.createCustomer
+    ],
+  );
+const getCreateCustomerType = (config: Config): string | undefined =>
+  config?.sepConfig?.["12"]?.customers?.[
+    config?.sepConfig?.["12"]?.createCustomer
+  ].type;
+
 const requiresJwtToken: Test = {
   assertion: "requires a SEP-10 JWT",
   sep: 12,
@@ -94,13 +105,7 @@ const newCustomerValidSchema: Test = {
     ...genericFailures,
   },
   async run(config: Config): Promise<Result> {
-    if (
-      !config.sepConfig ||
-      !config.sepConfig["12"] ||
-      !config.sepConfig["12"].customers ||
-      !config.sepConfig["12"].createCustomer ||
-      !config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer]
-    ) {
+    if (!hasCreateCustomer(config)) {
       throw new Error(
         "SEP-12 configuration data is missing, expected a key within the " +
           "'customers' object matching the value assigned to 'createCustomer'",
@@ -115,9 +120,7 @@ const newCustomerValidSchema: Test = {
       result,
     );
     if (!token) return result;
-    const customerType =
-      config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer]
-        .type;
+    const customerType = getCreateCustomerType(config);
     const requestParamsObj: Record<string, string> = {
       account: clientKeypair.publicKey(),
     };
@@ -210,22 +213,14 @@ export const canFetchExistingCustomerById: Test = {
     ...genericFailures,
   },
   async run(config: Config): Promise<Result> {
-    if (
-      !config.sepConfig ||
-      !config.sepConfig["12"] ||
-      !config.sepConfig["12"].customers ||
-      !config.sepConfig["12"].createCustomer ||
-      !config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer]
-    ) {
+    if (!hasCreateCustomer(config)) {
       throw new Error(
         "SEP-12 configuration data is missing, expected a key within the " +
           "'customers' object matching the value assigned to 'createCustomer'",
       );
     }
     const result: Result = { networkCalls: [] };
-    const customerType =
-      config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer]
-        .type;
+    const customerType = getCreateCustomerType(config);
     const requestParamsObj: Record<string, string> = {
       id: this.context.expects.customerId,
     };
@@ -312,22 +307,14 @@ const canFetchExistingCustomerByAccount: Test = {
     ...genericFailures,
   },
   async run(config: Config): Promise<Result> {
-    if (
-      !config.sepConfig ||
-      !config.sepConfig["12"] ||
-      !config.sepConfig["12"].customers ||
-      !config.sepConfig["12"].createCustomer ||
-      !config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer]
-    ) {
+    if (!hasCreateCustomer(config)) {
       throw new Error(
         "SEP-12 configuration data is missing, expected a key within the " +
           "'customers' object matching the value assigned to 'createCustomer'",
       );
     }
     const result: Result = { networkCalls: [] };
-    const customerType =
-      config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer]
-        .type;
+    const customerType = getCreateCustomerType(config);
     const requestParamsObj: Record<string, string> = {
       account: this.context.expects.clientKeypair.publicKey(),
     };

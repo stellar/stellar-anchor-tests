@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { Request } from "node-fetch";
+import { Request, BodyInit } from "node-fetch";
 import { Keypair, Memo } from "stellar-sdk";
 import { randomBytes } from "crypto";
 
@@ -13,6 +13,11 @@ import { postChallenge } from "../../helpers/sep10";
 
 const putCustomerGroup = "PUT /customer";
 const tests: Test[] = [];
+
+const getCreateCustomer = (config: Config): object =>
+  config?.sepConfig?.["12"]?.customers?.[
+    config?.sepConfig?.["12"]?.createCustomer
+  ];
 
 const requiresJwt: Test = {
   assertion: "requires a SEP-10 JWT",
@@ -28,24 +33,17 @@ const requiresJwt: Test = {
   failureModes: genericFailures,
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    if (
-      !config.sepConfig ||
-      !config.sepConfig["12"] ||
-      !config.sepConfig["12"].customers ||
-      !config.sepConfig["12"].createCustomer ||
-      !config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer]
-    ) {
+    const customerValues = getCreateCustomer(config);
+    if (!customerValues) {
       throw new Error(
         "SEP-12 configuration data is missing, expected a key within the " +
           "'customers' object matching the value assigned to 'createCustomer'",
       );
     }
-    const customerValues =
-      config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer];
     const putCustomerCall: NetworkCall = {
       request: new Request(this.context.expects.kycServerUrl + "/customer", {
         method: "PUT",
-        body: customerValues,
+        body: customerValues as BodyInit,
       }),
     };
     result.networkCalls.push(putCustomerCall);
@@ -109,20 +107,13 @@ export const canCreateCustomer: Test = {
   },
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    if (
-      !config.sepConfig ||
-      !config.sepConfig["12"] ||
-      !config.sepConfig["12"].customers ||
-      !config.sepConfig["12"].createCustomer ||
-      !config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer]
-    ) {
+    const customerValues = getCreateCustomer(config);
+    if (!customerValues) {
       throw new Error(
         "SEP-12 configuration data is missing, expected a key within the " +
           "'customers' object matching the value assigned to 'createCustomer'",
       );
     }
-    const customerValues =
-      config.sepConfig["12"].customers[config.sepConfig["12"].createCustomer];
     const putCustomerRequest = makeSep12Request({
       url: this.context.expects.kycServerUrl + "/customer",
       data: {
@@ -147,7 +138,7 @@ export const canCreateCustomer: Test = {
     }
     if (putCustomerCall.response.status !== 202) {
       result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS_CODE, {
-        customer: config.sepConfig["12"].createCustomer,
+        customer: config?.sepConfig?.["12"]?.createCustomer,
       });
       result.expected = 202;
       result.actual = putCustomerCall.response.status;
@@ -267,11 +258,8 @@ export const differentMemosSameAccount: Test = {
       );
     } else {
       if (
-        !config.sepConfig ||
-        !config.sepConfig["12"] ||
-        !config.sepConfig["12"].sameAccountDifferentMemos ||
-        !config.sepConfig["12"].customers ||
-        !config.sepConfig["12"].customers[
+        !config?.sepConfig?.["12"]?.sameAccountDifferentMemos ||
+        !config.sepConfig["12"]?.customers[
           config.sepConfig["12"].sameAccountDifferentMemos[0]
         ] ||
         !config.sepConfig["12"].customers[
