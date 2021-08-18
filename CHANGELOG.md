@@ -4,6 +4,9 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
+## Unreleased
+- Update the expected response schema for `GET /customer` requests
+
 ## [v0.1.7](https://github.com/stellar/stellar-anchor-tests/compare/v0.1.6...master)
 
 ### Add
