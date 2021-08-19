@@ -95,12 +95,38 @@ export const getCustomerSchema = {
             optional: {
               type: "boolean",
             },
+          },
+          required: ["type", "description"],
+        },
+      },
+    },
+    provided_fields: {
+      type: "object",
+      propertyNames: {
+        enum: sep9Fields,
+      },
+      patternProperties: {
+        ".*": {
+          type: "object",
+          properties: {
+            type: {
+              type: "string",
+              enum: ["string", "number", "date", "binary"],
+            },
+            description: {
+              type: "string",
+            },
+            choices: {
+              type: "array",
+            },
+            optional: {
+              type: "boolean",
+            },
             status: {
               type: "string",
               enum: [
                 "ACCEPTED",
                 "PROCESSING",
-                "NOT_PROVIDED",
                 "REJECTED",
                 "VERIFICATION_REQUIRED",
               ],
