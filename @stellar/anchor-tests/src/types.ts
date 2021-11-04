@@ -4,7 +4,7 @@ import { Request, Response } from "node-fetch";
 /**
  * The [Stellar Ecosystem Proposals (SEPs)](https://github.com/stellar/stellar-protocol/tree/master/ecosystem) this library supports testing.
  */
-export type SEP = 1 | 6 | 10 | 12 | 24 | 31;
+export type SEP = 1 | 6 | 10 | 12 | 24 | 31 | 38;
 
 export interface Config {
   /**
