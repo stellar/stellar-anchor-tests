@@ -32,7 +32,7 @@ const hasValidInfoSchema: Test = {
       },
       links: {
         "Info Response":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#6-error",
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-info",
       },
     },
     ...genericFailures,
@@ -51,9 +51,9 @@ const hasValidInfoSchema: Test = {
       result,
       "application/json",
     );
-    if (!this.context.provides.infoObj) return result;
+    if (!this.context.provides.sep31InfoObj) return result;
     const validationResult = validate(
-      this.context.provides.infoObj,
+      this.context.provides.sep31InfoObj,
       infoSchema,
     );
     if (validationResult.errors.length !== 0) {
