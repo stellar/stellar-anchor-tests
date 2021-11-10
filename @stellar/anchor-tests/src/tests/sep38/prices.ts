@@ -63,6 +63,22 @@ export const requiresJwt: Test = {
   },
 };
 
+/*
+ * Its possible that the anchor only supports converting off-chain
+ * assets to on-chain assets (deposit-only), in which case this
+ * test and its dependents would fail.
+ *
+ * However, this is less likely than the alternative, in which the
+ * anchor only converts on-chain assets to off-chain assets, because
+ * this is what SEP-31 receivers do.
+ *
+ * Therefore, we try using on-chain assets as 'sell_asset'. Ideally,
+ * we would try this and on 400 or an empty response, try using an
+ * off-chain asset as 'sell_asset' before failing.
+ *
+ * TODO: handle case where anchor only supports conversion in a
+ * single direction. This applies to other tests as well.
+ */
 export const hasValidSchema: Test = {
   sep: 38,
   assertion: "has a valid response schema",
@@ -403,6 +419,11 @@ export const validatesSellAmount: Test = {
   },
 };
 
+/*
+ * If the anchor is a SEP-31 receiver, it doesn't facilitate off-chain --> on-chain
+ * conversions. So this test will pass if no prices are returned when passing
+ * an off-chain asset as a 'sell_asset'.
+ */
 export const allowsOffChainSellAssets: Test = {
   sep: 38,
   assertion: "allows off-chain assets as 'sell_asset'",
@@ -486,9 +507,7 @@ export const allowsOffChainSellAssets: Test = {
       return result;
     }
     if (!pricesResponse.buy_assets) {
-      result.failure = makeFailure(this.failureModes.NO_ONCHAIN_ASSETS, {
-        asset: this.context.expects.sep38OffChainAsset,
-      });
+      // don't expect the anchor to support off-chain --> on-chain conversions
       return result;
     }
     for (const asset of pricesResponse.buy_assets) {
