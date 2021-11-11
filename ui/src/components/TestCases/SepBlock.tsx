@@ -53,6 +53,11 @@ const sepData: any = {
     source:
       "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md",
   },
+  38: {
+    name: "Request for Quote API",
+    source:
+      "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md",
+  },
 };
 
 export const SepBlock: React.FC<{
