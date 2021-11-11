@@ -86,6 +86,7 @@ export const hasValidSchema: Test = {
   dependencies: [hasQuoteServer, returnsValidJwt],
   context: {
     expects: {
+      sep38InfoObj: undefined,
       quoteServerUrl: undefined,
       sep38StellarAsset: undefined,
       token: undefined,
@@ -93,6 +94,7 @@ export const hasValidSchema: Test = {
     provides: {
       sep38OffChainAsset: undefined,
       sep38OffChainAssetDecimals: undefined,
+      sep38OffChainAssetBuyDeliveryMethod: undefined,
     },
   },
   failureModes: {
@@ -189,231 +191,13 @@ export const hasValidSchema: Test = {
       pricesResponse.buy_assets[0].asset;
     this.context.provides.sep38OffChainAssetDecimals =
       pricesResponse.buy_assets[0].decimals;
-    return result;
-  },
-};
-
-export const requiresSellAsset: Test = {
-  sep: 38,
-  assertion: "requires 'sell_asset' parameter",
-  group: "GET /prices",
-  dependencies: [requiresJwt, returnsValidJwt],
-  context: {
-    expects: {
-      quoteServerUrl: undefined,
-      sep38StellarAsset: undefined,
-      token: undefined,
-    },
-    provides: {},
-  },
-  failureModes: {
-    INVALID_ERROR_SCHEMA: {
-      name: "invalid error schema",
-      text(_args: any): string {
-        return "All error responses should contain a JSON body with an 'error' key-value pair";
-      },
-      links: {
-        "SEP-38 Errors":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#errors",
-      },
-    },
-    ...genericFailures,
-  },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/prices?" +
-          new URLSearchParams({
-            sell_amount: "100",
-          }),
-        {
-          headers: { Authorization: `Bearer ${this.context.expects.token}` },
-        },
-      ),
-    };
-    result.networkCalls.push(networkCall);
-    const errorJSON = await makeRequest(
-      networkCall,
-      400,
-      result,
-      "application/json",
-    );
-    if (!errorJSON) return result;
-    if (!errorJSON.error || typeof errorJSON.error !== "string") {
-      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
-      return result;
-    }
-    return result;
-  },
-};
-
-export const validatesSellAsset: Test = {
-  sep: 38,
-  assertion: "validates 'sell_asset' parameter",
-  group: "GET /prices",
-  dependencies: [requiresJwt, returnsValidJwt],
-  context: {
-    expects: {
-      quoteServerUrl: undefined,
-      sep38StellarAsset: undefined,
-      token: undefined,
-    },
-    provides: {},
-  },
-  failureModes: {
-    INVALID_ERROR_SCHEMA: {
-      name: "invalid error schema",
-      text(_args: any): string {
-        return "All error responses should contain a JSON body with an 'error' key-value pair";
-      },
-      links: {
-        "SEP-38 Errors":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#errors",
-      },
-    },
-    ...genericFailures,
-  },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/prices?" +
-          new URLSearchParams({
-            sell_asset: "test",
-            sell_amount: "100",
-          }),
-        {
-          headers: { Authorization: `Bearer ${this.context.expects.token}` },
-        },
-      ),
-    };
-    result.networkCalls.push(networkCall);
-    const errorJSON = await makeRequest(
-      networkCall,
-      400,
-      result,
-      "application/json",
-    );
-    if (!errorJSON) return result;
-    if (!errorJSON.error || typeof errorJSON.error !== "string") {
-      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
-      return result;
-    }
-    return result;
-  },
-};
-
-export const requiresSellAmount: Test = {
-  sep: 38,
-  assertion: "requires 'sell_amount' parameter",
-  group: "GET /prices",
-  dependencies: [requiresJwt, returnsValidJwt],
-  context: {
-    expects: {
-      quoteServerUrl: undefined,
-      sep38StellarAsset: undefined,
-      token: undefined,
-    },
-    provides: {},
-  },
-  failureModes: {
-    INVALID_ERROR_SCHEMA: {
-      name: "invalid error schema",
-      text(_args: any): string {
-        return "All error responses should contain a JSON body with an 'error' key-value pair";
-      },
-      links: {
-        "SEP-38 Errors":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#errors",
-      },
-    },
-    ...genericFailures,
-  },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/prices?" +
-          new URLSearchParams({
-            sell_asset: this.context.provides.sep38StellarAsset,
-          }),
-        {
-          headers: { Authorization: `Bearer ${this.context.expects.token}` },
-        },
-      ),
-    };
-    result.networkCalls.push(networkCall);
-    const errorJSON = await makeRequest(
-      networkCall,
-      400,
-      result,
-      "application/json",
-    );
-    if (!errorJSON) return result;
-    if (!errorJSON.error || typeof errorJSON.error !== "string") {
-      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
-      return result;
-    }
-    return result;
-  },
-};
-
-export const validatesSellAmount: Test = {
-  sep: 38,
-  assertion: "validates 'sell_amount' parameter",
-  group: "GET /prices",
-  dependencies: [requiresJwt, returnsValidJwt],
-  context: {
-    expects: {
-      quoteServerUrl: undefined,
-      sep38StellarAsset: undefined,
-      token: undefined,
-    },
-    provides: {},
-  },
-  failureModes: {
-    INVALID_ERROR_SCHEMA: {
-      name: "invalid error schema",
-      text(_args: any): string {
-        return "All error responses should contain a JSON body with an 'error' key-value pair";
-      },
-      links: {
-        "SEP-38 Errors":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#errors",
-      },
-    },
-    ...genericFailures,
-  },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/prices?" +
-          new URLSearchParams({
-            sell_asset: this.context.expects.sep38StellarAsset,
-            sell_amount: "test",
-          }),
-        {
-          headers: { Authorization: `Bearer ${this.context.expects.token}` },
-        },
-      ),
-    };
-    result.networkCalls.push(networkCall);
-    const errorJSON = await makeRequest(
-      networkCall,
-      400,
-      result,
-      "application/json",
-    );
-    if (!errorJSON) return result;
-    if (!errorJSON.error || typeof errorJSON.error !== "string") {
-      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
-      return result;
+    this.context.provides.sep38OffChainAssetBuyDeliveryMethod = null;
+    for (const assetObj of this.context.expects.sep38InfoObj.assets) {
+      if (assetObj.asset == pricesResponse.buy_assets[0].asset) {
+        this.context.provides.sep38OffChainAssetBuyDeliveryMethod =
+          assetObj.buy_delivery_methods[0].name;
+        break;
+      }
     }
     return result;
   },
@@ -537,12 +321,85 @@ export const allowsOffChainSellAssets: Test = {
   },
 };
 
+export const deliveryMethodIsOptional: Test = {
+  assertion: "specifying delivery method is optional",
+  sep: 38,
+  group: "GET /prices",
+  dependencies: [hasValidSchema],
+  context: {
+    expects: {
+      token: undefined,
+      quoteServerUrl: undefined,
+      sep38StellarAsset: undefined,
+      sep38OffChainAsset: undefined,
+      sep38OffChainAssetBuyDeliveryMethod: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_SCHEMA: {
+      name: "invalid GET /prices schema",
+      text(args: any): string {
+        return (
+          "The response body from GET /price does not match the schema defined by the protocol. " +
+          "Errors:\n\n" +
+          `${args.errors}`
+        );
+      },
+      links: {
+        "GET /price Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#response-2",
+      },
+    },
+    ...genericFailures,
+  },
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    if (!this.context.expects.sep38OffChainAssetBuyDeliveryMethod) {
+      // no buy delivery methods were specified for this off-chain asset
+      // so we've already made valid requests without a delivery method
+      // parameter value
+      return result;
+    }
+    const requestBody: any = {
+      sell_asset: this.context.expects.sep38StellarAsset,
+      buy_asset: this.context.expects.sep38OffChainAsset,
+      sell_amount: "100",
+    };
+    const networkCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.quoteServerUrl +
+          "/prices?" +
+          new URLSearchParams(requestBody),
+        {
+          headers: {
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+        },
+      ),
+    };
+    result.networkCalls.push(networkCall);
+    const pricesResponse = await makeRequest(
+      networkCall,
+      200,
+      result,
+      "application/json",
+    );
+    if (!pricesResponse) return result;
+    const validationResult = validate(pricesResponse, pricesSchema);
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+      return result;
+    }
+    return result;
+  },
+};
+
 export default [
   requiresJwt,
   hasValidSchema,
-  requiresSellAsset,
-  validatesSellAsset,
-  requiresSellAmount,
-  validatesSellAmount,
   allowsOffChainSellAssets,
+  deliveryMethodIsOptional,
 ];

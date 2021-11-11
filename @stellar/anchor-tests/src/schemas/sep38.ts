@@ -72,6 +72,7 @@ export const pricesSchema = {
       },
     },
   },
+  additionalProperties: false,
   required: ["buy_assets"],
 };
 
@@ -88,5 +89,44 @@ export const priceSchema = {
       type: "string",
     },
   },
+  additionalProperties: false,
   required: ["price", "sell_amount", "buy_amount"],
+};
+
+export const quoteSchema = {
+  type: "object",
+  properties: {
+    id: {
+      type: "string",
+    },
+    expires_at: {
+      type: "string",
+      format: "date-time",
+    },
+    price: {
+      type: "string",
+    },
+    sell_asset: {
+      type: "string",
+    },
+    buy_asset: {
+      type: "string",
+    },
+    sell_amount: {
+      type: "string",
+    },
+    buy_amount: {
+      type: "string",
+    },
+  },
+  additionalProperties: false,
+  required: [
+    "id",
+    "expires_at",
+    "price",
+    "sell_asset",
+    "buy_asset",
+    "sell_amount",
+    "buy_amount",
+  ],
 };

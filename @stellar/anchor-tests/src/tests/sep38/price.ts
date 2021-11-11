@@ -91,6 +91,7 @@ export const returnsValidResponse: Test = {
       sep38StellarAsset: undefined,
       sep38OffChainAsset: undefined,
       sep38OffChainAssetDecimals: undefined,
+      sep38OffChainAssetBuyDeliveryMethod: undefined,
     },
     provides: {
       sep38SellAmount: undefined,
@@ -100,7 +101,7 @@ export const returnsValidResponse: Test = {
   },
   failureModes: {
     INVALID_SCHEMA: {
-      name: "invalid GET /prices schema",
+      name: "invalid GET /price schema",
       text(args: any): string {
         return (
           "The response body from GET /price does not match the schema defined by the protocol. " +
@@ -127,15 +128,19 @@ export const returnsValidResponse: Test = {
   },
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
+    const requestBody: any = {
+      sell_asset: this.context.expects.sep38StellarAsset,
+      buy_asset: this.context.expects.sep38OffChainAsset,
+      sell_amount: "100",
+    };
+    if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
+      requestBody.buy_delivery_method =
+        this.context.expects.sep38OffChainAssetBuyDeliveryMethod;
     const networkCall: NetworkCall = {
       request: new Request(
         this.context.expects.quoteServerUrl +
           "/price?" +
-          new URLSearchParams({
-            sell_asset: this.context.expects.sep38StellarAsset,
-            buy_asset: this.context.expects.sep38OffChainAsset,
-            sell_amount: "100",
-          }),
+          new URLSearchParams(requestBody),
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -229,244 +234,6 @@ export const amountsAreValid: Test = {
   },
 };
 
-export const requiresSellAsset: Test = {
-  sep: 38,
-  assertion: "requires 'sell_asset' parameter",
-  group: "GET /price",
-  dependencies: [returnsValidResponse],
-  context: {
-    expects: {
-      token: undefined,
-      quoteServerUrl: undefined,
-      sep38OffChainAsset: undefined,
-    },
-    provides: {},
-  },
-  failureModes: {
-    INVALID_ERROR_SCHEMA: {
-      name: "invalid error schema",
-      text(_args: any): string {
-        return "All error responses should contain a JSON body with an 'error' key-value pair";
-      },
-      links: {
-        "SEP-38 Errors":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#errors",
-      },
-    },
-    ...genericFailures,
-  },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/price?" +
-          new URLSearchParams({
-            buy_asset: this.context.expects.sep38OffChainAsset,
-            sell_amount: "100",
-          }),
-        {
-          headers: {
-            Authorization: `Bearer ${this.context.expects.token}`,
-          },
-        },
-      ),
-    };
-    result.networkCalls.push(networkCall);
-    const priceResponse = await makeRequest(
-      networkCall,
-      400,
-      result,
-      "application/json",
-    );
-    if (!priceResponse) return result;
-    if (!priceResponse.error) {
-      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
-      return result;
-    }
-    return result;
-  },
-};
-
-export const validatesSellAsset: Test = {
-  sep: 38,
-  assertion: "validates 'sell_asset' parameter",
-  group: "GET /price",
-  dependencies: [returnsValidResponse],
-  context: {
-    expects: {
-      token: undefined,
-      quoteServerUrl: undefined,
-      sep38OffChainAsset: undefined,
-    },
-    provides: {},
-  },
-  failureModes: {
-    INVALID_ERROR_SCHEMA: {
-      name: "invalid error schema",
-      text(_args: any): string {
-        return "All error responses should contain a JSON body with an 'error' key-value pair";
-      },
-      links: {
-        "SEP-38 Errors":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#errors",
-      },
-    },
-    ...genericFailures,
-  },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/price?" +
-          new URLSearchParams({
-            sell_asset: "test",
-            buy_asset: this.context.expects.sep38OffChainAsset,
-            sell_amount: "100",
-          }),
-        {
-          headers: {
-            Authorization: `Bearer ${this.context.expects.token}`,
-          },
-        },
-      ),
-    };
-    result.networkCalls.push(networkCall);
-    const priceResponse = await makeRequest(
-      networkCall,
-      400,
-      result,
-      "application/json",
-    );
-    if (!priceResponse) return result;
-    if (!priceResponse.error) {
-      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
-      return result;
-    }
-    return result;
-  },
-};
-
-export const requiresBuyAsset: Test = {
-  sep: 38,
-  assertion: "requires 'buy_asset' parameter",
-  group: "GET /price",
-  dependencies: [returnsValidResponse],
-  context: {
-    expects: {
-      token: undefined,
-      quoteServerUrl: undefined,
-      sep38StellarAsset: undefined,
-    },
-    provides: {},
-  },
-  failureModes: {
-    INVALID_ERROR_SCHEMA: {
-      name: "invalid error schema",
-      text(_args: any): string {
-        return "All error responses should contain a JSON body with an 'error' key-value pair";
-      },
-      links: {
-        "SEP-38 Errors":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#errors",
-      },
-    },
-    ...genericFailures,
-  },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/price?" +
-          new URLSearchParams({
-            sell_asset: this.context.expects.sep38StellarAsset,
-            sell_amount: "100",
-          }),
-        {
-          headers: {
-            Authorization: `Bearer ${this.context.expects.token}`,
-          },
-        },
-      ),
-    };
-    result.networkCalls.push(networkCall);
-    const priceResponse = await makeRequest(
-      networkCall,
-      400,
-      result,
-      "application/json",
-    );
-    if (!priceResponse) return result;
-    if (!priceResponse.error) {
-      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
-      return result;
-    }
-    return result;
-  },
-};
-
-export const validatesBuyAsset: Test = {
-  sep: 38,
-  assertion: "validates 'buy_asset' parameter",
-  group: "GET /price",
-  dependencies: [returnsValidResponse],
-  context: {
-    expects: {
-      token: undefined,
-      quoteServerUrl: undefined,
-      sep38StellarAsset: undefined,
-    },
-    provides: {},
-  },
-  failureModes: {
-    INVALID_ERROR_SCHEMA: {
-      name: "invalid error schema",
-      text(_args: any): string {
-        return "All error responses should contain a JSON body with an 'error' key-value pair";
-      },
-      links: {
-        "SEP-38 Errors":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#errors",
-      },
-    },
-    ...genericFailures,
-  },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/price?" +
-          new URLSearchParams({
-            sell_asset: this.context.expects.sep38StellarAsset,
-            buy_asset: "test",
-            sell_amount: "100",
-          }),
-        {
-          headers: {
-            Authorization: `Bearer ${this.context.expects.token}`,
-          },
-        },
-      ),
-    };
-    result.networkCalls.push(networkCall);
-    const priceResponse = await makeRequest(
-      networkCall,
-      400,
-      result,
-      "application/json",
-    );
-    if (!priceResponse) return result;
-    if (!priceResponse.error) {
-      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
-      return result;
-    }
-    return result;
-  },
-};
-
 export const acceptsBuyAmounts: Test = {
   assertion: "accepts 'buy_amount' parameter",
   sep: 38,
@@ -478,6 +245,7 @@ export const acceptsBuyAmounts: Test = {
       quoteServerUrl: undefined,
       sep38StellarAsset: undefined,
       sep38OffChainAsset: undefined,
+      sep38OffChainAssetBuyDeliveryMethod: undefined,
     },
     provides: {},
   },
@@ -486,15 +254,95 @@ export const acceptsBuyAmounts: Test = {
   },
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
+    const requestBody: any = {
+      sell_asset: this.context.expects.sep38StellarAsset,
+      buy_asset: this.context.expects.sep38OffChainAsset,
+      buy_amount: "100",
+    };
+    if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
+      requestBody.buy_delivery_method =
+        this.context.expects.sep38OffChainAssetBuyDeliveryMethod;
     const networkCall: NetworkCall = {
       request: new Request(
         this.context.expects.quoteServerUrl +
           "/price?" +
-          new URLSearchParams({
-            sell_asset: this.context.expects.sep38StellarAsset,
-            buy_asset: this.context.expects.sep38OffChainAsset,
-            buy_amount: "100",
-          }),
+          new URLSearchParams(requestBody),
+        {
+          headers: {
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+        },
+      ),
+    };
+    result.networkCalls.push(networkCall);
+    const priceResponse = await makeRequest(
+      networkCall,
+      200,
+      result,
+      "application/json",
+    );
+    if (!priceResponse) return result;
+    const validationResult = validate(priceResponse, priceSchema);
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+      return result;
+    }
+    return result;
+  },
+};
+
+export const deliveryMethodIsOptional: Test = {
+  assertion: "specifying delivery method is optional",
+  sep: 38,
+  group: "GET /price",
+  dependencies: [returnsValidResponse],
+  context: {
+    expects: {
+      token: undefined,
+      quoteServerUrl: undefined,
+      sep38StellarAsset: undefined,
+      sep38OffChainAsset: undefined,
+      sep38OffChainAssetBuyDeliveryMethod: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_SCHEMA: {
+      name: "invalid GET /price schema",
+      text(args: any): string {
+        return (
+          "The response body from GET /price does not match the schema defined by the protocol. " +
+          "Errors:\n\n" +
+          `${args.errors}`
+        );
+      },
+      links: {
+        "GET /price Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#response-2",
+      },
+    },
+    ...genericFailures,
+  },
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    if (!this.context.expects.sep38OffChainAssetBuyDeliveryMethod) {
+      // no buy delivery methods were specified for this off-chain asset
+      // so we've already made valid requests without a delivery method
+      // parameter value
+      return result;
+    }
+    const requestBody: any = {
+      sell_asset: this.context.expects.sep38StellarAsset,
+      buy_asset: this.context.expects.sep38OffChainAsset,
+      sell_amount: "100",
+    };
+    const networkCall: NetworkCall = {
+      request: new Request(
+        this.context.expects.quoteServerUrl +
+          "/price?" +
+          new URLSearchParams(requestBody),
         {
           headers: {
             Authorization: `Bearer ${this.context.expects.token}`,
@@ -525,9 +373,6 @@ export default [
   requiresJwt,
   returnsValidResponse,
   amountsAreValid,
-  requiresSellAsset,
-  validatesSellAsset,
-  requiresBuyAsset,
-  validatesBuyAsset,
   acceptsBuyAmounts,
+  deliveryMethodIsOptional,
 ];
