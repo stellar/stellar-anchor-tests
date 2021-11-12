@@ -8,7 +8,7 @@ import { SepBlock } from "./SepBlock";
 import { SepGroupTracker } from "./SepGroupTracker";
 import { TestBlock } from "./TestBlock";
 
-export const SepUIOrder = [1, 10, 12, 6, 24, 31];
+export const SepUIOrder = [1, 10, 12, 6, 24, 31, 38];
 
 const TestCasesWrapper = styled.section`
   margin-top: 2rem;

@@ -1,6 +1,6 @@
 import { TestCase } from "types/testCases";
 
-export const SepUIOrder = [1, 10, 12, 6, 24, 31];
+export const SepUIOrder = [1, 10, 12, 6, 24, 31, 38];
 
 export function getTestRunId(test: any): string {
   // sep-group-assertion is unique in @stellar/anchor-tests

@@ -7,6 +7,7 @@ import { default as sep10Tests } from "../tests/sep10/tests";
 import { default as sep12Tests } from "../tests/sep12/tests";
 import { default as sep24Tests } from "../tests/sep24/tests";
 import { default as sep31Tests } from "../tests/sep31/tests";
+import { default as sep38Tests } from "../tests/sep38/tests";
 import { makeFailure } from "./failure";
 import { checkConfig } from "./config";
 
@@ -330,6 +331,9 @@ function getTopLevelTests(config: Config): Test[] {
   }
   if (config.seps.includes(31)) {
     tests = tests.concat(sep31Tests);
+  }
+  if (config.seps.includes(38)) {
+    tests = tests.concat(sep38Tests);
   }
   return filterBySearchStrings(tests, config.searchStrings as string[]);
 }

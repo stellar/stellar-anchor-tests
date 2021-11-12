@@ -106,7 +106,7 @@ export const configSchema = {
     seps: {
       type: "array",
       items: {
-        enum: [1, 6, 10, 12, 24, 31],
+        enum: [1, 6, 10, 12, 24, 31, 38],
       },
     },
     verbose: {

@@ -36,6 +36,7 @@ const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
   12: [1, 10, 12],
   24: [1, 10, 24],
   31: [1, 10, 12, 31],
+  38: [1, 10, 38],
 };
 // SEPs that require the config file field to be rendered in UI
 const CONFIG_SEPS = [6, 12, 31];
@@ -281,6 +282,7 @@ export const TestRunner = () => {
       6: "TRANSFER_SERVER",
       24: "TRANSFER_SERVER_SEP0024",
       31: "DIRECT_PAYMENT_SERVER",
+      38: "QUOTE_SERVER",
     }[sep];
     if (!toml || !toml[tomlAttribute as string]) {
       setServerFailure(`The SEP-1 stellar.toml file has no ${tomlAttribute}.`);

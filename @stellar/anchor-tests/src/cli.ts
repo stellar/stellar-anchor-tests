@@ -66,8 +66,8 @@ const command = yargs
     }
     if (argv.seps) {
       for (const sep of argv.seps) {
-        if (![1, 6, 10, 12, 24, 31].includes(sep))
-          throw "error: invalid --sep value provided. Choices: 1, 6, 10, 12, 24, 31.";
+        if (![1, 6, 10, 12, 24, 31, 38].includes(sep))
+          throw "error: invalid --sep value provided. Choices: 1, 6, 10, 12, 24, 31, 38.";
       }
       if (
         (argv.seps.includes(6) ||
