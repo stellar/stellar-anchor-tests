@@ -10,7 +10,7 @@ import { returnsValidJwt } from "../sep10/tests";
 
 export const requiresJwt: Test = {
   sep: 38,
-  assertion: "requires a SEP-10 JWT",
+  assertion: "requires SEP-10 authentication",
   group: "POST /quote",
   dependencies: [returnsValidJwt, hasQuoteServer],
   context: {
@@ -73,7 +73,7 @@ export const requiresJwt: Test = {
 
 export const canCreateQuote: Test = {
   sep: 38,
-  assertion: "can create a quote",
+  assertion: "returns a valid response",
   group: "POST /quote",
   dependencies: [returnsValidJwt, hasQuoteServer],
   context: {
@@ -229,7 +229,7 @@ export const canCreateQuote: Test = {
 
 export const amountsAreValid: Test = {
   sep: 38,
-  assertion: "amounts are valid",
+  assertion: "quote amounts are correctly calculated",
   group: "POST /quote",
   dependencies: [canCreateQuote],
   context: {

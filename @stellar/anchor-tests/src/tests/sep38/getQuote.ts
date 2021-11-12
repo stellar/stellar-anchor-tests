@@ -62,7 +62,7 @@ export const requiresJwt: Test = {
 
 export const canFetchQuote: Test = {
   sep: 38,
-  assertion: "can fetch existing quote",
+  assertion: "can fetch an existing quote",
   group: "GET /quote",
   dependencies: [returnsValidJwt, canCreateQuote],
   context: {
@@ -149,7 +149,7 @@ export const canFetchQuote: Test = {
 
 export const returnsNotFound: Test = {
   sep: 38,
-  assertion: "returns 404 for unknown quote ID",
+  assertion: "returns a 404 for unknown quote IDs",
   group: "GET /quote",
   dependencies: [returnsValidJwt, hasQuoteServer],
   context: {

@@ -180,7 +180,7 @@ export const returnsValidResponse: Test = {
 
 export const amountsAreValid: Test = {
   sep: 38,
-  assertion: "amounts are valid",
+  assertion: "returned amounts are calculated correctly",
   group: "GET /price",
   dependencies: [returnsValidResponse],
   context: {
@@ -235,7 +235,7 @@ export const amountsAreValid: Test = {
 };
 
 export const acceptsBuyAmounts: Test = {
-  assertion: "accepts 'buy_amount' parameter",
+  assertion: "accepts the 'buy_amount' parameter",
   sep: 38,
   group: "GET /price",
   dependencies: [returnsValidResponse],

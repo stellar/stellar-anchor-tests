@@ -3,7 +3,7 @@ import { tomlExists } from "../sep1/tests";
 import { makeFailure } from "../../helpers/failure";
 
 export const hasQuoteServer: Test = {
-  assertion: "has QUOTE_SERVER attribute",
+  assertion: "has a QUOTE_SERVER attribute",
   sep: 38,
   group: "TOML Tests",
   dependencies: [tomlExists],

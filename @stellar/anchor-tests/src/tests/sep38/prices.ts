@@ -81,7 +81,7 @@ export const requiresJwt: Test = {
  */
 export const hasValidSchema: Test = {
   sep: 38,
-  assertion: "has a valid response schema",
+  assertion: "returns a valid response",
   group: "GET /prices",
   dependencies: [hasQuoteServer, returnsValidJwt],
   context: {

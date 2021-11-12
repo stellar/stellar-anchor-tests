@@ -9,7 +9,7 @@ import { hasQuoteServer } from "./toml";
 import { infoSchema } from "../../schemas/sep38";
 
 export const hasValidInfoSchema: Test = {
-  assertion: "matches the expected schema",
+  assertion: "returns a valid info response",
   sep: 38,
   group: "GET /info",
   dependencies: [hasQuoteServer],
