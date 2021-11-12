@@ -4,12 +4,20 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
-## Unreleased
-- Update the expected response schema for `GET /customer` requests
-
-## [v0.1.7](https://github.com/stellar/stellar-anchor-tests/compare/v0.1.6...master)
+## [v0.2.0](https://github.com/stellar/stellar-anchor-tests/compare/v0.1.7...v0.2.0)
 
 ### Add
+
+- Added tests for SEP-38 endpoints ([#73](https://github.com/stellar/stellar-anchor-tests/pull/73))
+
+### Update
+
+- Update the expected response schema for `GET /customer` requests
+
+## [v0.1.7](https://github.com/stellar/stellar-anchor-tests/compare/v0.1.6...v0.1.7)
+
+### Add
+
 - Use `type` parameter in SEP-12 `GET /customer` requests
 
 ## [v0.1.6](https://github.com/stellar/stellar-anchor-tests/compare/v0.1.5...v0.1.6)
