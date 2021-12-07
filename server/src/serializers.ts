@@ -125,9 +125,7 @@ async function serializeNetworkCall(
   if (networkCall.request.body) {
     const contentType = networkCall.request.headers.get("Content-Type") || "";
     if (contentType.includes("application/json")) {
-      serializedNetworkCall.request.body = await networkCall.request
-        .clone()
-        .json();
+      serializedNetworkCall.request.body = await networkCall.request.json();
     } else if (contentType.includes("multipart/form-data")) {
       // TODO
     } else if (contentType.includes("application/x-www-form-urlencoded")) {
@@ -147,13 +145,9 @@ async function serializeNetworkCall(
       const contentType =
         networkCall.response.headers.get("Content-Type") || "";
       if (contentType.includes("application/json")) {
-        serializedNetworkCall.response.body = await networkCall.response
-          .clone()
-          .json();
+        serializedNetworkCall.response.body = await networkCall.response.json();
       } else {
-        serializedNetworkCall.response.body = await networkCall.response
-          .clone()
-          .text();
+        serializedNetworkCall.response.body = await networkCall.response.text();
       }
     }
   }
