@@ -3,7 +3,7 @@ import { tomlExists } from "../sep1/tests";
 import { makeFailure } from "../../helpers/failure";
 
 export const hasQuoteServer: Test = {
-  assertion: "has a QUOTE_SERVER attribute",
+  assertion: "has an ANCHOR_QUOTE_SERVER attribute",
   sep: 38,
   group: "TOML Tests",
   dependencies: [tomlExists],
@@ -16,10 +16,10 @@ export const hasQuoteServer: Test = {
     },
   },
   failureModes: {
-    QUOTE_SERVER_NOT_FOUND: {
-      name: "QUOTE_PAYMENT_SERVER not found",
+    ANCHOR_QUOTE_SERVER_NOT_FOUND: {
+      name: "ANCHOR_QUOTE_SERVER not found",
       text(_args: any): string {
-        return "The stellar.toml file does not have a valid QUOTE_PAYMENT_SERVER URL";
+        return "The stellar.toml file does not have a valid ANCHOR_QUOTE_SERVER URL";
       },
       links: {
         "SEP-38 Specification":
@@ -42,9 +42,9 @@ export const hasQuoteServer: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     this.context.provides.quoteServerUrl =
-      this.context.expects.tomlObj.QUOTE_SERVER;
+      this.context.expects.tomlObj.ANCHOR_QUOTE_SERVER;
     if (!this.context.provides.quoteServerUrl) {
-      result.failure = makeFailure(this.failureModes.QUOTE_SERVER_NOT_FOUND);
+      result.failure = makeFailure(this.failureModes.ANCHOR_QUOTE_SERVER_NOT_FOUND);
       return result;
     }
     if (
