@@ -4,6 +4,16 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
+## [v0.3.0](https://github.com/stellar/stellar-anchor-tests/compare/v0.2.0...v0.3.0)
+
+### Update
+
+- Stop requiring athentication for the SEP-38 `/price(s)` endpoints, because authentication stoped being mandatory for non-quote endpoints on [PR stellar-protocol#1144](https://github.com/stellar/stellar-protocol/pull/1144).
+
+### Fix
+
+- Fix SEP-38 toml variable name from `QUOTE_SERVER` to `ANCHOR_QUOTE_SERVER`.
+
 ## [v0.2.0](https://github.com/stellar/stellar-anchor-tests/compare/v0.1.7...v0.2.0)
 
 ### Add
