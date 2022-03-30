@@ -53,7 +53,7 @@ export const HomeDomainField = ({
       if (tomlObj.DIRECT_PAYMENT_SERVER) {
         newSupportedSeps.push(31);
       }
-      if (tomlObj.QUOTE_SERVER) {
+      if (tomlObj.ANCHOR_QUOTE_SERVER) {
         newSupportedSeps.push(38);
       }
       if (newSupportedSeps.length) {

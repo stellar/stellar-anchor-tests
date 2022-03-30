@@ -282,7 +282,7 @@ export const TestRunner = () => {
       6: "TRANSFER_SERVER",
       24: "TRANSFER_SERVER_SEP0024",
       31: "DIRECT_PAYMENT_SERVER",
-      38: "QUOTE_SERVER",
+      38: "ANCHOR_QUOTE_SERVER",
     }[sep];
     if (!toml || !toml[tomlAttribute as string]) {
       setServerFailure(`The SEP-1 stellar.toml file has no ${tomlAttribute}.`);
