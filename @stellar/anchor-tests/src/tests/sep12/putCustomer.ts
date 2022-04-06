@@ -117,7 +117,6 @@ export const canCreateCustomer: Test = {
     const putCustomerRequest = makeSep12Request({
       url: this.context.expects.kycServerUrl + "/customer",
       data: {
-        account: this.context.expects.clientKeypair.publicKey(),
         ...customerValues,
       },
       headers: {
@@ -295,7 +294,6 @@ export const differentMemosSameAccount: Test = {
     const sep12Request = makeSep12Request({
       url: this.context.expects.kycServerUrl + "/customer",
       data: {
-        account: this.context.provides.sendingAnchorClientKeypair.publicKey(),
         memo: this.context.provides.sendingCustomerMemo.value.toString(
           "base64",
         ),
@@ -327,7 +325,6 @@ export const differentMemosSameAccount: Test = {
     const receivingCustomerRequest = makeSep12Request({
       url: this.context.expects.kycServerUrl + "/customer",
       data: {
-        account: this.context.provides.sendingAnchorClientKeypair.publicKey(),
         memo: this.context.provides.receivingCustomerMemo.value.toString(
           "base64",
         ),
