@@ -4,6 +4,12 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
+## [v0.4.0](https://github.com/stellar/stellar-anchor-tests/compare/v0.3.0...v0.4.0)
+
+### Update
+
+- SEP-12 tests no longer include the `account` request parameter since it has been deprecated. ([#82](https://github.com/stellar/stellar-anchor-tests/pull/82))
+
 ## [v0.3.0](https://github.com/stellar/stellar-anchor-tests/compare/v0.2.0...v0.3.0)
 
 ### Update

@@ -121,9 +121,7 @@ const newCustomerValidSchema: Test = {
     );
     if (!token) return result;
     const customerType = getCreateCustomerType(config);
-    const requestParamsObj: Record<string, string> = {
-      account: clientKeypair.publicKey(),
-    };
+    const requestParamsObj: Record<string, string> = {};
     if (customerType) requestParamsObj["type"] = customerType;
     const searchParams = new URLSearchParams(requestParamsObj);
     const getCustomerCall: NetworkCall = {
@@ -261,8 +259,8 @@ export const canFetchExistingCustomerById: Test = {
 };
 tests.push(canFetchExistingCustomerById);
 
-const canFetchExistingCustomerByAccount: Test = {
-  assertion: "can retrieve customer using 'account'",
+const canFetchExistingCustomerBySep10Token: Test = {
+  assertion: "can retrieve customer using SEP-10 token",
   sep: 12,
   group: getCustomerGroup,
   dependencies: [canCreateCustomer],
@@ -315,9 +313,7 @@ const canFetchExistingCustomerByAccount: Test = {
     }
     const result: Result = { networkCalls: [] };
     const customerType = getCreateCustomerType(config);
-    const requestParamsObj: Record<string, string> = {
-      account: this.context.expects.clientKeypair.publicKey(),
-    };
+    const requestParamsObj: Record<string, string> = {};
     if (customerType) requestParamsObj["type"] = customerType;
     const searchParams = new URLSearchParams(requestParamsObj);
     const getCustomerCall: NetworkCall = {
@@ -353,6 +349,6 @@ const canFetchExistingCustomerByAccount: Test = {
     return result;
   },
 };
-tests.push(canFetchExistingCustomerByAccount);
+tests.push(canFetchExistingCustomerBySep10Token);
 
 export default tests;
