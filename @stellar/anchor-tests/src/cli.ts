@@ -133,5 +133,7 @@ let args = command.argv;
   }
   const endTime = Date.now();
   console.log(); // add new line between results and stats
-  printStats(getStats(testRuns), startTime, endTime);
+  const stats = getStats(testRuns);
+  printStats(stats, startTime, endTime);
+  if (stats.failed > 0) process.exit(1);
 })();
