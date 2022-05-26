@@ -42,6 +42,7 @@ export const requiresJwt: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       sell_amount: "100",
+      context: "sep31",
     };
     if (this.context.expects.sep38BuyDeliveryMethod)
       requestBody.buy_delivery_method =
@@ -162,6 +163,7 @@ export const canCreateQuote: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       sell_amount: "100",
+      context: "sep31",
     };
     if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
       requestBody.buy_delivery_method =

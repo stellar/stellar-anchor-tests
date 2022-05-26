@@ -78,6 +78,7 @@ export const returnsValidResponse: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       sell_amount: "100",
+      context: "sep31",
     };
     if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
       requestBody.buy_delivery_method =
@@ -145,8 +146,8 @@ export const amountsAreValid: Test = {
         return `The amounts returned in the response do not add up. ${args.buyAmount} * ${args.price} != ${args.sellAmount}`;
       },
       links: {
-        "GET /price Response":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#response-2",
+        "Price formulas":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#price-formulas",
       },
     },
     ...genericFailures,
@@ -204,6 +205,7 @@ export const acceptsBuyAmounts: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       buy_amount: "100",
+      context: "sep31",
     };
     if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
       requestBody.buy_delivery_method =
@@ -283,6 +285,7 @@ export const deliveryMethodIsOptional: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       sell_amount: "100",
+      context: "sep31",
     };
     const networkCall: NetworkCall = {
       request: new Request(
