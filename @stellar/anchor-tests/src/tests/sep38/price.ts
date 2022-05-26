@@ -43,6 +43,7 @@ export const returnsValidResponse: Test = {
       sep38SellAmount: undefined,
       sep38BuyAmount: undefined,
       sep38Price: undefined,
+      sep38TotalPrice: undefined,
     },
   },
   failureModes: {
@@ -113,14 +114,17 @@ export const returnsValidResponse: Test = {
     if (
       !Number(priceResponse.buy_amount) ||
       !Number(priceResponse.sell_amount) ||
-      !Number(priceResponse.price)
+      !Number(priceResponse.price) ||
+      !Number(priceResponse.total_price)
     ) {
       result.failure = makeFailure(this.failureModes.INVALID_NUMBER);
       return result;
     }
+    
     this.context.provides.sep38SellAmount = Number(priceResponse.sell_amount);
     this.context.provides.sep38BuyAmount = Number(priceResponse.buy_amount);
     this.context.provides.sep38Price = Number(priceResponse.price);
+    this.context.provides.sep38TotalPrice = Number(priceResponse.total_price);
     return result;
   },
 };
@@ -135,6 +139,7 @@ export const amountsAreValid: Test = {
       sep38SellAmount: undefined,
       sep38BuyAmount: undefined,
       sep38Price: undefined,
+      sep38TotalPrice: undefined,
       sep38OffChainAssetDecimals: undefined,
     },
     provides: {},
@@ -143,7 +148,7 @@ export const amountsAreValid: Test = {
     INVALID_AMOUNTS: {
       name: "amounts and price don't match",
       text(args: any): string {
-        return `The amounts returned in the response do not add up. ${args.buyAmount} * ${args.price} != ${args.sellAmount}`;
+        return `The amounts returned in the response do not add up. ${args.message}`;
       },
       links: {
         "Price formulas":
@@ -152,31 +157,26 @@ export const amountsAreValid: Test = {
     },
     ...genericFailures,
   },
+
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    const roundingMultiplier = Math.pow(
-      10,
-      Number(this.context.expects.sep38OffChainAssetDecimals),
-    );
-    if (
-      Math.round(
-        (Number(this.context.expects.sep38SellAmount) /
-          Number(this.context.expects.sep38Price)) *
-          roundingMultiplier,
-      ) /
-        roundingMultiplier !==
-      Math.round(
-        Number(this.context.expects.sep38BuyAmount) * roundingMultiplier,
-      ) /
-        roundingMultiplier
-    ) {
-      result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, {
-        buyAmount: this.context.expects.sep38BuyAmount,
-        sellAmount: this.context.expects.sep38SellAmount,
-        price: this.context.expects.sep38Price,
-      });
+    const decimals = Number(this.context.expects.sep38OffChainAssetDecimals);
+    const roundingMultiplier = Math.pow(10, decimals);
+
+    // validate if sell_amount / total_price = buy_amount
+    const sellAmount = Number(this.context.expects.sep38SellAmount);
+    const buyAmount = Number(this.context.expects.sep38BuyAmount);
+    const totalPrice = Number(this.context.expects.sep38TotalPrice)
+    const totalPriceMatchesAmounts = 
+      Math.round((sellAmount / totalPrice) * roundingMultiplier) / roundingMultiplier
+      === Math.round(buyAmount * roundingMultiplier) / roundingMultiplier;
+    if (!totalPriceMatchesAmounts) {
+      var message = `\nFormula "sell_amount = buy_amount * total_price" is not true for the number of decimals (${decimals}) required:`
+      message += `\n\t${sellAmount} != ${buyAmount} * ${totalPrice}`
+      result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, { message });
       return result;
     }
+
     return result;
   },
 };
