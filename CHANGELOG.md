@@ -8,7 +8,10 @@ A breaking change will get clearly marked in this log.
 
 ### Update
 
-- SEP-38 tests now use the `context` parameter in `GET /price` and `POST /quotes`, and require `total_price` and `fee` in the responses of these endpoints. ([#86](https://github.com/stellar/stellar-anchor-tests/pull/86))
+- Update SEP-38 tests based on [stellar/stellar-protocol#1204](https://github.com/stellar/stellar-protocol/pull/1204). The changes include:
+  - SEP-38 `GET /price` and `POST /quote` now require the mandatory `context` request parameter.
+  - SEP-38 `GET /price` and `GET|POST /quote` now return the mandatory response parameters `total_price` and `fee`.
+  - The SEP-38 amounts formula validation was updated based on the new version from [SEP38#price-formulas](https://github.com/stellar/stellar-protocol/blob/faa99165050dcd44a9e0f700c3d019258d8b4321/ecosystem/sep-0038.md#price-formulas).
 
 ## [v0.4.1](https://github.com/stellar/stellar-anchor-tests/compare/v0.4.0...v0.4.1)
 
