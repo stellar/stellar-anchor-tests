@@ -76,12 +76,47 @@ export const pricesSchema = {
   required: ["buy_assets"],
 };
 
+const rateFeeSchema = {
+  type: "object",
+  properties: {
+    total: {
+      type: "string"
+    },
+    asset: {
+      type: "string"
+    },
+    details: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string"
+          },
+          description: {
+            type: "string"
+          },
+          amount: {
+            type: "string"
+          },
+        },
+        required: ["name", "amount"],
+      }
+    }
+  },
+  required: ["total", "asset"]
+}
+
 export const priceSchema = {
   type: "object",
   properties: {
     price: {
       type: "string",
     },
+    total_price: {
+      type: "string",
+    },
+    fee: rateFeeSchema,
     sell_amount: {
       type: "string",
     },
@@ -90,7 +125,7 @@ export const priceSchema = {
     },
   },
   additionalProperties: false,
-  required: ["price", "sell_amount", "buy_amount"],
+  required: ["price", "total_price", "sell_amount", "buy_amount", "fee"],
 };
 
 export const quoteSchema = {
@@ -106,6 +141,10 @@ export const quoteSchema = {
     price: {
       type: "string",
     },
+    total_price: {
+      type: "string",
+    },
+    fee: rateFeeSchema,
     sell_asset: {
       type: "string",
     },
@@ -124,6 +163,8 @@ export const quoteSchema = {
     "id",
     "expires_at",
     "price",
+    "total_price",
+    "fee",
     "sell_asset",
     "buy_asset",
     "sell_amount",
