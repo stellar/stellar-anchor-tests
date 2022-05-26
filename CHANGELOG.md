@@ -4,6 +4,12 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
+## [v0.5.0](https://github.com/stellar/stellar-anchor-tests/compare/v0.4.1...v0.5.0)
+
+### Update
+
+- SEP-38 tests now use the `context` parameter in `GET /price` and `POST /quotes`, and require `total_price` and `fee` in the responses of these endpoints. ([#86](https://github.com/stellar/stellar-anchor-tests/pull/86))
+
 ## [v0.4.1](https://github.com/stellar/stellar-anchor-tests/compare/v0.4.0...v0.4.1)
 
 ### Update
