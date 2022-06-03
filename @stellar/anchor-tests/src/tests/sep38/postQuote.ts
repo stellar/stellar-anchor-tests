@@ -8,9 +8,10 @@ import { makeRequest } from "../../helpers/request";
 import { quoteSchema } from "../../schemas/sep38";
 import { returnsValidJwt } from "../sep10/tests";
 
-export const requiresJwt: Test = {
+export const requiresJwtWithContext = (sep38Context: string): Test => ({
   sep: 38,
-  assertion: "requires SEP-10 authentication",
+  assertion:
+    "requires SEP-10 authentication with { 'context': '" + sep38Context + "' }",
   group: "POST /quote",
   dependencies: [returnsValidJwt, hasQuoteServer],
   context: {
@@ -42,7 +43,7 @@ export const requiresJwt: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       sell_amount: "100",
-      context: "sep31",
+      context: sep38Context,
     };
     if (this.context.expects.sep38BuyDeliveryMethod)
       requestBody.buy_delivery_method =
@@ -70,11 +71,30 @@ export const requiresJwt: Test = {
     }
     return result;
   },
+});
+export const requiresJwt: Test = {
+  sep: 38,
+  assertion: "requires SEP-10 authentication (make sure all contexts pass)",
+  group: "POST /quote",
+  dependencies: (config: Config) => {
+    const result: Test[] = [returnsValidJwt, hasQuoteServer];
+    for (const sep38Context of config.sepConfig?.[38]?.contexts ?? []) {
+      result.push(requiresJwtWithContext(sep38Context));
+    }
+    return result;
+  },
+  context: { expects: {}, provides: {} },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    return result;
+  },
 };
 
-export const canCreateQuote: Test = {
+export const canCreateQuoteWithContext = (sep38Context: string): Test => ({
   sep: 38,
-  assertion: "returns a valid response",
+  assertion:
+    "returns a valid response with { 'context': '" + sep38Context + "' }",
   group: "POST /quote",
   dependencies: [returnsValidJwt, hasQuoteServer],
   context: {
@@ -163,7 +183,7 @@ export const canCreateQuote: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       sell_amount: "100",
-      context: "sep31",
+      context: sep38Context,
     };
     if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
       requestBody.buy_delivery_method =
@@ -227,6 +247,24 @@ export const canCreateQuote: Test = {
     this.context.provides.sep38QuoteResponseObj = quoteResponse;
     return result;
   },
+});
+export const canCreateQuote: Test = {
+  sep: 38,
+  assertion: "returns a valid response (make sure all contexts pass)",
+  group: "POST /quote",
+  dependencies: (config: Config) => {
+    const result: Test[] = [returnsValidJwt, hasQuoteServer];
+    for (const sep38Context of config.sepConfig?.[38]?.contexts ?? []) {
+      result.push(canCreateQuoteWithContext(sep38Context));
+    }
+    return result;
+  },
+  context: { expects: {}, provides: {} },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    return result;
+  },
 };
 
 export const amountsAreValid: Test = {
@@ -261,16 +299,25 @@ export const amountsAreValid: Test = {
 
     // validate total_price
     // sell_amount / total_price = buy_amount
-    const sellAmount = Number(this.context.expects.sep38QuoteResponseObj.sell_amount);
-    const buyAmount = Number(this.context.expects.sep38QuoteResponseObj.buy_amount);
-    const totalPrice = Number(this.context.expects.sep38QuoteResponseObj.total_price)
-    const totalPriceMatchesAmounts = 
-      Math.round((sellAmount / totalPrice) * roundingMultiplier) / roundingMultiplier
-      === Math.round(buyAmount * roundingMultiplier) / roundingMultiplier;
+    const sellAmount = Number(
+      this.context.expects.sep38QuoteResponseObj.sell_amount,
+    );
+    const buyAmount = Number(
+      this.context.expects.sep38QuoteResponseObj.buy_amount,
+    );
+    const totalPrice = Number(
+      this.context.expects.sep38QuoteResponseObj.total_price,
+    );
+    const totalPriceMatchesAmounts =
+      Math.round((sellAmount / totalPrice) * roundingMultiplier) /
+        roundingMultiplier ===
+      Math.round(buyAmount * roundingMultiplier) / roundingMultiplier;
     if (!totalPriceMatchesAmounts) {
-      var message = `\nFormula "sell_amount = buy_amount * total_price" is not true for the number of decimals (${decimals}) required:`
-      message += `\n\t${sellAmount} != ${buyAmount} * ${totalPrice}`
-      result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, { message });
+      var message = `\nFormula "sell_amount = buy_amount * total_price" is not true for the number of decimals (${decimals}) required:`;
+      message += `\n\t${sellAmount} != ${buyAmount} * ${totalPrice}`;
+      result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, {
+        message,
+      });
       return result;
     }
 
@@ -282,24 +329,31 @@ export const amountsAreValid: Test = {
     const feeTotal = this.context.expects.sep38QuoteResponseObj.fee.total;
     if (feeAsset === sellAsset) {
       // sell_amount - fee = price * buy_amount    // when `fee` is in `sell_asset`
-      const priceAndFeeMatchAmounts = 
-        Math.round((sellAmount - feeTotal) * roundingMultiplier) / roundingMultiplier
-        === Math.round(price * buyAmount * roundingMultiplier) / roundingMultiplier;
+      const priceAndFeeMatchAmounts =
+        Math.round((sellAmount - feeTotal) * roundingMultiplier) /
+          roundingMultiplier ===
+        Math.round(price * buyAmount * roundingMultiplier) / roundingMultiplier;
       if (!priceAndFeeMatchAmounts) {
-        var message = `\nFormula "sell_amount - fee = price * buy_amount" is not true for the number of decimals (${decimals}) required:`
-        message += `\n\t${sellAmount} - ${feeTotal} != ${price} * ${buyAmount}`
-        result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, { message });
+        var message = `\nFormula "sell_amount - fee = price * buy_amount" is not true for the number of decimals (${decimals}) required:`;
+        message += `\n\t${sellAmount} - ${feeTotal} != ${price} * ${buyAmount}`;
+        result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, {
+          message,
+        });
         return result;
       }
     } else if (feeAsset === buyAsset) {
       // sell_amount / price = buy_amount + fee  // when `fee` is in `buy_asset`
       const priceAndFeeMatchAmounts =
-        Math.round((sellAmount / price) * roundingMultiplier) / roundingMultiplier
-        === Math.round((buyAmount + feeTotal) * roundingMultiplier) / roundingMultiplier;
+        Math.round((sellAmount / price) * roundingMultiplier) /
+          roundingMultiplier ===
+        Math.round((buyAmount + feeTotal) * roundingMultiplier) /
+          roundingMultiplier;
       if (!priceAndFeeMatchAmounts) {
-        var message = `\nFormula "sell_amount / price = (buy_amount + fee)" is not true for the number of decimals (${decimals}) required:`
-        message += `\n\t${sellAmount} / ${price} != ${buyAmount} + ${feeTotal}`
-        result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, { message });
+        var message = `\nFormula "sell_amount / price = (buy_amount + fee)" is not true for the number of decimals (${decimals}) required:`;
+        message += `\n\t${sellAmount} / ${price} != ${buyAmount} + ${feeTotal}`;
+        result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, {
+          message,
+        });
         return result;
       }
     }
