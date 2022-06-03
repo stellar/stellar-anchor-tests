@@ -433,9 +433,19 @@ export const returnsProperSchemaForKnownAccounts: Test = {
     "returns a success or customer info status response for valid requests from KYC'ed accounts",
   sep: 6,
   group: withdrawTestsGroup,
-  dependencies: [canCreateCustomer].concat(
-    withdrawRequiresAssetCode.dependencies || [],
-  ),
+  dependencies: (config: Config) => {
+    let resultDependencies = [canCreateCustomer];
+
+    if (withdrawRequiresAssetCode.dependencies) {
+      let otherDependencies =
+        withdrawRequiresAssetCode.dependencies instanceof Function
+          ? withdrawRequiresAssetCode.dependencies(config)
+          : withdrawRequiresAssetCode.dependencies;
+      resultDependencies = resultDependencies.concat(otherDependencies);
+    }
+
+    return resultDependencies;
+  },
   context: {
     expects: withdrawRequiresAssetCode.context.expects,
     provides: {

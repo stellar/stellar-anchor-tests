@@ -276,6 +276,10 @@ export interface Context {
   provides: { [key: string]: any };
 }
 
+export interface DependenciesCaller {
+  (config: Config): Test[];
+}
+
 /**
  * An object representing a test case.
  */
@@ -312,7 +316,7 @@ export interface Test {
    * Tests that directly or indirectly depend on themselves, creating a cycle, will always fail. If a test expects
    * a value provided by another test, the latter must be included in the former's dependencies array.
    */
-  dependencies?: Test[];
+  dependencies?: Test[] | DependenciesCaller;
 
   /**
    * Runs the test logic and returns a [[Result]] object.

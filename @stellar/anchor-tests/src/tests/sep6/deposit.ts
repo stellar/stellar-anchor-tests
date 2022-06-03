@@ -375,9 +375,19 @@ export const returnsProperSchemaForKnownAccounts: Test = {
     "returns a success or customer info status response for valid requests from KYC'ed accounts",
   sep: 6,
   group: depositTestsGroup,
-  dependencies: [canCreateCustomer].concat(
-    depositRequiresAssetCode.dependencies || [],
-  ),
+  dependencies: (config: Config) => {
+    let resultDependencies = [canCreateCustomer];
+
+    if (depositRequiresAssetCode.dependencies) {
+      let otherDependencies =
+        depositRequiresAssetCode.dependencies instanceof Function
+          ? depositRequiresAssetCode.dependencies(config)
+          : depositRequiresAssetCode.dependencies;
+      resultDependencies = resultDependencies.concat(otherDependencies);
+    }
+
+    return resultDependencies;
+  },
   context: {
     expects: depositRequiresAssetCode.context.expects,
     provides: {
