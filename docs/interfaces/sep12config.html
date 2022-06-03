@@ -87,10 +87,7 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="sep12config.html#createcustomer" class="tsd-kind-icon">create<wbr>Customer</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="sep12config.html#customers" class="tsd-kind-icon">customers</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="sep12config.html#deletecustomer" class="tsd-kind-icon">delete<wbr>Customer</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="sep12config.html#sameaccountdifferentmemos" class="tsd-kind-icon">same<wbr>Account<wbr>Different<wbr>Memos</a></li>
 							</ul>
 						</section>
 					</div>
@@ -99,28 +96,12 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="createcustomer" class="tsd-anchor"></a>
-					<h3>create<wbr>Customer</h3>
-					<div class="tsd-signature tsd-kind-icon">create<wbr>Customer<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in @stellar/anchor-tests/src/types.ts:89</li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The name of the key within <code>customers</code> whose object contains the data that should be used when creating
-							the a customer. Specifically, the data will be used in the &quot;can create a customer&quot; SEP-12 test.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="customers" class="tsd-anchor"></a>
 					<h3>customers</h3>
 					<div class="tsd-signature tsd-kind-icon">customers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in @stellar/anchor-tests/src/types.ts:83</li>
+							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L86">src/types.ts:86</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -128,46 +109,12 @@
 							<p>A map containing objects that can be used in the body of
 							<a href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md">PUT /customer</a> requests.</p>
 						</div>
-						<p>4 unique customer objects are required.</p>
+						<p>SEP-6 requires one customer object.</p>
+						<p>SEP-12 requires two customer objects.</p>
+						<p>SEP-31 requires two customer objects.</p>
 						<p>If binary data types are required for registering customers via SEP-12, a relative or absolute path of the
 							file should be provided as the value for the associated
 						<a href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0009.md">SEP-9</a> attribute.</p>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="deletecustomer" class="tsd-anchor"></a>
-					<h3>delete<wbr>Customer</h3>
-					<div class="tsd-signature tsd-kind-icon">delete<wbr>Customer<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in @stellar/anchor-tests/src/types.ts:96</li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The name of the key within the <code>customers</code> whose object contains the data that should be used when creating,
-								and then immediately deleting, a customer. Specifically, the data will be used in the &quot;can delete a customer&quot;
-							SEP-12 test. This cannot be the same value assigned to <code>createCustomer</code>.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="sameaccountdifferentmemos" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> same<wbr>Account<wbr>Different<wbr>Memos</h3>
-					<div class="tsd-signature tsd-kind-icon">same<wbr>Account<wbr>Different<wbr>Memos<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in @stellar/anchor-tests/src/types.ts:106</li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>This configuration attribute is required unless SEP-31&#39;s <code>sendingClientName</code> and <code>receivingClientName</code>
-							attributes are provided.</p>
-						</div>
-						<p>An array containing two strings, both of which must be keys within the <code>customers</code> object. These strings
-							cannot be the same and must not match <code>createCustomer</code> or <code>deleteCustomer</code> values. Specifically, these
-						customers will be created in the &quot;memos differentiate customers registered by the same account&quot; test.</p>
 					</div>
 				</section>
 			</section>
@@ -192,9 +139,6 @@
 						<a href="context.html" class="tsd-kind-icon">Context</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="dependenciescaller.html" class="tsd-kind-icon">Dependencies<wbr>Caller</a>
-					</li>
-					<li class=" tsd-kind-interface">
 						<a href="failure.html" class="tsd-kind-icon">Failure</a>
 					</li>
 					<li class=" tsd-kind-interface">
@@ -209,16 +153,7 @@
 						<a href="sep12config.html" class="tsd-kind-icon">Sep12<wbr>Config</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="sep12config.html#createcustomer" class="tsd-kind-icon">create<wbr>Customer</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
 								<a href="sep12config.html#customers" class="tsd-kind-icon">customers</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="sep12config.html#deletecustomer" class="tsd-kind-icon">delete<wbr>Customer</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="sep12config.html#sameaccountdifferentmemos" class="tsd-kind-icon">same<wbr>Account<wbr>Different<wbr>Memos</a>
 							</li>
 						</ul>
 					</li>
@@ -226,9 +161,6 @@
 				<ul class="after-current">
 					<li class=" tsd-kind-interface">
 						<a href="sep31config.html" class="tsd-kind-icon">Sep31<wbr>Config</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="sep38config.html" class="tsd-kind-icon">Sep38<wbr>Config</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="sep6config.html" class="tsd-kind-icon">Sep6<wbr>Config</a>
