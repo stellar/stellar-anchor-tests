@@ -43,6 +43,9 @@ export const returnsValidResponse: Test = {
       sep38SellAmount: undefined,
       sep38BuyAmount: undefined,
       sep38Price: undefined,
+      sep38TotalPrice: undefined,
+      sep38FeeTotal: undefined,
+      sep38FeeAsset: undefined,
     },
   },
   failureModes: {
@@ -78,6 +81,7 @@ export const returnsValidResponse: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       sell_amount: "100",
+      context: "sep31",
     };
     if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
       requestBody.buy_delivery_method =
@@ -101,6 +105,7 @@ export const returnsValidResponse: Test = {
       result,
       "application/json",
     );
+
     if (!priceResponse) return result;
     const validationResult = validate(priceResponse, priceSchema);
     if (validationResult.errors.length !== 0) {
@@ -109,17 +114,31 @@ export const returnsValidResponse: Test = {
       });
       return result;
     }
+
+    if (!priceResponse.fee || !priceResponse.fee.asset) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: "The response body from GET /price does not contain a fee asset.",
+      });
+      return result;
+    }
+
     if (
       !Number(priceResponse.buy_amount) ||
       !Number(priceResponse.sell_amount) ||
-      !Number(priceResponse.price)
+      !Number(priceResponse.price) ||
+      !Number(priceResponse.total_price) ||
+      !Number(priceResponse.fee.total)
     ) {
       result.failure = makeFailure(this.failureModes.INVALID_NUMBER);
       return result;
     }
+    
     this.context.provides.sep38SellAmount = Number(priceResponse.sell_amount);
     this.context.provides.sep38BuyAmount = Number(priceResponse.buy_amount);
     this.context.provides.sep38Price = Number(priceResponse.price);
+    this.context.provides.sep38TotalPrice = Number(priceResponse.total_price);
+    this.context.provides.sep38FeeTotal = Number(priceResponse.fee.total);
+    this.context.provides.sep38FeeAsset = priceResponse.fee.asset;
     return result;
   },
 };
@@ -134,7 +153,12 @@ export const amountsAreValid: Test = {
       sep38SellAmount: undefined,
       sep38BuyAmount: undefined,
       sep38Price: undefined,
+      sep38TotalPrice: undefined,
+      sep38FeeTotal: undefined,
+      sep38FeeAsset: undefined,
       sep38OffChainAssetDecimals: undefined,
+      sep38StellarAsset: undefined,   // sell_asset
+      sep38OffChainAsset: undefined,  // buy_asset
     },
     provides: {},
   },
@@ -142,40 +166,66 @@ export const amountsAreValid: Test = {
     INVALID_AMOUNTS: {
       name: "amounts and price don't match",
       text(args: any): string {
-        return `The amounts returned in the response do not add up. ${args.buyAmount} * ${args.price} != ${args.sellAmount}`;
+        return `The amounts returned in the response do not add up. ${args.message}`;
       },
       links: {
-        "GET /price Response":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#response-2",
+        "Price formulas":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#price-formulas",
       },
     },
     ...genericFailures,
   },
+
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    const roundingMultiplier = Math.pow(
-      10,
-      Number(this.context.expects.sep38OffChainAssetDecimals),
-    );
-    if (
-      Math.round(
-        (Number(this.context.expects.sep38SellAmount) /
-          Number(this.context.expects.sep38Price)) *
-          roundingMultiplier,
-      ) /
-        roundingMultiplier !==
-      Math.round(
-        Number(this.context.expects.sep38BuyAmount) * roundingMultiplier,
-      ) /
-        roundingMultiplier
-    ) {
-      result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, {
-        buyAmount: this.context.expects.sep38BuyAmount,
-        sellAmount: this.context.expects.sep38SellAmount,
-        price: this.context.expects.sep38Price,
-      });
+    const decimals = Number(this.context.expects.sep38OffChainAssetDecimals);
+    const roundingMultiplier = Math.pow(10, decimals);
+
+    // validate total_price
+    // sell_amount / total_price = buy_amount
+    const sellAmount = Number(this.context.expects.sep38SellAmount);
+    const buyAmount = Number(this.context.expects.sep38BuyAmount);
+    const totalPrice = Number(this.context.expects.sep38TotalPrice)
+    const totalPriceMatchesAmounts = 
+      Math.round((sellAmount / totalPrice) * roundingMultiplier) / roundingMultiplier
+      === Math.round(buyAmount * roundingMultiplier) / roundingMultiplier;
+    if (!totalPriceMatchesAmounts) {
+      var message = `\nFormula "sell_amount = buy_amount * total_price" is not true for the number of decimals (${decimals}) required:`
+      message += `\n\t${sellAmount} != ${buyAmount} * ${totalPrice}`
+      result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, { message });
       return result;
     }
+
+    // validate price
+    const sellAsset = this.context.expects.sep38StellarAsset;
+    const buyAsset = this.context.expects.sep38OffChainAsset;
+    const feeAsset = this.context.expects.sep38FeeAsset;
+    const price = this.context.expects.sep38Price;
+    const feeTotal = this.context.expects.sep38FeeTotal;
+    if (feeAsset === sellAsset) {
+      // sell_amount - fee = price * buy_amount    // when `fee` is in `sell_asset`
+      const priceAndFeeMatchAmounts = 
+        Math.round((sellAmount - feeTotal) * roundingMultiplier) / roundingMultiplier
+        === Math.round(price * buyAmount * roundingMultiplier) / roundingMultiplier;
+      if (!priceAndFeeMatchAmounts) {
+        var message = `\nFormula "sell_amount - fee = price * buy_amount" is not true for the number of decimals (${decimals}) required:`
+        message += `\n\t${sellAmount} - ${feeTotal} != ${price} * ${buyAmount}`
+        result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, { message });
+        return result;
+      }
+    } else if (feeAsset === buyAsset) {
+      // sell_amount / price = buy_amount + fee  // when `fee` is in `buy_asset`
+      const priceAndFeeMatchAmounts =
+        Math.round((sellAmount / price) * roundingMultiplier) / roundingMultiplier
+        === Math.round((buyAmount + feeTotal) * roundingMultiplier) / roundingMultiplier;
+      if (!priceAndFeeMatchAmounts) {
+        var message = `\nFormula "sell_amount / price = (buy_amount + fee)" is not true for the number of decimals (${decimals}) required:`
+        message += `\n\t${sellAmount} / ${price} != ${buyAmount} + ${feeTotal}`
+        result.failure = makeFailure(this.failureModes.INVALID_AMOUNTS, { message });
+        return result;
+      }
+    }
+
     return result;
   },
 };
@@ -204,6 +254,7 @@ export const acceptsBuyAmounts: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       buy_amount: "100",
+      context: "sep31",
     };
     if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
       requestBody.buy_delivery_method =
@@ -283,6 +334,7 @@ export const deliveryMethodIsOptional: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       sell_amount: "100",
+      context: "sep31",
     };
     const networkCall: NetworkCall = {
       request: new Request(

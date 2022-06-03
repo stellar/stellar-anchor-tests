@@ -121,7 +121,11 @@ export const hasValidSchema: Test = {
     }
     for (const asset of pricesResponse.buy_assets) {
       const parts = asset.asset.split(":");
-      if (parts.length !== 2 || parts[0] !== "iso4217") {
+      
+      const notValidFiat = parts.length === 2 && parts[0] !== "iso4217";
+      const notValidStellar = parts.length === 3 && parts[0] !== "stellar";
+      const notValidAtAll = parts.length < 2 || parts.length > 3;
+      if (notValidFiat || notValidStellar || notValidAtAll) {
         result.failure = makeFailure(this.failureModes.INVALID_ASSET_VALUE, {
           asset: asset.asset,
         });
