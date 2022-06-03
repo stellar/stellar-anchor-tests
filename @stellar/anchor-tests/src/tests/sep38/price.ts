@@ -144,10 +144,9 @@ const returnsValidResponseWithContext = (sep38Context: string): Test => ({
     return result;
   },
 });
-
 export const returnsValidResponse: Test = {
   sep: 38,
-  assertion: "returns a valid response (all contexts pass)",
+  assertion: "returns a valid response (make sure all contexts pass)",
   group: "GET /price",
   dependencies: (config: Config) => {
     const result: Test[] = [returnsValidJwt, hasQuoteServer];
@@ -271,8 +270,11 @@ export const amountsAreValid: Test = {
   },
 };
 
-export const acceptsBuyAmounts: Test = {
-  assertion: "accepts the 'buy_amount' parameter",
+const acceptsBuyAmountsWithContext = (sep38Context: string): Test => ({
+  assertion:
+    "accepts the 'buy_amount' parameter with { 'context': '" +
+    sep38Context +
+    "' }",
   sep: 38,
   group: "GET /price",
   dependencies: [returnsValidResponse],
@@ -295,7 +297,7 @@ export const acceptsBuyAmounts: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       buy_amount: "100",
-      context: "sep31",
+      context: sep38Context,
     };
     if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
       requestBody.buy_delivery_method =
@@ -329,10 +331,42 @@ export const acceptsBuyAmounts: Test = {
     }
     return result;
   },
+});
+export const acceptsBuyAmounts: Test = {
+  assertion: "accepts the 'buy_amount' parameter (make sure all contexts pass)",
+  sep: 38,
+  group: "GET /price",
+  dependencies: (config: Config) => {
+    const result: Test[] = [returnsValidResponse];
+    for (const sep38Context of config.sepConfig?.[38]?.contexts ?? []) {
+      result.push(acceptsBuyAmountsWithContext(sep38Context));
+    }
+    return result;
+  },
+  context: {
+    expects: {
+      token: undefined,
+      quoteServerUrl: undefined,
+      sep38StellarAsset: undefined,
+      sep38OffChainAsset: undefined,
+      sep38OffChainAssetBuyDeliveryMethod: undefined,
+    },
+    provides: {},
+  },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    return result;
+  },
 };
 
-export const deliveryMethodIsOptional: Test = {
-  assertion: "specifying delivery method is optional",
+export const deliveryMethodIsOptionalWithContext = (
+  sep38Context: string,
+): Test => ({
+  assertion:
+    "specifying delivery method is optional with { 'context': '" +
+    sep38Context +
+    "' }",
   sep: 38,
   group: "GET /price",
   dependencies: [returnsValidResponse],
@@ -375,7 +409,7 @@ export const deliveryMethodIsOptional: Test = {
       sell_asset: this.context.expects.sep38StellarAsset,
       buy_asset: this.context.expects.sep38OffChainAsset,
       sell_amount: "100",
-      context: "sep31",
+      context: sep38Context,
     };
     const networkCall: NetworkCall = {
       request: new Request(
@@ -404,6 +438,34 @@ export const deliveryMethodIsOptional: Test = {
       });
       return result;
     }
+    return result;
+  },
+});
+export const deliveryMethodIsOptional: Test = {
+  assertion:
+    "specifying delivery method is optional (make sure all contexts pass)",
+  sep: 38,
+  group: "GET /price",
+  dependencies: (config: Config) => {
+    const result: Test[] = [returnsValidResponse];
+    for (const sep38Context of config.sepConfig?.[38]?.contexts ?? []) {
+      result.push(deliveryMethodIsOptionalWithContext(sep38Context));
+    }
+    return result;
+  },
+  context: {
+    expects: {
+      token: undefined,
+      quoteServerUrl: undefined,
+      sep38StellarAsset: undefined,
+      sep38OffChainAsset: undefined,
+      sep38OffChainAssetBuyDeliveryMethod: undefined,
+    },
+    provides: {},
+  },
+  failureModes: genericFailures,
+  async run(_config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
     return result;
   },
 };
