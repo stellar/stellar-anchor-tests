@@ -20,6 +20,7 @@ export const ConfigModalContent: React.FC = () => (
           "6": {},
           "12": {},
           "31": {},
+          "38": {},
         }}
       ></Json>
       <p>The formats for each SEP are outlined below.</p>
@@ -193,6 +194,24 @@ export const ConfigModalContent: React.FC = () => (
         <strong>sendingClientName</strong> and{" "}
         <strong>receivingClientName</strong> properties.
       </p>
+
+      <Heading4>SEP-38</Heading4>
+      <p>
+        SEP-38 configuration objects are used for specifying with which
+        context(s) the tests should be executed, where the valid ones are `sep6`
+        and `sep31`.
+      </p>
+      <Json
+        src={{
+          contexts: ["sep6", "sep31"],
+        }}
+      ></Json>
+      <ul>
+        <li>
+          <strong>contexts</strong>: the list of contexts to test. As of this
+          date, the supported contexts are `sep6` and `sep31`.
+        </li>
+      </ul>
     </Modal.Body>
   </>
 );

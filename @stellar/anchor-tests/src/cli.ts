@@ -72,10 +72,11 @@ const command = yargs
       if (
         (argv.seps.includes(6) ||
           argv.seps.includes(12) ||
-          argv.seps.includes(31)) &&
+          argv.seps.includes(31) ||
+          argv.seps.includes(38)) &&
         !argv.sepConfig
       ) {
-        throw "error: SEP 6, 12, & 31 require a configuration file (--sep-config, -c)";
+        throw "error: SEP 6, 12, 31 & 38 require a configuration file (--sep-config, -c)";
       }
     }
     return true;

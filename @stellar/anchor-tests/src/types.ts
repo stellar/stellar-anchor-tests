@@ -44,7 +44,7 @@ export interface Config {
   searchStrings?: string[];
 
   /**
-   * Only relevant for SEP-6, 12, & 31.
+   * Only relevant for SEP-6, 12, 31 & 38.
    *
    * A ``SepConfig`` object.
    */
@@ -63,6 +63,7 @@ export interface SepConfig {
   6?: Sep6Config;
   12?: Sep12Config;
   31?: Sep31Config;
+  38?: Sep38Config;
 }
 
 /**
@@ -170,6 +171,16 @@ export interface Sep6Config {
      */
     types?: Record<string, { transactionFields: any }>;
   };
+}
+
+/**
+ * The configuration object for SEP-38 tests.
+ */
+export interface Sep38Config {
+  /**
+   * The list of contexts to test. As of this date, the contexts can be `sep6` or `sep31`.
+   */
+  contexts: string[];
 }
 
 /**
