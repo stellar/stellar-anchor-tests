@@ -155,17 +155,7 @@ export const returnsValidResponse: Test = {
     }
     return result;
   },
-  context: {
-    expects: {
-      token: undefined,
-      quoteServerUrl: undefined,
-      sep38StellarAsset: undefined,
-      sep38OffChainAsset: undefined,
-      sep38OffChainAssetDecimals: undefined,
-      sep38OffChainAssetBuyDeliveryMethod: undefined,
-    },
-    provides: {},
-  },
+  context: { expects: {}, provides: {} },
   failureModes: genericFailures,
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
@@ -343,16 +333,7 @@ export const acceptsBuyAmounts: Test = {
     }
     return result;
   },
-  context: {
-    expects: {
-      token: undefined,
-      quoteServerUrl: undefined,
-      sep38StellarAsset: undefined,
-      sep38OffChainAsset: undefined,
-      sep38OffChainAssetBuyDeliveryMethod: undefined,
-    },
-    provides: {},
-  },
+  context: { expects: {}, provides: {} },
   failureModes: genericFailures,
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
@@ -453,16 +434,7 @@ export const deliveryMethodIsOptional: Test = {
     }
     return result;
   },
-  context: {
-    expects: {
-      token: undefined,
-      quoteServerUrl: undefined,
-      sep38StellarAsset: undefined,
-      sep38OffChainAsset: undefined,
-      sep38OffChainAssetBuyDeliveryMethod: undefined,
-    },
-    provides: {},
-  },
+  context: { expects: {}, provides: {} },
   failureModes: genericFailures,
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
