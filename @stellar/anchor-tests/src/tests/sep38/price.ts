@@ -25,10 +25,9 @@ import { returnsValidJwt } from "../sep10/tests";
  * TODO: handle case where anchor only supports conversion in a
  * single direction. This applies to other tests as well.
  */
-const returnsValidResponseWithContext = (sep38Context: string): Test => ({
+const returnsValidResponse: Test = {
   sep: 38,
-  assertion:
-    "returns a valid response with { 'context': '" + sep38Context + "' }",
+  assertion: "returns a valid response with",
   group: "GET /price",
   dependencies: [returnsValidJwt, hasQuoteServer],
   context: {
@@ -76,89 +75,84 @@ const returnsValidResponseWithContext = (sep38Context: string): Test => ({
     },
     ...genericFailures,
   },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const requestBody: any = {
-      sell_asset: this.context.expects.sep38StellarAsset,
-      buy_asset: this.context.expects.sep38OffChainAsset,
-      sell_amount: "100",
-      context: sep38Context,
-    };
-    if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
-      requestBody.buy_delivery_method =
-        this.context.expects.sep38OffChainAssetBuyDeliveryMethod;
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/price?" +
-          new URLSearchParams(requestBody),
-        {
-          headers: {
-            Authorization: `Bearer ${this.context.expects.token}`,
+  async run(config: Config): Promise<Result> {
+    const runWithContext = async (sep38Context: string): Promise<Result> => {
+      const result: Result = { networkCalls: [] };
+      const requestBody: any = {
+        sell_asset: this.context.expects.sep38StellarAsset,
+        buy_asset: this.context.expects.sep38OffChainAsset,
+        sell_amount: "100",
+        context: sep38Context,
+      };
+      if (
+        this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined
+      )
+        requestBody.buy_delivery_method =
+          this.context.expects.sep38OffChainAssetBuyDeliveryMethod;
+      const networkCall: NetworkCall = {
+        request: new Request(
+          this.context.expects.quoteServerUrl +
+            "/price?" +
+            new URLSearchParams(requestBody),
+          {
+            headers: {
+              Authorization: `Bearer ${this.context.expects.token}`,
+            },
           },
-        },
-      ),
+        ),
+      };
+      result.networkCalls.push(networkCall);
+      const priceResponse = await makeRequest(
+        networkCall,
+        200,
+        result,
+        "application/json",
+      );
+
+      if (!priceResponse) return result;
+      const validationResult = validate(priceResponse, priceSchema);
+      if (validationResult.errors.length !== 0) {
+        result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+          errors: validationResult.errors.join("\n"),
+        });
+        return result;
+      }
+
+      if (!priceResponse.fee || !priceResponse.fee.asset) {
+        result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+          errors:
+            "The response body from GET /price does not contain a fee asset.",
+        });
+        return result;
+      }
+
+      if (
+        !Number(priceResponse.buy_amount) ||
+        !Number(priceResponse.sell_amount) ||
+        !Number(priceResponse.price) ||
+        !Number(priceResponse.total_price) ||
+        !Number(priceResponse.fee.total)
+      ) {
+        result.failure = makeFailure(this.failureModes.INVALID_NUMBER);
+        return result;
+      }
+
+      this.context.provides.sep38SellAmount = Number(priceResponse.sell_amount);
+      this.context.provides.sep38BuyAmount = Number(priceResponse.buy_amount);
+      this.context.provides.sep38Price = Number(priceResponse.price);
+      this.context.provides.sep38TotalPrice = Number(priceResponse.total_price);
+      this.context.provides.sep38FeeTotal = Number(priceResponse.fee.total);
+      this.context.provides.sep38FeeAsset = priceResponse.fee.asset;
+      return result;
     };
-    result.networkCalls.push(networkCall);
-    const priceResponse = await makeRequest(
-      networkCall,
-      200,
-      result,
-      "application/json",
-    );
 
-    if (!priceResponse) return result;
-    const validationResult = validate(priceResponse, priceSchema);
-    if (validationResult.errors.length !== 0) {
-      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
-        errors: validationResult.errors.join("\n"),
-      });
-      return result;
-    }
-
-    if (!priceResponse.fee || !priceResponse.fee.asset) {
-      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
-        errors:
-          "The response body from GET /price does not contain a fee asset.",
-      });
-      return result;
-    }
-
-    if (
-      !Number(priceResponse.buy_amount) ||
-      !Number(priceResponse.sell_amount) ||
-      !Number(priceResponse.price) ||
-      !Number(priceResponse.total_price) ||
-      !Number(priceResponse.fee.total)
-    ) {
-      result.failure = makeFailure(this.failureModes.INVALID_NUMBER);
-      return result;
-    }
-
-    this.context.provides.sep38SellAmount = Number(priceResponse.sell_amount);
-    this.context.provides.sep38BuyAmount = Number(priceResponse.buy_amount);
-    this.context.provides.sep38Price = Number(priceResponse.price);
-    this.context.provides.sep38TotalPrice = Number(priceResponse.total_price);
-    this.context.provides.sep38FeeTotal = Number(priceResponse.fee.total);
-    this.context.provides.sep38FeeAsset = priceResponse.fee.asset;
-    return result;
-  },
-});
-export const returnsValidResponse: Test = {
-  sep: 38,
-  assertion: "returns a valid response (make sure all contexts pass)",
-  group: "GET /price",
-  dependencies: (config: Config) => {
-    const result: Test[] = [returnsValidJwt, hasQuoteServer];
+    let result: Result = { networkCalls: [] };
     for (const sep38Context of config.sepConfig?.[38]?.contexts ?? []) {
-      result.push(returnsValidResponseWithContext(sep38Context));
+      result = await runWithContext(sep38Context);
+      if (!!result.failure) {
+        return result;
+      }
     }
-    return result;
-  },
-  context: { expects: {}, provides: {} },
-  failureModes: genericFailures,
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
     return result;
   },
 };
@@ -260,11 +254,8 @@ export const amountsAreValid: Test = {
   },
 };
 
-const acceptsBuyAmountsWithContext = (sep38Context: string): Test => ({
-  assertion:
-    "accepts the 'buy_amount' parameter with { 'context': '" +
-    sep38Context +
-    "' }",
+const acceptsBuyAmounts: Test = {
+  assertion: "accepts the 'buy_amount' parameter with",
   sep: 38,
   group: "GET /price",
   dependencies: [returnsValidResponse],
@@ -281,73 +272,63 @@ const acceptsBuyAmountsWithContext = (sep38Context: string): Test => ({
   failureModes: {
     ...genericFailures,
   },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const requestBody: any = {
-      sell_asset: this.context.expects.sep38StellarAsset,
-      buy_asset: this.context.expects.sep38OffChainAsset,
-      buy_amount: "100",
-      context: sep38Context,
-    };
-    if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
-      requestBody.buy_delivery_method =
-        this.context.expects.sep38OffChainAssetBuyDeliveryMethod;
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/price?" +
-          new URLSearchParams(requestBody),
-        {
-          headers: {
-            Authorization: `Bearer ${this.context.expects.token}`,
+  async run(config: Config): Promise<Result> {
+    const runWithContext = async (sep38Context: string): Promise<Result> => {
+      const result: Result = { networkCalls: [] };
+      const requestBody: any = {
+        sell_asset: this.context.expects.sep38StellarAsset,
+        buy_asset: this.context.expects.sep38OffChainAsset,
+        buy_amount: "100",
+        context: sep38Context,
+      };
+      if (
+        this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined
+      )
+        requestBody.buy_delivery_method =
+          this.context.expects.sep38OffChainAssetBuyDeliveryMethod;
+      const networkCall: NetworkCall = {
+        request: new Request(
+          this.context.expects.quoteServerUrl +
+            "/price?" +
+            new URLSearchParams(requestBody),
+          {
+            headers: {
+              Authorization: `Bearer ${this.context.expects.token}`,
+            },
           },
-        },
-      ),
-    };
-    result.networkCalls.push(networkCall);
-    const priceResponse = await makeRequest(
-      networkCall,
-      200,
-      result,
-      "application/json",
-    );
-    if (!priceResponse) return result;
-    const validationResult = validate(priceResponse, priceSchema);
-    if (validationResult.errors.length !== 0) {
-      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
-        errors: validationResult.errors.join("\n"),
-      });
+        ),
+      };
+      result.networkCalls.push(networkCall);
+      const priceResponse = await makeRequest(
+        networkCall,
+        200,
+        result,
+        "application/json",
+      );
+      if (!priceResponse) return result;
+      const validationResult = validate(priceResponse, priceSchema);
+      if (validationResult.errors.length !== 0) {
+        result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+          errors: validationResult.errors.join("\n"),
+        });
+        return result;
+      }
       return result;
-    }
-    return result;
-  },
-});
-export const acceptsBuyAmounts: Test = {
-  assertion: "accepts the 'buy_amount' parameter (make sure all contexts pass)",
-  sep: 38,
-  group: "GET /price",
-  dependencies: (config: Config) => {
-    const result: Test[] = [returnsValidResponse];
+    };
+
+    let result: Result = { networkCalls: [] };
     for (const sep38Context of config.sepConfig?.[38]?.contexts ?? []) {
-      result.push(acceptsBuyAmountsWithContext(sep38Context));
+      result = await runWithContext(sep38Context);
+      if (!!result.failure) {
+        return result;
+      }
     }
-    return result;
-  },
-  context: { expects: {}, provides: {} },
-  failureModes: genericFailures,
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
     return result;
   },
 };
 
-export const deliveryMethodIsOptionalWithContext = (
-  sep38Context: string,
-): Test => ({
-  assertion:
-    "specifying delivery method is optional with { 'context': '" +
-    sep38Context +
-    "' }",
+export const deliveryMethodIsOptional: Test = {
+  assertion: "specifying delivery method is optional with",
   sep: 38,
   group: "GET /price",
   dependencies: [returnsValidResponse],
@@ -378,66 +359,58 @@ export const deliveryMethodIsOptionalWithContext = (
     },
     ...genericFailures,
   },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    if (!this.context.expects.sep38OffChainAssetBuyDeliveryMethod) {
-      // no buy delivery methods were specified for this off-chain asset
-      // so we've already made valid requests without a delivery method
-      // parameter value
-      return result;
-    }
-    const requestBody: any = {
-      sell_asset: this.context.expects.sep38StellarAsset,
-      buy_asset: this.context.expects.sep38OffChainAsset,
-      sell_amount: "100",
-      context: sep38Context,
-    };
-    const networkCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.quoteServerUrl +
-          "/price?" +
-          new URLSearchParams(requestBody),
-        {
-          headers: {
-            Authorization: `Bearer ${this.context.expects.token}`,
+  async run(config: Config): Promise<Result> {
+    const runWithContext = async (sep38Context: string): Promise<Result> => {
+      const result: Result = { networkCalls: [] };
+      if (!this.context.expects.sep38OffChainAssetBuyDeliveryMethod) {
+        // no buy delivery methods were specified for this off-chain asset
+        // so we've already made valid requests without a delivery method
+        // parameter value
+        return result;
+      }
+      const requestBody: any = {
+        sell_asset: this.context.expects.sep38StellarAsset,
+        buy_asset: this.context.expects.sep38OffChainAsset,
+        sell_amount: "100",
+        context: sep38Context,
+      };
+      const networkCall: NetworkCall = {
+        request: new Request(
+          this.context.expects.quoteServerUrl +
+            "/price?" +
+            new URLSearchParams(requestBody),
+          {
+            headers: {
+              Authorization: `Bearer ${this.context.expects.token}`,
+            },
           },
-        },
-      ),
-    };
-    result.networkCalls.push(networkCall);
-    const priceResponse = await makeRequest(
-      networkCall,
-      200,
-      result,
-      "application/json",
-    );
-    if (!priceResponse) return result;
-    const validationResult = validate(priceResponse, priceSchema);
-    if (validationResult.errors.length !== 0) {
-      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
-        errors: validationResult.errors.join("\n"),
-      });
+        ),
+      };
+      result.networkCalls.push(networkCall);
+      const priceResponse = await makeRequest(
+        networkCall,
+        200,
+        result,
+        "application/json",
+      );
+      if (!priceResponse) return result;
+      const validationResult = validate(priceResponse, priceSchema);
+      if (validationResult.errors.length !== 0) {
+        result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+          errors: validationResult.errors.join("\n"),
+        });
+        return result;
+      }
       return result;
-    }
-    return result;
-  },
-});
-export const deliveryMethodIsOptional: Test = {
-  assertion:
-    "specifying delivery method is optional (make sure all contexts pass)",
-  sep: 38,
-  group: "GET /price",
-  dependencies: (config: Config) => {
-    const result: Test[] = [returnsValidResponse];
+    };
+
+    let result: Result = { networkCalls: [] };
     for (const sep38Context of config.sepConfig?.[38]?.contexts ?? []) {
-      result.push(deliveryMethodIsOptionalWithContext(sep38Context));
+      result = await runWithContext(sep38Context);
+      if (!!result.failure) {
+        return result;
+      }
     }
-    return result;
-  },
-  context: { expects: {}, provides: {} },
-  failureModes: genericFailures,
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
     return result;
   },
 };

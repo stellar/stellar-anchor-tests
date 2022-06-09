@@ -8,10 +8,9 @@ import { makeRequest } from "../../helpers/request";
 import { quoteSchema } from "../../schemas/sep38";
 import { returnsValidJwt } from "../sep10/tests";
 
-export const requiresJwtWithContext = (sep38Context: string): Test => ({
+export const requiresJwt: Test = {
   sep: 38,
-  assertion:
-    "requires SEP-10 authentication with { 'context': '" + sep38Context + "' }",
+  assertion: "requires SEP-10 authentication",
   group: "POST /quote",
   dependencies: [returnsValidJwt, hasQuoteServer],
   context: {
@@ -37,64 +36,56 @@ export const requiresJwtWithContext = (sep38Context: string): Test => ({
     },
     ...genericFailures,
   },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const requestBody: any = {
-      sell_asset: this.context.expects.sep38StellarAsset,
-      buy_asset: this.context.expects.sep38OffChainAsset,
-      sell_amount: "100",
-      context: sep38Context,
-    };
-    if (this.context.expects.sep38BuyDeliveryMethod)
-      requestBody.buy_delivery_method =
-        this.context.expects.sep38OffChainAssetBuyDeliveryMethod;
-    const networkCall: NetworkCall = {
-      request: new Request(this.context.expects.quoteServerUrl + "/quote", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      }),
-    };
-    result.networkCalls.push(networkCall);
-    const quoteResponse = await makeRequest(
-      networkCall,
-      403,
-      result,
-      "application/json",
-    );
-    if (!quoteResponse) return result;
-    if (!quoteResponse.error) {
-      result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
+  async run(config: Config): Promise<Result> {
+    const runWithContext = async (sep38Context: string): Promise<Result> => {
+      const result: Result = { networkCalls: [] };
+      const requestBody: any = {
+        sell_asset: this.context.expects.sep38StellarAsset,
+        buy_asset: this.context.expects.sep38OffChainAsset,
+        sell_amount: "100",
+        context: sep38Context,
+      };
+      if (this.context.expects.sep38BuyDeliveryMethod)
+        requestBody.buy_delivery_method =
+          this.context.expects.sep38OffChainAssetBuyDeliveryMethod;
+      const networkCall: NetworkCall = {
+        request: new Request(this.context.expects.quoteServerUrl + "/quote", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        }),
+      };
+      result.networkCalls.push(networkCall);
+      const quoteResponse = await makeRequest(
+        networkCall,
+        403,
+        result,
+        "application/json",
+      );
+      if (!quoteResponse) return result;
+      if (!quoteResponse.error) {
+        result.failure = makeFailure(this.failureModes.INVALID_ERROR_SCHEMA);
+        return result;
+      }
       return result;
-    }
-    return result;
-  },
-});
-export const requiresJwt: Test = {
-  sep: 38,
-  assertion: "requires SEP-10 authentication (make sure all contexts pass)",
-  group: "POST /quote",
-  dependencies: (config: Config) => {
-    const result: Test[] = [returnsValidJwt, hasQuoteServer];
+    };
+
+    let result: Result = { networkCalls: [] };
     for (const sep38Context of config.sepConfig?.[38]?.contexts ?? []) {
-      result.push(requiresJwtWithContext(sep38Context));
+      result = await runWithContext(sep38Context);
+      if (!!result.failure) {
+        return result;
+      }
     }
-    return result;
-  },
-  context: { expects: {}, provides: {} },
-  failureModes: genericFailures,
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
     return result;
   },
 };
 
-export const canCreateQuoteWithContext = (sep38Context: string): Test => ({
+export const canCreateQuote: Test = {
   sep: 38,
-  assertion:
-    "returns a valid response with { 'context': '" + sep38Context + "' }",
+  assertion: "returns a valid response",
   group: "POST /quote",
   dependencies: [returnsValidJwt, hasQuoteServer],
   context: {
@@ -177,92 +168,87 @@ export const canCreateQuoteWithContext = (sep38Context: string): Test => ({
     },
     ...genericFailures,
   },
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const requestBody: any = {
-      sell_asset: this.context.expects.sep38StellarAsset,
-      buy_asset: this.context.expects.sep38OffChainAsset,
-      sell_amount: "100",
-      context: sep38Context,
+  async run(config: Config): Promise<Result> {
+    const runWithContext = async (sep38Context: string): Promise<Result> => {
+      const result: Result = { networkCalls: [] };
+      const requestBody: any = {
+        sell_asset: this.context.expects.sep38StellarAsset,
+        buy_asset: this.context.expects.sep38OffChainAsset,
+        sell_amount: "100",
+        context: sep38Context,
+      };
+      if (
+        this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined
+      )
+        requestBody.buy_delivery_method =
+          this.context.expects.sep38OffChainAssetBuyDeliveryMethod;
+      const networkCall: NetworkCall = {
+        request: new Request(this.context.expects.quoteServerUrl + "/quote", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.context.expects.token}`,
+          },
+          body: JSON.stringify(requestBody),
+        }),
+      };
+      result.networkCalls.push(networkCall);
+      const quoteResponse = await makeRequest(
+        networkCall,
+        201,
+        result,
+        "application/json",
+      );
+      if (!quoteResponse) return result;
+      const validationResult = validate(quoteResponse, quoteSchema);
+      if (validationResult.errors.length !== 0) {
+        result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+          errors: validationResult.errors.join("\n"),
+        });
+        return result;
+      }
+      if (
+        !Number(quoteResponse.buy_amount) ||
+        !Number(quoteResponse.sell_amount) ||
+        !Number(quoteResponse.price)
+      ) {
+        result.failure = makeFailure(this.failureModes.INVALID_NUMBER);
+        return result;
+      }
+      if (
+        quoteResponse.sell_asset !== this.context.expects.sep38StellarAsset ||
+        quoteResponse.buy_asset !== this.context.expects.sep38OffChainAsset
+      ) {
+        result.failure = makeFailure(this.failureModes.ASSETS_DONT_MATCH, {
+          expectedSellAsset: this.context.expects.sep38StellarAsset,
+          actualSellAsset: quoteResponse.sell_asset,
+          expectedBuyAsset: this.context.expects.sep38OffChainAsset,
+          actualBuyAsset: quoteResponse.buy_asset,
+        });
+        return result;
+      }
+      if (Number(quoteResponse.sell_amount) !== 100) {
+        result.failure = makeFailure(this.failureModes.AMOUNT_DOESNT_MATCH, {
+          expectedSellAmount: "100",
+          actualSellAmount: quoteResponse.sell_amount,
+        });
+        return result;
+      }
+      if (Date.now() >= Date.parse(quoteResponse.expires_at)) {
+        result.failure = makeFailure(this.failureModes.INVALID_EXPIRATION);
+        return result;
+      }
+      this.context.provides.sep38QuoteResponseObj = quoteResponse;
+      return result;
     };
-    if (this.context.expects.sep38OffChainAssetBuyDeliveryMethod !== undefined)
-      requestBody.buy_delivery_method =
-        this.context.expects.sep38OffChainAssetBuyDeliveryMethod;
-    const networkCall: NetworkCall = {
-      request: new Request(this.context.expects.quoteServerUrl + "/quote", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.context.expects.token}`,
-        },
-        body: JSON.stringify(requestBody),
-      }),
-    };
-    result.networkCalls.push(networkCall);
-    const quoteResponse = await makeRequest(
-      networkCall,
-      201,
-      result,
-      "application/json",
-    );
-    if (!quoteResponse) return result;
-    const validationResult = validate(quoteResponse, quoteSchema);
-    if (validationResult.errors.length !== 0) {
-      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
-        errors: validationResult.errors.join("\n"),
-      });
-      return result;
-    }
-    if (
-      !Number(quoteResponse.buy_amount) ||
-      !Number(quoteResponse.sell_amount) ||
-      !Number(quoteResponse.price)
-    ) {
-      result.failure = makeFailure(this.failureModes.INVALID_NUMBER);
-      return result;
-    }
-    if (
-      quoteResponse.sell_asset !== this.context.expects.sep38StellarAsset ||
-      quoteResponse.buy_asset !== this.context.expects.sep38OffChainAsset
-    ) {
-      result.failure = makeFailure(this.failureModes.ASSETS_DONT_MATCH, {
-        expectedSellAsset: this.context.expects.sep38StellarAsset,
-        actualSellAsset: quoteResponse.sell_asset,
-        expectedBuyAsset: this.context.expects.sep38OffChainAsset,
-        actualBuyAsset: quoteResponse.buy_asset,
-      });
-      return result;
-    }
-    if (Number(quoteResponse.sell_amount) !== 100) {
-      result.failure = makeFailure(this.failureModes.AMOUNT_DOESNT_MATCH, {
-        expectedSellAmount: "100",
-        actualSellAmount: quoteResponse.sell_amount,
-      });
-      return result;
-    }
-    if (Date.now() >= Date.parse(quoteResponse.expires_at)) {
-      result.failure = makeFailure(this.failureModes.INVALID_EXPIRATION);
-      return result;
-    }
-    this.context.provides.sep38QuoteResponseObj = quoteResponse;
-    return result;
-  },
-});
-export const canCreateQuote: Test = {
-  sep: 38,
-  assertion: "returns a valid response (make sure all contexts pass)",
-  group: "POST /quote",
-  dependencies: (config: Config) => {
-    const result: Test[] = [returnsValidJwt, hasQuoteServer];
+
+    let result: Result = { networkCalls: [] };
     for (const sep38Context of config.sepConfig?.[38]?.contexts ?? []) {
-      result.push(canCreateQuoteWithContext(sep38Context));
+      result = await runWithContext(sep38Context);
+      if (!!result.failure) {
+        return result;
+      }
     }
-    return result;
-  },
-  context: { expects: {}, provides: {} },
-  failureModes: genericFailures,
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
     return result;
   },
 };
