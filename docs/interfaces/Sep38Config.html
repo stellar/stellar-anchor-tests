@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Sep31Config | Stellar Anchor Tests</title>
+	<title>Sep38Config | Stellar Anchor Tests</title>
 	<meta name="description" content="Documentation for Stellar Anchor Tests">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -55,10 +55,10 @@
 					<a href="../modules.html">Stellar Anchor Tests</a>
 				</li>
 				<li>
-					<a href="Sep31Config.html">Sep31Config</a>
+					<a href="Sep38Config.html">Sep38Config</a>
 				</li>
 			</ul>
-			<h1>Interface Sep31Config</h1>
+			<h1>Interface Sep38Config</h1>
 		</div>
 	</div>
 </header>
@@ -68,7 +68,7 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>The configuration object for SEP-31 tests.</p>
+						<p>The configuration object for SEP-38 tests.</p>
 					</div>
 				</div>
 			</section>
@@ -76,7 +76,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Sep31Config</span>
+						<span class="target">Sep38Config</span>
 					</li>
 				</ul>
 			</section>
@@ -87,10 +87,7 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="Sep31Config.html#receivingClientName" class="tsd-kind-icon">receiving<wbr>Client<wbr>Name</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="Sep31Config.html#sendingAnchorClientSecret" class="tsd-kind-icon">sending<wbr>Anchor<wbr>Client<wbr>Secret</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="Sep31Config.html#sendingClientName" class="tsd-kind-icon">sending<wbr>Client<wbr>Name</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="Sep31Config.html#transactionFields" class="tsd-kind-icon">transaction<wbr>Fields</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="Sep38Config.html#contexts" class="tsd-kind-icon">contexts</a></li>
 							</ul>
 						</section>
 					</div>
@@ -99,72 +96,17 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="receivingClientName" class="tsd-anchor"></a>
-					<h3>receiving<wbr>Client<wbr>Name</h3>
-					<div class="tsd-signature tsd-kind-icon">receiving<wbr>Client<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="contexts" class="tsd-anchor"></a>
+					<h3>contexts</h3>
+					<div class="tsd-signature tsd-kind-icon">contexts<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in @stellar/anchor-tests/src/types.ts:132</li>
+							<li>Defined in @stellar/anchor-tests/src/types.ts:183</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>A key present in the <a href="Sep12Config.html#customers">Sep12Config.customers</a> object. A <code>SEP-12 PUT /customer</code> request will be made with the
-								object contents included in the body, and the <code>id</code> returned will be used in <code>SEP-31 POST /transactions</code> requests
-							as the <code>receiver_id</code>.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="sendingAnchorClientSecret" class="tsd-anchor"></a>
-					<h3>sending<wbr>Anchor<wbr>Client<wbr>Secret</h3>
-					<div class="tsd-signature tsd-kind-icon">sending<wbr>Anchor<wbr>Client<wbr>Secret<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in @stellar/anchor-tests/src/types.ts:118</li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The secret key of the Stellar keypair to use when making requests to the SEP-31 receiving anchor. This is
-								required because only trusted parties (with known Stellar account(s)) should be able to consume a receiving
-							anchor&#39;s API.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="sendingClientName" class="tsd-anchor"></a>
-					<h3>sending<wbr>Client<wbr>Name</h3>
-					<div class="tsd-signature tsd-kind-icon">sending<wbr>Client<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in @stellar/anchor-tests/src/types.ts:125</li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A key present in the <a href="Sep12Config.html#customers">Sep12Config.customers</a> object. A <code>SEP-12 PUT /customer</code> request will be made with the
-								object contents included in the body, and the <code>id</code> returned will be used in <code>SEP-31 POST /transactions</code> requests
-							as the <code>sender_id</code>.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="transactionFields" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> transaction<wbr>Fields</h3>
-					<div class="tsd-signature tsd-kind-icon">transaction<wbr>Fields<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in @stellar/anchor-tests/src/types.ts:141</li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The <code>fields.transaction</code> object to use in
-								<a href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#post-transactions"><code>POST /transactions</code></a>
-								requests. This object will be compared to the <code>fields.transaction</code> object returned by
-								<a href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-info"><code>GET /info</code></a> and is expected to
-							contain a value for every required field.</p>
+							<p>The list of contexts to test. As of this date, the contexts can be <code>sep6</code> or <code>sep31</code>.</p>
 						</div>
 					</div>
 				</section>
@@ -204,30 +146,21 @@
 					<li class=" tsd-kind-interface">
 						<a href="Sep12Config.html" class="tsd-kind-icon">Sep12<wbr>Config</a>
 					</li>
+					<li class=" tsd-kind-interface">
+						<a href="Sep31Config.html" class="tsd-kind-icon">Sep31<wbr>Config</a>
+					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface">
-						<a href="Sep31Config.html" class="tsd-kind-icon">Sep31<wbr>Config</a>
+						<a href="Sep38Config.html" class="tsd-kind-icon">Sep38<wbr>Config</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="Sep31Config.html#receivingClientName" class="tsd-kind-icon">receiving<wbr>Client<wbr>Name</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="Sep31Config.html#sendingAnchorClientSecret" class="tsd-kind-icon">sending<wbr>Anchor<wbr>Client<wbr>Secret</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="Sep31Config.html#sendingClientName" class="tsd-kind-icon">sending<wbr>Client<wbr>Name</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="Sep31Config.html#transactionFields" class="tsd-kind-icon">transaction<wbr>Fields</a>
+								<a href="Sep38Config.html#contexts" class="tsd-kind-icon">contexts</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-interface">
-						<a href="Sep38Config.html" class="tsd-kind-icon">Sep38<wbr>Config</a>
-					</li>
 					<li class=" tsd-kind-interface">
 						<a href="Sep6Config.html" class="tsd-kind-icon">Sep6<wbr>Config</a>
 					</li>
