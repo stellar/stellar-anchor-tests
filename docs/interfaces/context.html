@@ -55,7 +55,7 @@
 					<a href="../modules.html">Stellar Anchor Tests</a>
 				</li>
 				<li>
-					<a href="context.html">Context</a>
+					<a href="Context.html">Context</a>
 				</li>
 			</ul>
 			<h1>Interface Context</h1>
@@ -68,9 +68,9 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>An object containing the data expected and provided by the test before and after <a href="test.html#run">Test.run</a> executes,
+						<p>An object containing the data expected and provided by the test before and after <a href="Test.html#run">Test.run</a> executes,
 							respectively. The data provided by a test is used (i.e. expected) by tests that include it in it&#39;s
-						<a href="test.html#dependencies">Test.dependencies</a> array.</p>
+						<a href="Test.html#dependencies">Test.dependencies</a> array.</p>
 					</div>
 				</div>
 			</section>
@@ -89,8 +89,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="context.html#expects" class="tsd-kind-icon">expects</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="context.html#provides" class="tsd-kind-icon">provides</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="Context.html#expects" class="tsd-kind-icon">expects</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="Context.html#provides" class="tsd-kind-icon">provides</a></li>
 							</ul>
 						</section>
 					</div>
@@ -104,13 +104,13 @@
 					<div class="tsd-signature tsd-kind-icon">expects<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L240">src/types.ts:240</a></li>
+							<li>Defined in @stellar/anchor-tests/src/types.ts:270</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
 							<p>Prior to the test running, every property defined in this object has a value of <code>undefined</code>. If a value
-							for each property was not provided by a prior test, the test fails. See <a href="../modules.html#runtests">runTests</a> for more information.</p>
+							for each property was not provided by a prior test, the test fails. See <a href="../modules.html#runTests">runTests</a> for more information.</p>
 						</div>
 					</div>
 					<div class="tsd-type-declaration">
@@ -128,13 +128,13 @@
 					<div class="tsd-signature tsd-kind-icon">provides<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/stellar/stellar-anchor-tests/blob/master/@stellar/anchor-tests/src/types.ts#L246">src/types.ts:246</a></li>
+							<li>Defined in @stellar/anchor-tests/src/types.ts:276</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
 							<p>Prior to the test running, every property defined in this object has a value of <code>undefined</code>. If a value
-							for any property is still <code>undefined</code> after the test run, the test fails. See <a href="../modules.html#runtests">runTests</a> for more information.</p>
+							for any property is still <code>undefined</code> after the test run, the test fails. See <a href="../modules.html#runTests">runTests</a> for more information.</p>
 						</div>
 					</div>
 					<div class="tsd-type-declaration">
@@ -159,67 +159,73 @@
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
 					<li class=" tsd-kind-class">
-						<a href="../classes/configerror.html" class="tsd-kind-icon">Config<wbr>Error</a>
+						<a href="../classes/ConfigError.html" class="tsd-kind-icon">Config<wbr>Error</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="config.html" class="tsd-kind-icon">Config</a>
+						<a href="Config.html" class="tsd-kind-icon">Config</a>
 					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface">
-						<a href="context.html" class="tsd-kind-icon">Context</a>
+						<a href="Context.html" class="tsd-kind-icon">Context</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="context.html#expects" class="tsd-kind-icon">expects</a>
+								<a href="Context.html#expects" class="tsd-kind-icon">expects</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="context.html#provides" class="tsd-kind-icon">provides</a>
+								<a href="Context.html#provides" class="tsd-kind-icon">provides</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
 					<li class=" tsd-kind-interface">
-						<a href="failure.html" class="tsd-kind-icon">Failure</a>
+						<a href="DependenciesCaller.html" class="tsd-kind-icon">Dependencies<wbr>Caller</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="networkcall.html" class="tsd-kind-icon">Network<wbr>Call</a>
+						<a href="Failure.html" class="tsd-kind-icon">Failure</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="result.html" class="tsd-kind-icon">Result</a>
+						<a href="NetworkCall.html" class="tsd-kind-icon">Network<wbr>Call</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="sep12config.html" class="tsd-kind-icon">Sep12<wbr>Config</a>
+						<a href="Result.html" class="tsd-kind-icon">Result</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="sep31config.html" class="tsd-kind-icon">Sep31<wbr>Config</a>
+						<a href="Sep12Config.html" class="tsd-kind-icon">Sep12<wbr>Config</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="sep6config.html" class="tsd-kind-icon">Sep6<wbr>Config</a>
+						<a href="Sep31Config.html" class="tsd-kind-icon">Sep31<wbr>Config</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="sepconfig.html" class="tsd-kind-icon">Sep<wbr>Config</a>
+						<a href="Sep38Config.html" class="tsd-kind-icon">Sep38<wbr>Config</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="stats.html" class="tsd-kind-icon">Stats</a>
+						<a href="Sep6Config.html" class="tsd-kind-icon">Sep6<wbr>Config</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="test.html" class="tsd-kind-icon">Test</a>
+						<a href="SepConfig.html" class="tsd-kind-icon">Sep<wbr>Config</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="testrun.html" class="tsd-kind-icon">Test<wbr>Run</a>
+						<a href="Stats.html" class="tsd-kind-icon">Stats</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="Test.html" class="tsd-kind-icon">Test</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="TestRun.html" class="tsd-kind-icon">Test<wbr>Run</a>
 					</li>
 					<li class=" tsd-kind-type-alias">
-						<a href="../modules.html#sep" class="tsd-kind-icon">SEP</a>
+						<a href="../modules.html#SEP" class="tsd-kind-icon">SEP</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="../modules.html#gettests" class="tsd-kind-icon">get<wbr>Tests</a>
+						<a href="../modules.html#getTests" class="tsd-kind-icon">get<wbr>Tests</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="../modules.html#run" class="tsd-kind-icon">run</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="../modules.html#runtests" class="tsd-kind-icon">run<wbr>Tests</a>
+						<a href="../modules.html#runTests" class="tsd-kind-icon">run<wbr>Tests</a>
 					</li>
 				</ul>
 			</nav>
