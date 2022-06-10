@@ -39,7 +39,7 @@ const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
   38: [1, 10, 38],
 };
 // SEPs that require the config file field to be rendered in UI
-const CONFIG_SEPS = [6, 12, 31];
+const CONFIG_SEPS = [6, 12, 31, 38];
 // SEPs that require an asset to use in tests
 const TRANSFER_SEPS = [6, 24, 31];
 

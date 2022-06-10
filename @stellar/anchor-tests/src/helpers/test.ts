@@ -1,6 +1,6 @@
 import { Networks } from "stellar-sdk";
 
-import { Test, Config, TestRun, Failure } from "../types";
+import { Test, Config, TestRun, Failure, DependenciesCaller } from "../types";
 import { default as sep1Tests } from "../tests/sep1/tests";
 import { default as sep6Tests } from "../tests/sep6/tests";
 import { default as sep10Tests } from "../tests/sep10/tests";
@@ -45,8 +45,19 @@ export async function* run(config: Config): AsyncGenerator<TestRun> {
 export async function getTests(config: Config): Promise<Test[]> {
   await checkConfig(config, { checkSepConfig: false });
   const topLevelTests = getTopLevelTests(config);
-  return getAllTestsRecur(topLevelTests, [], new Set());
+  return getAllTestsRecur(config, topLevelTests, [], new Set());
 }
+
+const getDepencencies = (
+  config: Config,
+  dependencies?: Test[] | DependenciesCaller,
+): Test[] | null => {
+  if (!dependencies) {
+    return null;
+  }
+
+  return Array.isArray(dependencies) ? dependencies : dependencies(config);
+};
 
 /*
  * Takes tests from getTopLevelTests() and adds their dependencies.
@@ -57,6 +68,7 @@ export async function getTests(config: Config): Promise<Test[]> {
  * depends, directly or indirectly, on itself.
  */
 function getAllTestsRecur(
+  config: Config,
   tests: Test[],
   testDependencyStack: Test[],
   seenTests: Set<string>,
@@ -73,10 +85,11 @@ function getAllTestsRecur(
     } else if (seenTests.has(testString(test))) {
       continue;
     }
-    if (test.dependencies) {
+    const dependencies = getDepencencies(config, test.dependencies);
+    if (dependencies) {
       testDependencyStack.push(test);
       allTests = allTests.concat(
-        getAllTestsRecur(test.dependencies, testDependencyStack, seenTests),
+        getAllTestsRecur(config, dependencies, testDependencyStack, seenTests),
       );
       testDependencyStack.pop();
     }
@@ -163,11 +176,12 @@ async function* runTestsRecur(
     ranTestsPassFail[testString(test)] = true;
     let failedDependencyError: FailedDependencyError | undefined = undefined;
     let cycleError: CyclicDependencyError | undefined = undefined;
-    if (test.dependencies) {
+    const dependencies = getDepencencies(config, test.dependencies);
+    if (dependencies) {
       chain.push(test);
       try {
         for await (const testRun of runTestsRecur(
-          test.dependencies,
+          dependencies,
           config,
           chain,
           globalContext,

@@ -44,7 +44,7 @@ export interface Config {
   searchStrings?: string[];
 
   /**
-   * Only relevant for SEP-6, 12, & 31.
+   * Only relevant for SEP-6, 12, 31 & 38.
    *
    * A ``SepConfig`` object.
    */
@@ -63,6 +63,7 @@ export interface SepConfig {
   6?: Sep6Config;
   12?: Sep12Config;
   31?: Sep31Config;
+  38?: Sep38Config;
 }
 
 /**
@@ -173,6 +174,16 @@ export interface Sep6Config {
 }
 
 /**
+ * The configuration object for SEP-38 tests.
+ */
+export interface Sep38Config {
+  /**
+   * The list of contexts to test. As of this date, the contexts can be `sep6` or `sep31`.
+   */
+  contexts: string[];
+}
+
+/**
  * An object containing a Fetch [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and
  * [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) for every request made during a test.
  * Every `NetworkCall` will have a `request` but will not have a `response` in the event of a connection error.
@@ -265,6 +276,10 @@ export interface Context {
   provides: { [key: string]: any };
 }
 
+export interface DependenciesCaller {
+  (config: Config): Test[];
+}
+
 /**
  * An object representing a test case.
  */
@@ -301,7 +316,7 @@ export interface Test {
    * Tests that directly or indirectly depend on themselves, creating a cycle, will always fail. If a test expects
    * a value provided by another test, the latter must be included in the former's dependencies array.
    */
-  dependencies?: Test[];
+  dependencies?: Test[] | DependenciesCaller;
 
   /**
    * Runs the test logic and returns a [[Result]] object.

@@ -86,12 +86,27 @@ export const sep6ConfigSchema = {
   additionalProperties: false,
 };
 
+export const sep38ConfigSchema = {
+  type: "object",
+  properties: {
+    contexts: {
+      type: "array",
+      items: {
+        enum: ["sep6", "sep31"],
+      },
+    },
+  },
+  required: ["contexts"],
+  additionalProperties: false,
+};
+
 export const sepConfigSchema = {
   type: "object",
   properties: {
     "6": sep6ConfigSchema,
     "12": sep12ConfigSchema,
     "31": sep31ConfigSchema,
+    "38": sep38ConfigSchema,
   },
   additionalProperties: false,
 };
