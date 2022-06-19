@@ -16,6 +16,13 @@ See each project for more information. To install and run all applications:
 ```sh
 git clone git@github.com:stellar/stellar-anchor-tests.git
 cd stellar-anchor-tests
+# If typescript is not installed, run the following command.
+npm install -g typescript
+
+# Run the following command to install the dependencies
+yarn install
+
+# Build and run
 yarn build:all
 yarn start:all
 ```
