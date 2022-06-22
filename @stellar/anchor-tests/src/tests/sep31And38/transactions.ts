@@ -3,61 +3,33 @@ import { validate } from "jsonschema";
 import { Keypair, Memo } from "stellar-sdk";
 
 import { Test, Result, Config, NetworkCall } from "../../types";
-import { hasDirectPaymentServer } from "./toml";
+import { hasDirectPaymentServer } from "../sep31/toml";
 import { differentMemosSameAccount } from "../sep12/putCustomer";
+import { canCreateQuote } from "../sep38/postQuote";
 import { genericFailures, makeFailure } from "../../helpers/failure";
 import { makeRequest } from "../../helpers/request";
-import { getQuotesRequiredFromInfo } from "../../helpers/sep31";
 import {
-  postTransactionsSchema,
   getTransactionSchema,
+  postTransactionsSchema,
 } from "../../schemas/sep31";
-import { hasExpectedAssetEnabled } from "./info";
+import { hasExpectedAssetEnabled } from "../sep31/info";
+import { getQuotesSupportedFromInfo } from "../../helpers/sep31";
 
 const postTransactionsGroup = "POST /transactions";
 const getTransactionsGroup = "GET /transactions/:id";
 const tests: Test[] = [];
 
-const requiresJwt: Test = {
-  assertion: "requires a SEP-10 JWT",
-  sep: 31,
-  group: postTransactionsGroup,
-  dependencies: [hasDirectPaymentServer],
-  context: {
-    expects: {
-      directPaymentServerUrl: undefined,
-    },
-    provides: {},
-  },
-  failureModes: genericFailures,
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const postTransactionsCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.directPaymentServerUrl + "/transactions",
-        {
-          method: "POST",
-          body: JSON.stringify({}),
-        },
-      ),
-    };
-    result.networkCalls.push(postTransactionsCall);
-    await makeRequest(postTransactionsCall, 403, result);
-    return result;
-  },
-};
-tests.push(requiresJwt);
-
-let quotesRequired: boolean;
+let quotesSupported: boolean;
 
 const canCreateTransaction: Test = {
-  assertion: "can create a transaction",
+  assertion: "[with SEP-38, quotes_required]  can create a transaction",
   sep: 31,
   group: postTransactionsGroup,
   dependencies: [
     hasDirectPaymentServer,
     hasExpectedAssetEnabled,
     differentMemosSameAccount,
+    canCreateQuote,
   ],
   context: {
     expects: {
@@ -65,6 +37,7 @@ const canCreateTransaction: Test = {
       sendingAnchorClientKeypair: undefined,
       sendingAnchorToken: undefined,
       sendingCustomerId: undefined,
+      sep38QuoteResponseObj: undefined,
       receivingCustomerId: undefined,
       sep31InfoObj: undefined,
     },
@@ -97,6 +70,24 @@ const canCreateTransaction: Test = {
       // but to satisfy TypeScript we make these checks here.
       throw "improperly configured";
     }
+
+    let assetCode = config.assetCode;
+    if (assetCode === undefined) {
+      throw "asset not configured";
+    }
+    quotesSupported = getQuotesSupportedFromInfo(
+      this.context.expects.sep31InfoObj,
+      assetCode,
+    );
+
+    // If quotes are not supported, ignore this test, this will be addressed in SEP 31 tests
+    if (!quotesSupported) {
+      this.context.provides.transactionId = null;
+      return result;
+    }
+
+    const splitAsset =
+      this.context.expects.sep38QuoteResponseObj.sell_asset.split(":", 3);
     const postTransactionsCall: NetworkCall = {
       request: new Request(
         this.context.expects.directPaymentServerUrl + "/transactions",
@@ -110,7 +101,8 @@ const canCreateTransaction: Test = {
             sender_id: this.context.expects.sendingCustomerId,
             receiver_id: this.context.expects.receivingCustomerId,
             amount: 100,
-            asset_code: config.assetCode,
+            asset_code: splitAsset[1],
+            quote_id: this.context.expects.sep38QuoteResponseObj.id,
             fields: {
               transaction: {
                 ...config.sepConfig["31"].transactionFields,
@@ -121,25 +113,7 @@ const canCreateTransaction: Test = {
       ),
     };
     result.networkCalls.push(postTransactionsCall);
-
-    let assetCode = config.assetCode;
-    if (assetCode === undefined) {
-      throw "asset not configured";
-    }
-    quotesRequired = getQuotesRequiredFromInfo(
-      this.context.expects.sep31InfoObj,
-      assetCode,
-    );
-
-    // If quotes are required, ignore this test, this will be addressed in SEP 31+38 tests
-    if (quotesRequired) {
-      await makeRequest(postTransactionsCall, 400, result, "application/json");
-      this.context.provides.transactionId = null;
-      return result;
-    }
-
-    // if quotes are not required, test this as usual.
-    let responseBody = await makeRequest(
+    const responseBody = await makeRequest(
       postTransactionsCall,
       201,
       result,
@@ -179,106 +153,8 @@ const canCreateTransaction: Test = {
 };
 tests.push(canCreateTransaction);
 
-const failsWithNoAmount: Test = {
-  assertion: "returns 400 when no amount is given",
-  sep: 31,
-  group: postTransactionsGroup,
-  dependencies: [canCreateTransaction],
-  context: {
-    expects: {
-      sendingAnchorToken: undefined,
-      directPaymentServerUrl: undefined,
-    },
-    provides: {},
-  },
-  failureModes: genericFailures,
-  async run(config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    if (!config.sepConfig || !config.sepConfig["31"]) {
-      // this configuration is checked prior to running tests
-      // but to satisfy TypeScript we make these checks here.
-      throw "improperly configured";
-    }
-    const postTransactionsCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.directPaymentServerUrl + "/transactions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${this.context.expects.sendingAnchorToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sender_id: this.context.expects.sendingCustomerId,
-            receiver_id: this.context.expects.receivingCustomerId,
-            asset_code: config.assetCode,
-            fields: {
-              transaction: {
-                ...config.sepConfig["31"].transactionFields,
-              },
-            },
-          }),
-        },
-      ),
-    };
-    result.networkCalls.push(postTransactionsCall);
-    await makeRequest(postTransactionsCall, 400, result, "application/json");
-    return result;
-  },
-};
-tests.push(failsWithNoAmount);
-
-const failsWithNoAssetCode: Test = {
-  assertion: "returns 400 when no asset_code is given",
-  sep: 31,
-  group: postTransactionsGroup,
-  dependencies: [canCreateTransaction],
-  context: {
-    expects: {
-      sendingAnchorToken: undefined,
-      directPaymentServerUrl: undefined,
-    },
-    provides: {},
-  },
-  failureModes: genericFailures,
-  async run(config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    if (!config.sepConfig || !config.sepConfig["31"]) {
-      // this configuration is checked prior to running tests
-      // but to satisfy TypeScript we make these checks here.
-      throw "improperly configured";
-    }
-    const postTransactionsCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.directPaymentServerUrl + "/transactions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${this.context.expects.sendingAnchorToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sender_id: this.context.expects.sendingCustomerId,
-            receiver_id: this.context.expects.receivingCustomerId,
-            amount: 100,
-            fields: {
-              transaction: {
-                ...config.sepConfig["31"].transactionFields,
-              },
-            },
-          }),
-        },
-      ),
-    };
-    result.networkCalls.push(postTransactionsCall);
-    await makeRequest(postTransactionsCall, 400, result, "application/json");
-    return result;
-  },
-};
-tests.push(failsWithNoAssetCode);
-
 const canFetchTransaction: Test = {
-  assertion: "can fetch a created transaction",
+  assertion: "[with SEP-38, quotes_required] can fetch a created transaction",
   sep: 31,
   group: getTransactionsGroup,
   dependencies: [hasDirectPaymentServer, canCreateTransaction],
@@ -296,8 +172,8 @@ const canFetchTransaction: Test = {
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
-    // If quotes are required, ignore this test, this will be addressed in SEP 31+38 tests
-    if (quotesRequired) {
+    // If quotes are not supported, ignore this test, this will be addressed in SEP 31 tests
+    if (!quotesSupported) {
       this.context.provides.transactionJson = null;
       return result;
     }
@@ -326,7 +202,8 @@ const canFetchTransaction: Test = {
 tests.push(canFetchTransaction);
 
 const hasValidTransactionJson: Test = {
-  assertion: "response body complies with protocol schema",
+  assertion:
+    "[with SEP-38, quotes_required] response body complies with protocol schema",
   sep: 31,
   group: getTransactionsGroup,
   dependencies: [canFetchTransaction],
@@ -366,11 +243,11 @@ const hasValidTransactionJson: Test = {
   },
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    // If quotes are required, ignore this test, this will be addressed in SEP 31+38 tests
-    if (quotesRequired) {
-      this.context.provides.transactionJson = null;
+    // If quotes are not supported, ignore this test, this will be addressed in SEP 31 tests
+    if (!quotesSupported) {
       return result;
     }
+
     const validationResult = validate(
       this.context.expects.transactionJson,
       getTransactionSchema,
@@ -394,37 +271,5 @@ const hasValidTransactionJson: Test = {
   },
 };
 tests.push(hasValidTransactionJson);
-
-const returns404ForBadId: Test = {
-  assertion: "returns 404 for a non-existent transaction",
-  sep: 31,
-  group: getTransactionsGroup,
-  dependencies: [hasDirectPaymentServer, differentMemosSameAccount],
-  context: {
-    expects: {
-      sendingAnchorToken: undefined,
-      directPaymentServerUrl: undefined,
-    },
-    provides: {},
-  },
-  failureModes: genericFailures,
-  async run(_config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const getTransactionCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.directPaymentServerUrl + `/transactions/not-an-id`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.context.expects.sendingAnchorToken}`,
-          },
-        },
-      ),
-    };
-    result.networkCalls.push(getTransactionCall);
-    await makeRequest(getTransactionCall, 404, result);
-    return result;
-  },
-};
-tests.push(returns404ForBadId);
 
 export default tests;
