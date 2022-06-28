@@ -4,6 +4,16 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
+## [v0.5.1](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.0...v0.5.1)
+
+### Update
+
+- Add SEP-31+38 tests ([#90](https://github.com/stellar/stellar-anchor-tests/pull/90))
+  - SEP-31+38 tests run when both SEPs are enabled and `quotes_required` is true.
+  - SEP-31 tests now test for failure if SEP-38 is not implemented and `quotes_supported` is true.
+
+### Update
+
 ## [v0.5.0](https://github.com/stellar/stellar-anchor-tests/compare/v0.4.1...v0.5.0)
 
 ### Update
