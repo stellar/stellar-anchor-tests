@@ -127,7 +127,7 @@ const canDeleteCustomer: Test = {
         },
       ),
     };
-    await makeRequest(deleteCustomerCall, 200, result);
+    await makeRequest(deleteCustomerCall, 204, result);
     return result;
   },
 };
