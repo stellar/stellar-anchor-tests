@@ -725,9 +725,18 @@ export const returnsValidJwt: Test = {
     },
   },
   failureModes: postChallengeFailureModes,
-  async run(_config: Config): Promise<Result> {
+  async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     this.context.provides.clientKeypair = Keypair.random();
+    if (
+      config.sepConfig &&
+      config.sepConfig["31"] &&
+      config.sepConfig["31"].sendingAnchorClientSecret
+    ) {
+      this.context.provides.clientKeypair = Keypair.fromSecret(
+        config.sepConfig["31"].sendingAnchorClientSecret,
+      );
+    }
     this.context.provides.token = await postChallenge(
       this.context.provides.clientKeypair,
       this.context.expects.webAuthEndpoint,
