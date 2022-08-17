@@ -307,6 +307,7 @@ export const differentMemosSameAccount: Test = {
     const sendingCustomerCall: NetworkCall = {
       request: sep12Request,
     };
+    result.networkCalls.push(sendingCustomerCall);
     const sendingCustomerResponse = await makeRequest(
       sendingCustomerCall,
       202,
@@ -338,6 +339,7 @@ export const differentMemosSameAccount: Test = {
     const receivingCustomerCall: NetworkCall = {
       request: receivingCustomerRequest,
     };
+    result.networkCalls.push(receivingCustomerCall);
     const receivingCustomerResponse = await makeRequest(
       receivingCustomerCall,
       202,
