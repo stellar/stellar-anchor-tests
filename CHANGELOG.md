@@ -4,6 +4,27 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
+## [v0.5.4](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.3...v0.5.4)
+
+### Update
+
+- Add network calls to the test results for the following tests
+  - SEP-12: can delete a customer
+
+## [v0.5.3](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.2...v0.5.3)
+
+### Update
+
+- Add network calls to the test results for the following tests
+  - SEP-12: memos differentiate customers registered by the same account
+
+## [v0.5.2](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.1...v0.5.2)
+
+### Update
+
+- Use the account configured as the SEP-31 sending anchor when authenticating for the following test, if specified
+  - SEP-10: returns a valid JWT
+
 ## [v0.5.1](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.0...v0.5.1)
 
 ### Update
