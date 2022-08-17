@@ -101,6 +101,7 @@ const canDeleteCustomer: Test = {
       result,
       "application/json",
     );
+    result.networkCalls.push(putCustomerCall);
     if (!putCustomerBody) return result;
     const getCustomerCall: NetworkCall = {
       request: new Request(
@@ -113,6 +114,7 @@ const canDeleteCustomer: Test = {
         },
       ),
     };
+    result.networkCalls.push(getCustomerCall);
     await makeRequest(getCustomerCall, 200, result);
     if (result.failure) return result;
     const deleteCustomerCall: NetworkCall = {
@@ -127,6 +129,7 @@ const canDeleteCustomer: Test = {
         },
       ),
     };
+    result.networkCalls.push(deleteCustomerCall);
     await makeRequest(deleteCustomerCall, 200, result);
     return result;
   },
