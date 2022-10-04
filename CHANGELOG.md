@@ -4,6 +4,12 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
+## [v0.5.5](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.4...v0.5.5)
+
+### Fix
+
+- When deleting a user, send the customer type if available in the json body ([#101](https://github.com/stellar/stellar-anchor-tests/pull/101)).
+
 ## [v0.5.4](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.3...v0.5.4)
 
 ### Update
