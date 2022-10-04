@@ -80,6 +80,10 @@ const canDeleteCustomer: Test = {
         "SEP-12 configuration data missing, expected 'deleteCustomer' in 'customers'",
       );
     }
+    const customerToBeDeleted =
+      config.sepConfig["12"].customers[config.sepConfig["12"].deleteCustomer];
+
+    // PUT the customer
     const putCustomerCall = {
       request: new Request(this.context.expects.kycServerUrl + "/customer", {
         method: "PUT",
@@ -89,9 +93,7 @@ const canDeleteCustomer: Test = {
         },
         body: JSON.stringify({
           account: clientKeypair.publicKey(),
-          ...config.sepConfig["12"].customers[
-            config.sepConfig["12"].deleteCustomer
-          ],
+          ...customerToBeDeleted,
         }),
       }),
     };
@@ -103,10 +105,15 @@ const canDeleteCustomer: Test = {
     );
     result.networkCalls.push(putCustomerCall);
     if (!putCustomerBody) return result;
+
+    // GET the customer
+    const typeQueryParam = customerToBeDeleted.type
+      ? `&type=${customerToBeDeleted.type}`
+      : "";
     const getCustomerCall: NetworkCall = {
       request: new Request(
         this.context.expects.kycServerUrl +
-          `/customer?account=${clientKeypair.publicKey()}`,
+          `/customer?account=${clientKeypair.publicKey()}${typeQueryParam}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -117,6 +124,8 @@ const canDeleteCustomer: Test = {
     result.networkCalls.push(getCustomerCall);
     await makeRequest(getCustomerCall, 200, result);
     if (result.failure) return result;
+
+    // DELETE the customer
     const deleteCustomerCall: NetworkCall = {
       request: new Request(
         this.context.expects.kycServerUrl +
