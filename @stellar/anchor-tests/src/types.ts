@@ -143,6 +143,7 @@ export interface Sep31Config {
   /**
    * Before the SEP-31 canCreateTransaction test runs, it will poll the status of the customers created in the SEP-12 test and
    * check that their status is `ACCEPTED`. customerPollingTimeout is the timeout value (seconds) for polling the customer's status.
+   * Defaults to 30 seconds.
    */
   customerPollingTimeout?: number;
 }

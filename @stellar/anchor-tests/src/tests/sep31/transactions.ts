@@ -97,7 +97,7 @@ const canCreateTransaction: Test = {
       text(args: any): string {
         return (
           "Timed out waiting for customer(s) specified for the SEP31 transaction to be in " +
-          "'ACCEPTED' status" +
+          "'ACCEPTED' status " +
           "Errors:\n\n" +
           `${args.errors}`
         );
@@ -117,7 +117,9 @@ const canCreateTransaction: Test = {
       getCustomerNetworkCall: NetworkCall,
       timeout: number,
     ) {
-      for (let i = 0; i < timeout; i++) {
+      let startedAt = Date.now();
+      let timeoutMs = timeout * 1000;
+      while (startedAt + timeoutMs > Date.now()) {
         const resBody = await makeRequest(
           getCustomerNetworkCall,
           200,
@@ -141,11 +143,11 @@ const canCreateTransaction: Test = {
         id: customerId,
       };
 
-      const getCreateCustomerType = (config: Config): string | undefined =>
+      const customerType =
         config?.sepConfig?.["12"]?.customers?.[
           config?.sepConfig?.["12"]?.createCustomer
         ].type;
-      const customerType = getCreateCustomerType(config);
+
       if (customerType) requestParamsObj["type"] = customerType;
       const searchParams = new URLSearchParams(requestParamsObj);
 
