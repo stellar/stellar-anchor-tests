@@ -41,6 +41,9 @@ export const sep31ConfigSchema = {
     transactionFields: {
       type: "object",
     },
+    customerPollingTimeout: {
+      type: "number",
+    },
   },
   required: [
     "sendingAnchorClientSecret",

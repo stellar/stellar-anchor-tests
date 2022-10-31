@@ -13,6 +13,8 @@ import {
   getTransactionSchema,
 } from "../../schemas/sep31";
 import { hasExpectedAssetEnabled } from "./info";
+import { URLSearchParams } from "url";
+import { hasKycServerUrl } from "../sep12/toml";
 
 const postTransactionsGroup = "POST /transactions";
 const getTransactionsGroup = "GET /transactions/:id";
@@ -56,12 +58,14 @@ const canCreateTransaction: Test = {
   group: postTransactionsGroup,
   dependencies: [
     hasDirectPaymentServer,
+    hasKycServerUrl,
     hasExpectedAssetEnabled,
     differentMemosSameAccount,
   ],
   context: {
     expects: {
       directPaymentServerUrl: undefined,
+      kycServerUrl: undefined,
       sendingAnchorClientKeypair: undefined,
       sendingAnchorToken: undefined,
       sendingCustomerId: undefined,
@@ -88,6 +92,17 @@ const canCreateTransaction: Test = {
           "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#post-transactions",
       },
     },
+    CUSTOMER_NOT_ACCEPTED: {
+      name: "customer's status not accepted",
+      text(args: any): string {
+        return (
+          "Timed out waiting for customer(s) specified for the SEP31 transaction to be in " +
+          "'ACCEPTED' status" +
+          "Errors:\n\n" +
+          `${args.errors}`
+        );
+      },
+    },
     ...genericFailures,
   },
   async run(config: Config): Promise<Result> {
@@ -97,6 +112,97 @@ const canCreateTransaction: Test = {
       // but to satisfy TypeScript we make these checks here.
       throw "improperly configured";
     }
+
+    async function pollCustomerAccepted(
+      getCustomerNetworkCall: NetworkCall,
+      timeout: number,
+    ) {
+      for (let i = 0; i < timeout; i++) {
+        const resBody = await makeRequest(
+          getCustomerNetworkCall,
+          200,
+          result,
+          "application/json",
+        );
+        if (resBody.status === "ACCEPTED") {
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+      throw "timed out pulling customer for ACCEPTED status";
+    }
+
+    function generateGetCustomerNetworkCall(
+      kycServerUrl: string,
+      customerId: string,
+      token: string,
+    ): NetworkCall {
+      const requestParamsObj: Record<string, string> = {
+        id: customerId,
+      };
+
+      const getCreateCustomerType = (config: Config): string | undefined =>
+        config?.sepConfig?.["12"]?.customers?.[
+          config?.sepConfig?.["12"]?.createCustomer
+        ].type;
+      const customerType = getCreateCustomerType(config);
+      if (customerType) requestParamsObj["type"] = customerType;
+      const searchParams = new URLSearchParams(requestParamsObj);
+
+      const getCustomerCall: NetworkCall = {
+        request: new Request(
+          kycServerUrl + `/customer?${searchParams.toString()}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        ),
+      };
+      return getCustomerCall;
+    }
+
+    const getSendingCustomerNetworkCall = generateGetCustomerNetworkCall(
+      this.context.expects.kycServerUrl,
+      this.context.expects.sendingCustomerId,
+      this.context.expects.sendingAnchorToken,
+    );
+
+    const getReceivingCustomerNetworkCall = generateGetCustomerNetworkCall(
+      this.context.expects.kycServerUrl,
+      this.context.expects.receivingCustomerId,
+      this.context.expects.sendingAnchorToken,
+    );
+
+    const customerPollingTimeout =
+      config.sepConfig["31"].customerPollingTimeout || 30;
+
+    try {
+      await pollCustomerAccepted(
+        getReceivingCustomerNetworkCall,
+        customerPollingTimeout,
+      );
+    } catch {
+      result.failure = makeFailure(this.failureModes.CUSTOMER_NOT_ACCEPTED, {
+        errors:
+          "timed out waiting for receiving customer to be in `ACCEPTED` status",
+      });
+      return result;
+    }
+
+    try {
+      await pollCustomerAccepted(
+        getSendingCustomerNetworkCall,
+        customerPollingTimeout,
+      );
+    } catch {
+      result.failure = makeFailure(this.failureModes.CUSTOMER_NOT_ACCEPTED, {
+        errors:
+          "timed out waiting for sending customer to be in `ACCEPTED` status",
+      });
+      return result;
+    }
+
     const postTransactionsCall: NetworkCall = {
       request: new Request(
         this.context.expects.directPaymentServerUrl + "/transactions",
