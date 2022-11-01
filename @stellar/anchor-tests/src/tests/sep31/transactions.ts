@@ -131,7 +131,8 @@ const canCreateTransaction: Test = {
         }
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-      throw "timed out pulling customer for ACCEPTED status";
+      let customerId = getCustomerNetworkCall.request.url.split("id=")[1];
+      throw `timed out pulling customer ${customerId} for ACCEPTED status`;
     }
 
     function generateGetCustomerNetworkCall(
@@ -180,27 +181,19 @@ const canCreateTransaction: Test = {
       config.sepConfig["31"].customerPollingTimeout || 30;
 
     try {
-      await pollCustomerAccepted(
-        getReceivingCustomerNetworkCall,
-        customerPollingTimeout,
-      );
-    } catch {
+      await Promise.all([
+        pollCustomerAccepted(
+          getReceivingCustomerNetworkCall,
+          customerPollingTimeout,
+        ),
+        pollCustomerAccepted(
+          getSendingCustomerNetworkCall,
+          customerPollingTimeout,
+        ),
+      ]);
+    } catch (err) {
       result.failure = makeFailure(this.failureModes.CUSTOMER_NOT_ACCEPTED, {
-        errors:
-          "timed out waiting for receiving customer to be in `ACCEPTED` status",
-      });
-      return result;
-    }
-
-    try {
-      await pollCustomerAccepted(
-        getSendingCustomerNetworkCall,
-        customerPollingTimeout,
-      );
-    } catch {
-      result.failure = makeFailure(this.failureModes.CUSTOMER_NOT_ACCEPTED, {
-        errors:
-          "timed out waiting for sending customer to be in `ACCEPTED` status",
+        errors: err,
       });
       return result;
     }
