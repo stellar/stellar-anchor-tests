@@ -25,4 +25,4 @@ jobs:
       - name: Publish npm package
         run: yarn publish:anchor-tests
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TEST_TOKEN }}      #${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
