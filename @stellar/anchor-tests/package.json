@@ -1,5 +1,5 @@
 {
-  "name": "@stellar/anchor-tests",
+  "name": "@stephenstellar/anchor-tests",
   "version": "0.5.5",
   "description": "stellar-anchor-tests is a library and command line interface for testing Stellar anchors.",
   "main": "./lib/index.js",
