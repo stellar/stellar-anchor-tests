@@ -4,6 +4,13 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
+## [v0.5.6](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.5...v0.5.6)
+
+### Update
+
+- Add a configurable customerPollingTimeout value to the SEP-31 config to make sure a customer's status is `ACCEPTED` before trying to create a transaction. ([#102](https://github.com/stellar/stellar-anchor-tests/pull/102))
+  - SEP-31: can create a transaction
+
 ## [v0.5.5](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.4...v0.5.5)
 
 ### Fix
