@@ -113,12 +113,7 @@ export const transactionSchema = {
         "kind",
         "status",
         "more_info_url",
-        "amount_in",
-        "amount_out",
-        "amount_fee",
         "started_at",
-        "completed_at",
-        "stellar_transaction_id",
         "refunded",
       ],
     },
@@ -144,14 +139,8 @@ export const transactionsSchema = {
 
 export function getTransactionSchema(isDeposit: boolean) {
   const schema = JSON.parse(JSON.stringify(transactionSchema));
-  const requiredDepositParams = ["from", "to"];
-  const requiredWithdrawParams = [
-    "from",
-    "to",
-    "withdraw_memo",
-    "withdraw_memo_type",
-    "withdraw_anchor_account",
-  ];
+  const requiredDepositParams = ["to"];
+  const requiredWithdrawParams = ["from"];
 
   const depositProperties = {
     deposit_memo: {
@@ -187,14 +176,12 @@ export function getTransactionSchema(isDeposit: boolean) {
   };
 
   if (isDeposit) {
-    schema.properties.transaction.required = schema.properties.transaction.required.concat(
-      requiredDepositParams,
-    );
+    schema.properties.transaction.required =
+      schema.properties.transaction.required.concat(requiredDepositParams);
     Object.assign(schema.properties.transaction.properties, depositProperties);
   } else {
-    schema.properties.transaction.required = schema.properties.transaction.required.concat(
-      requiredWithdrawParams,
-    );
+    schema.properties.transaction.required =
+      schema.properties.transaction.required.concat(requiredWithdrawParams);
     Object.assign(schema.properties.transaction.properties, withdrawProperties);
   }
 
