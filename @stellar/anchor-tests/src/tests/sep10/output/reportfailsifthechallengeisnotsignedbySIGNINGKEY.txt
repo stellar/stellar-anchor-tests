@@ -1,3 +1,0 @@
--------------------------------------------------
-POST /auth fails if the challenge is not signed by SIGNING_KEY
-PASSED

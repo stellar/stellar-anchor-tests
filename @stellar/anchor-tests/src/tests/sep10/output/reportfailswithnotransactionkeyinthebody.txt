@@ -1,3 +1,0 @@
--------------------------------------------------
-POST /auth fails with no 'transaction' key in the body
-PASSED

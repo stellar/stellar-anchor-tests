@@ -1,3 +1,0 @@
--------------------------------------------------
-Account Signer Support fails for challenges signed more than once by the same signer
-PASSED

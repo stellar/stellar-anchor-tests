@@ -1,3 +1,0 @@
--------------------------------------------------
-/transactions has proper withdraw transaction schema on /transactions
-PASSED

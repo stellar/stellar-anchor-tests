@@ -1,3 +1,0 @@
--------------------------------------------------
-TOML Tests has valid SIGNING_KEY
-PASSED

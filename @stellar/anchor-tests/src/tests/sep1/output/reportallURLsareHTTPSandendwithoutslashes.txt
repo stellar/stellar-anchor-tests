@@ -1,3 +1,0 @@
--------------------------------------------------
-TOML Tests all URLs are HTTPS and end without slashes
-PASSED

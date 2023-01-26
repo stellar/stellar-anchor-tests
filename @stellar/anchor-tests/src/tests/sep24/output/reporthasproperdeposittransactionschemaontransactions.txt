@@ -1,3 +1,0 @@
--------------------------------------------------
-/transactions has proper deposit transaction schema on /transactions
-PASSED

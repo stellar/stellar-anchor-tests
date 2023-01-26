@@ -1,3 +1,0 @@
--------------------------------------------------
-TOML Tests the file has a size less than 100KB
-PASSED
