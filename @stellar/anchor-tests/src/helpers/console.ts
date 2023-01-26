@@ -46,7 +46,7 @@ function printColoredTextStats(
 
 function writeTestReport(sep: number, testName: string, testRun:string) {
   testName = testName.replace(/[^a-zA-Z]/g, "");
-  fs.writeFileSync('./@stellar/anchor-tests/src/tests/sep' + sep + '/output/report' + testName + '.txt', testRun, { flag: 'w+' });
+  fs.writeFileSync('./@stellar/anchor-tests/src/tests/sep' + sep + '/output/report-' + testName + '.txt', testRun, { flag: 'w+' });
   console.log("Tests report file has been saved!")
 }
 
