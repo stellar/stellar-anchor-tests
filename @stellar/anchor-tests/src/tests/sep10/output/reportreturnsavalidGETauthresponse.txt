@@ -1,0 +1,13 @@
+-------------------------------------------------
+GET /auth returns a valid GET /auth response
+FAILED
+Failure Type:
+-home domain not found in first operation's key
+
+Description
+-The first operation within a challenge transaction must be a ManageData operation with a key matching '<home domain> auth', where the home domain is the domain hosting the TOML file.
+Expected: api-ts.anclap.ar auth
+Expected: api-ts.anclap.ar auth
+
+Resource Links:
+SEP-10 Response: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response

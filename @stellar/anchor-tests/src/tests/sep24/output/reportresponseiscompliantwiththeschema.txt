@@ -1,0 +1,3 @@
+-------------------------------------------------
+/info response is compliant with the schema
+PASSED

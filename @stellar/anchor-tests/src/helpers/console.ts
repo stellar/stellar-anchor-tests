@@ -1,5 +1,6 @@
 import { default as c } from "ansi-colors";
 import { inspect } from "util";
+import * as fs from 'fs-extra';
 
 inspect.styles.string = "yellow";
 
@@ -13,24 +14,47 @@ export async function printTestRun(testRun: TestRun, verbose: boolean) {
   await printColoredTextTestRun(testRun, verbose);
 }
 
+
+function writeStatsSummary(reportLine: string, secondsString: string){
+  fs.writeFileSync('./@stellar/anchor-tests/src/tests/tests_summary.txt', reportLine + "\n" + secondsString, { flag: 'w+' });
+  console.log("Tests summary file has been saved!")
+}
+
 function printColoredTextStats(
   stats: Stats,
   startTime: number,
   endTime: number,
 ) {
   let testsLine = "Tests:       ";
-  if (stats.failed !== 0) testsLine += c.red(`${stats.failed} failed`) + ", ";
-  if (stats.passed !== 0) testsLine += c.green(`${stats.passed} passed`) + ", ";
+  let reportLine = "Tests:       ";
+  if (stats.failed !== 0) 
+    testsLine += c.red(`${stats.failed} failed`) + ", ";
+    reportLine += stats.failed + " failed" + ", ";
+  if (stats.passed !== 0) 
+    testsLine += c.green(`${stats.passed} passed`) + ", ";
+    reportLine += stats.passed + " passed" + ", ";
   if (stats.skipped !== 0)
     testsLine += c.gray(`${stats.skipped} skipped`) + ", ";
+    reportLine += stats.skipped + " skipped" + ", ";
   testsLine += `${stats.total} total`;
+  reportLine += stats.total + " total";
   console.log(testsLine);
   const secondsString = ((endTime - startTime) / 1000).toFixed(3);
   console.log(`Time:        ${secondsString}s`);
+  writeStatsSummary(reportLine, "Time:        " + secondsString + "s")
+}
+
+function writeTestReport(sep: number, testName: string, testRun:string) {
+  testName = testName.replace(/[^a-zA-Z]/g, "");
+  fs.writeFileSync('./@stellar/anchor-tests/src/tests/sep' + sep + '/output/report' + testName + '.txt', testRun, { flag: 'w+' });
+  console.log("Tests report file has been saved!")
 }
 
 async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
   let color, symbol;
+  let sepNumber = testRun.test.sep
+  let reportDump = '-------------------------------------------------\n'
+  let testName = testRun.test.assertion
   if (testRun.result.skipped) {
     color = c.gray.bold;
     symbol = c.symbols.pointer;
@@ -46,36 +70,50 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
     if (testRun.test.sep)
       header += `SEP-${testRun.test.sep} ${c.symbols.pointerSmall} `;
     header += `${testRun.test.group} ${c.symbols.pointerSmall} `;
+    reportDump += testRun.test.group + " ";
   }
   header += `${testRun.test.assertion}`;
+  reportDump += "" + testRun.test.assertion + "\n";
   console.log(color(header));
   console.group(); // result group
   if (testRun.result.failure) {
+    reportDump += "FAILED\n"
     console.log();
     console.log(c.bold("Failure Type:\n"));
+    reportDump += "Failure Type:\n"
     console.group(); // failure type group
     console.log(`${testRun.result.failure.name}\n`);
+    reportDump += "-" + testRun.result.failure.name + "\n"
     console.groupEnd(); // failure type group
     console.log(c.bold("Description:\n"));
+    reportDump += "\nDescription\n"
     console.group(); // description group
     console.log(testRun.result.failure.message + "\n");
+    reportDump += "-" + testRun.result.failure.message + "\n"
     if (testRun.result.expected || testRun.result.actual) {
       console.log(`Expected: ${testRun.result.expected}`);
+      reportDump += "Expected: " + testRun.result.expected + "\n"
       console.log(`Received: ${testRun.result.actual}\n`);
+      reportDump += "Received: " + testRun.result.actual + "\n"
     }
     console.groupEnd(); // description group
     if (testRun.result.failure.links) {
       const resources = Object.entries(testRun.result.failure.links);
       if (resources.length) {
         console.log(c.bold(`Resource Links:\n`));
+        reportDump += "\nResource Links:\n"
       }
       console.group(); // resource links group
       for (const [label, link] of resources) {
         console.log(`${label}: ${link}\n`);
+        reportDump += label + ": " + link + "\n"
       }
       console.groupEnd(); // resource links group
     }
+  } else {
+    reportDump += "PASSED"
   }
+  writeTestReport(sepNumber, testName, reportDump)
   if (verbose && testRun.result.failure && testRun.result.networkCalls.length) {
     console.log(c.bold("Network Calls:\n"));
     for (const networkCall of testRun.result.networkCalls) {

@@ -1,0 +1,3 @@
+-------------------------------------------------
+/transactions only returns deposit transactions when kind=deposit
+PASSED

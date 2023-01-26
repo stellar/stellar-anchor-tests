@@ -1,0 +1,3 @@
+-------------------------------------------------
+/transactions requires a JWT
+PASSED

@@ -1,0 +1,3 @@
+-------------------------------------------------
+/transactions rejects requests with a bad 'asset_code' parameter
+PASSED
