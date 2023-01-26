@@ -23,7 +23,8 @@
     "start:server": "yarn workspace server start",
     "build:all": "yarn build:server",
     "start:all": "concurrently \"yarn start:ui\" \"yarn start:server\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "run-tests": "bash run-tests.sh"
   },
   "homepage": "https://github.com/stellar/stellar-anchor-tests",
   "author": "Stellar Development Foundation <hello@stellar.org>",

@@ -1,2 +1,2 @@
-Tests:       20 failed, 21 passed, 4 skipped, 45 total
-Time:        10.214s
+Tests:       8 failed, 10 passed, 0 skipped, 18 total
+Time:        7.561s
