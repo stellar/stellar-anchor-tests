@@ -1,0 +1,3 @@
+-------------------------------------------------
+GET /info matches the expected schema
+PASSED

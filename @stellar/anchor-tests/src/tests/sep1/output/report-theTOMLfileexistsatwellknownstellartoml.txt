@@ -1,0 +1,3 @@
+-------------------------------------------------
+TOML Tests the TOML file exists at ./well-known/stellar.toml
+PASSED

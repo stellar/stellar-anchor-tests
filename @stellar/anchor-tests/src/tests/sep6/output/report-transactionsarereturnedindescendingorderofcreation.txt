@@ -1,0 +1,12 @@
+-------------------------------------------------
+GET /transactions transactions are returned in descending order of creation
+FAILED
+Failure Type:
+-failed dependency
+
+Description
+-A test dependency failed
+
+SEP: 6
+Group: GET /transactions
+Assertion: has a record on /transactions after a deposit request

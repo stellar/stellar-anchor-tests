@@ -1,0 +1,12 @@
+-------------------------------------------------
+PUT /customer memos differentiate customers registered by the same account
+FAILED
+Failure Type:
+-unexpected status code
+
+Description
+-An unexpected status code was included in the response to: 
+
+PUT https://api-ts.anclap.ar/kyc/customer
+Expected: 202
+Received: 400

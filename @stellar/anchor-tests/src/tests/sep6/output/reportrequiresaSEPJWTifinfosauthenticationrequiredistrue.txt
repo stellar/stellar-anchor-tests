@@ -1,0 +1,3 @@
+-------------------------------------------------
+GET /withdraw requires a SEP-10 JWT if /info's 'authentication_required' is true
+PASSED

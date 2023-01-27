@@ -1,0 +1,12 @@
+-------------------------------------------------
+GET /transaction has a record on /transaction after a deposit request
+FAILED
+Failure Type:
+-failed dependency
+
+Description
+-A test dependency failed
+
+SEP: 6
+Group: GET /deposit
+Assertion: returns a success or customer info status response for valid requests from KYC'ed accounts

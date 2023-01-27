@@ -1,0 +1,12 @@
+-------------------------------------------------
+GET /transactions has a record on /transactions after a withdraw request
+FAILED
+Failure Type:
+-failed dependency
+
+Description
+-A test dependency failed
+
+SEP: 6
+Group: GET /withdraw
+Assertion: returns a success or customer info status response for valid requests from KYC'ed accounts

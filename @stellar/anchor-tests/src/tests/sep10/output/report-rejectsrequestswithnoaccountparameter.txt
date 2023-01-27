@@ -1,0 +1,3 @@
+-------------------------------------------------
+GET /auth rejects requests with no 'account' parameter
+PASSED

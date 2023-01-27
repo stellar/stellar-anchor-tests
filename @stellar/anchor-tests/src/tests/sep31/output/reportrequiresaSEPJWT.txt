@@ -1,0 +1,3 @@
+-------------------------------------------------
+POST /transactions requires a SEP-10 JWT
+PASSED

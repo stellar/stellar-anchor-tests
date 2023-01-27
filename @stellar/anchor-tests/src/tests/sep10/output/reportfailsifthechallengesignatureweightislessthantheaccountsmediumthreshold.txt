@@ -1,0 +1,3 @@
+-------------------------------------------------
+Account Signer Support fails if the challenge signature weight is less than the account's medium threshold
+PASSED

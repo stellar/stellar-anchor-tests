@@ -1,0 +1,3 @@
+-------------------------------------------------
+TOML Tests has DIRECT_PAYMENT_SERVER attribute
+PASSED

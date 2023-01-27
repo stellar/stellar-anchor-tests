@@ -1,0 +1,3 @@
+-------------------------------------------------
+POST /auth fails if a challenge for a nonexistent account has extra client signatures
+PASSED

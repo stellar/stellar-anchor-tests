@@ -1,0 +1,8 @@
+-------------------------------------------------
+GET /info has configured transaction 'fields'
+FAILED
+Failure Type:
+-unexpected field
+
+Description
+-bank_number is specified as required in the /info response body but is not present in SEP-31's configuration

@@ -1,0 +1,12 @@
+-------------------------------------------------
+GET /customer can retrieve customer using SEP-10 token
+FAILED
+Failure Type:
+-unexpected status code
+
+Description
+-An unexpected status code was included in the response to: 
+
+GET https://api-ts.anclap.ar/kyc/customer?
+Expected: 200
+Received: 500

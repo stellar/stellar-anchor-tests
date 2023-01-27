@@ -1,0 +1,3 @@
+-------------------------------------------------
+PUT /customer can create a customer
+PASSED

@@ -1,0 +1,12 @@
+-------------------------------------------------
+POST /transactions returns 400 when no asset_code is given
+FAILED
+Failure Type:
+-failed dependency
+
+Description
+-A test dependency failed
+
+SEP: 31
+Group: POST /transactions
+Assertion: can create a transaction

@@ -1,0 +1,3 @@
+-------------------------------------------------
+/transactions returns proper transactions when 'no_older_than' parameter is given
+PASSED

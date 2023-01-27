@@ -1,0 +1,3 @@
+-------------------------------------------------
+/deposit rejects invalid 'account' parameter
+PASSED

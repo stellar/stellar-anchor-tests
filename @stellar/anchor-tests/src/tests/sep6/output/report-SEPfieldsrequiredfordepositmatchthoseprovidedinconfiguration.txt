@@ -1,0 +1,13 @@
+-------------------------------------------------
+GET /info SEP-9 fields required for deposit match those provided in configuration
+FAILED
+Failure Type:
+-field not found
+
+Description
+-A field specified in SEP-6's configuration is not specified in the 'non_interactive_customer_info_needed' response body.
+Expected: asset_code
+Received: type
+
+Resource Links:
+Deposit Fields: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#for-each-deposit-asset-response-contains

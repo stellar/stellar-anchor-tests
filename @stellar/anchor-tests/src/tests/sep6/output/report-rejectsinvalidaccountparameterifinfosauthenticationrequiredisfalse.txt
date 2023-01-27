@@ -1,0 +1,3 @@
+-------------------------------------------------
+GET /withdraw rejects invalid 'account' parameter if /info's 'authentication_required' is false
+PASSED

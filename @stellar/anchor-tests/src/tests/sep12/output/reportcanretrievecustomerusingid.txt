@@ -1,0 +1,12 @@
+-------------------------------------------------
+GET /customer can retrieve customer using 'id'
+FAILED
+Failure Type:
+-unexpected status code
+
+Description
+-An unexpected status code was included in the response to: 
+
+GET https://api-ts.anclap.ar/kyc/customer?id=9f474275-e4ce-4f86-9d12-c66a2bfcbfc7
+Expected: 200
+Received: 500

@@ -1,0 +1,3 @@
+-------------------------------------------------
+/transactions only returns withdraw transactions when kind=withdrawal
+PASSED

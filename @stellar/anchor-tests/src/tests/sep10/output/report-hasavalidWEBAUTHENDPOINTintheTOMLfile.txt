@@ -1,0 +1,3 @@
+-------------------------------------------------
+TOML Tests has a valid WEB_AUTH_ENDPOINT in the TOML file
+PASSED

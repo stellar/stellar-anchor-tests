@@ -1,0 +1,12 @@
+-------------------------------------------------
+GET /transactions/:id response body complies with protocol schema
+FAILED
+Failure Type:
+-failed dependency
+
+Description
+-A test dependency failed
+
+SEP: 31
+Group: GET /transactions/:id
+Assertion: can fetch a created transaction

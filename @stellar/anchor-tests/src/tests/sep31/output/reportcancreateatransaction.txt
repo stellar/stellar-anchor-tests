@@ -1,0 +1,12 @@
+-------------------------------------------------
+POST /transactions can create a transaction
+FAILED
+Failure Type:
+-failed dependency
+
+Description
+-A test dependency failed
+
+SEP: 12
+Group: PUT /customer
+Assertion: memos differentiate customers registered by the same account

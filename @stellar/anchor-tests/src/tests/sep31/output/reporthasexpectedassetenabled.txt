@@ -1,0 +1,3 @@
+-------------------------------------------------
+GET /info has expected asset enabled
+PASSED

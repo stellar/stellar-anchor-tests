@@ -1,0 +1,13 @@
+-------------------------------------------------
+GET /info SEP-9 fields required for withdraw match those provided in configuration
+FAILED
+Failure Type:
+-field not found
+
+Description
+-A field specified in SEP-6's configuration is not specified in the GET /info response body.
+Expected: asset_code
+Received: dest
+
+Resource Links:
+Withdraw Fields: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#for-each-withdrawal-asset-response-contains

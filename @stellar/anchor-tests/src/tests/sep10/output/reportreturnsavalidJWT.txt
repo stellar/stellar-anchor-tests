@@ -1,0 +1,3 @@
+-------------------------------------------------
+POST /auth returns a valid JWT
+PASSED

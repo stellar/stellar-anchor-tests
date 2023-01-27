@@ -1,0 +1,3 @@
+-------------------------------------------------
+/transaction has a record on /transaction after a deposit request
+PASSED

@@ -1,0 +1,3 @@
+-------------------------------------------------
+GET /info configured asset code is enabled for withdraw
+PASSED
