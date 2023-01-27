@@ -1,4 +1,4 @@
-name: Run tests
+name: Run tests for Anclap's anchor
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
