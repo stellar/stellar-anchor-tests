@@ -1,9 +1,8 @@
 name: Run tests for Anclap's anchor.
 
 on:
-  push:
-    branches:
-      - master
+  repository-dispatch:
+    types: [run-tests]
 
 jobs:
   run-tests:
