@@ -2,7 +2,7 @@ name: Run tests for Anclap's anchor.
 
 on:
   repository_dispatch:
-    types: [run-tests]
+    types: [run_tests]
 
 jobs:
   run-tests:
