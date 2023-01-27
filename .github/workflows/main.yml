@@ -1,4 +1,4 @@
-name: Run tests for Anclap's anchor
+name: Run tests for Anclap's anchor.
 
 on:
   push:
