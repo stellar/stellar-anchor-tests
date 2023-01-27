@@ -1,18 +1,23 @@
 name: Run tests
 
 on:
-  repository_dispatch:
-    types: [run_tests]
+  push:
+    branches:
+      - stage
 
 jobs:
   run-tests:
     runs-on: ubuntu-latest
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+
     - name: Install dependencies
       run: yarn install
+
     - name: Build
       run: yarn build
+
     - name: Run tests
       run: yarn run-tests
