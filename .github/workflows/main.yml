@@ -1,7 +1,7 @@
 name: Run tests
 
 on:
-  workflow_dispatch:
+  repository_dispatch:
     types: [run_tests]
 
 jobs:
