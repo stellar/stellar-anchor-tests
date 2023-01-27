@@ -1,3 +1,0 @@
--------------------------------------------------
-/transaction has a valid 'more_info_url'
-PASSED

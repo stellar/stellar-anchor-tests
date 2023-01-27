@@ -1,3 +1,0 @@
--------------------------------------------------
-TOML Tests has KYC_SERVER attribute
-PASSED

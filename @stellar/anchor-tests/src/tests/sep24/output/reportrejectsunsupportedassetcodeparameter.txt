@@ -1,3 +1,0 @@
--------------------------------------------------
-/withdraw rejects unsupported 'asset_code' parameter
-PASSED

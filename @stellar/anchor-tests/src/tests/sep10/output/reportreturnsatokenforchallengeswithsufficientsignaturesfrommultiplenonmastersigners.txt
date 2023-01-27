@@ -1,3 +1,0 @@
--------------------------------------------------
-Account Signer Support returns a token for challenges with sufficient signatures from multiple non-master signers
-PASSED

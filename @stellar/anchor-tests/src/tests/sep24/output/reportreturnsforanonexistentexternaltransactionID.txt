@@ -1,3 +1,0 @@
--------------------------------------------------
-/transaction returns 404 for a nonexistent external transaction ID
-PASSED

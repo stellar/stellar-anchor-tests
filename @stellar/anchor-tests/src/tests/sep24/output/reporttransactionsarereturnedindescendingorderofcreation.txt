@@ -1,3 +1,0 @@
--------------------------------------------------
-/transactions transactions are returned in descending order of creation
-PASSED

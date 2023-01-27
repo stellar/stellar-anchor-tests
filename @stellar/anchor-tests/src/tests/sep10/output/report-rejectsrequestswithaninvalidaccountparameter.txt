@@ -1,3 +1,0 @@
--------------------------------------------------
-GET /auth rejects requests with an invalid 'account' parameter
-PASSED

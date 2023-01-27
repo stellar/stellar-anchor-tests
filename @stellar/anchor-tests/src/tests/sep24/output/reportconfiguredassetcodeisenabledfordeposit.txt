@@ -1,3 +1,0 @@
--------------------------------------------------
-/info configured asset code is enabled for deposit
-PASSED

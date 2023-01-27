@@ -1,3 +1,0 @@
--------------------------------------------------
-/withdraw returns a proper schema for valid requests
-PASSED

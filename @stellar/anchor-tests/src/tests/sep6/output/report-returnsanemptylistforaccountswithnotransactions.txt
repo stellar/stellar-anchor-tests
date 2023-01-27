@@ -1,3 +1,0 @@
--------------------------------------------------
-GET /transactions returns an empty list for accounts with no transactions
-PASSED

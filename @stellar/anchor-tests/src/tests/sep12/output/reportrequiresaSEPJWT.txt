@@ -1,3 +1,0 @@
--------------------------------------------------
-DELETE /customer requires a SEP-10 JWT
-PASSED

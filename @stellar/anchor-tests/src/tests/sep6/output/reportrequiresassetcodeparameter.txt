@@ -1,3 +1,0 @@
--------------------------------------------------
-GET /withdraw requires 'asset_code' parameter
-PASSED

@@ -1,3 +1,0 @@
--------------------------------------------------
-POST /auth fails if the 'transaction' value is invalid
-PASSED

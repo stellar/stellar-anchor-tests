@@ -1,3 +1,0 @@
--------------------------------------------------
-Account Signer Support succeeds with a signature from a non-master signer
-PASSED

@@ -1,3 +1,0 @@
--------------------------------------------------
-TOML Tests has a valid network passphrase
-PASSED

@@ -1,3 +1,0 @@
--------------------------------------------------
-GET /transaction returns 404 for a nonexistent Stellar transaction ID
-PASSED

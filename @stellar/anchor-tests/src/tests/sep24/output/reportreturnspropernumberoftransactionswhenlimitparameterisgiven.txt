@@ -1,3 +1,0 @@
--------------------------------------------------
-/transactions returns proper number of transactions when 'limit' parameter is given
-PASSED
