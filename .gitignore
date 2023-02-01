@@ -14,6 +14,7 @@ yarn-error.log
 @stellar/anchor-tests/src/tests/sep24/output/*
 @stellar/anchor-tests/src/tests/sep31/output/*
 @stellar/anchor-tests/src/tests/sep38/output/*
+@stellar/anchor-tests/src/tests/sep381/output/*
 @stellar/anchor-tests/src/tests/sep31And38/output/*
 !@stellar/anchor-tests/src/tests/sep1/output/.gitkeep
 !@stellar/anchor-tests/src/tests/sep6/output/.gitkeep
@@ -22,4 +23,5 @@ yarn-error.log
 !@stellar/anchor-tests/src/tests/sep24/output/.gitkeep
 !@stellar/anchor-tests/src/tests/sep31/output/.gitkeep
 !@stellar/anchor-tests/src/tests/sep38/output/.gitkeep
+!@stellar/anchor-tests/src/tests/sep381/output/.gitkeep
 !@stellar/anchor-tests/src/tests/sep31And38/output/.gitkeep
