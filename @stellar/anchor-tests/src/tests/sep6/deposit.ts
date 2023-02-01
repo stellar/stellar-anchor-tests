@@ -164,6 +164,7 @@ const depositRequiresAccount: Test = {
       result.skipped = true;
       return result;
     }
+    // @ts-ignore
     const callParams = new URLSearchParams({
       asset_code: config.assetCode,
     });
@@ -206,6 +207,7 @@ const depositRejectsInvalidAccount: Test = {
       result.skipped = true;
       return result;
     }
+    // @ts-ignore
     const callParams = new URLSearchParams({
       asset_code: config.assetCode,
       account: "invalid account",
