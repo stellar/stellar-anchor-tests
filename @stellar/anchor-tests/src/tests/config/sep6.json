@@ -1,63 +1,72 @@
 {
-    "6": {
-        "deposit": {
-            "transactionFields": {
-                "asset_code": "USDC", 
-                "account": "GAI7LFASBKMLXEN2ISRQZC37OTAG6SVECYUSFCENJECKHL6SGHYCPL7T"
-            }
-        },
-        "withdraw": {
-            "types": {"bank_account": {
-                    "transactionFields": {
-                        "asset_code": "USDC", 
-                        "account": "GAI7LFASBKMLXEN2ISRQZC37OTAG6SVECYUSFCENJECKHL6SGHYCPL7T"
-                    }
-                }
-            }
-        }
-    },
-    "12": {
-      "customers": {
-        "toBeCreated": {
-          "first_name": "John",
-          "last_name": "Doe",
-          "email_address": "joe@email.com",
-          "bank_number": "123",
-          "bank_account_number": "123",
-          "id_type": "ID_CARD",
-          "id_country_code": "ARG",
-          "id_number": "123456789" 
-        },
-        "sendingClient": {
-          "first_name": "Tomer",
-          "last_name": "Weller",
-          "email_address": "tomer@stellar.org",
-          "id_type": "ID_CARD",
-          "id_country_code": "ARG",
-          "id_number": "123456788" 
-        },
-        "receivingClient": {
-          "first_name": "Lydia",
-          "last_name": "Wagner",
-          "email_address": "lydia@stellar.org",
-          "id_type": "ID_CARD",
-          "id_country_code": "ARG",
-          "id_number": "123456790" 
-        },
-        "toBeDeleted": {
-          "first_name": "Jane",
-          "last_name": "Doe",
-          "email_address": "jane@email.com",
-          "id_type": "ID_CARD",
-          "id_country_code": "ARG",
-          "id_number": "123456791" 
-        }
+  "6": {
+      "deposit": {
+          "transactionFields": {
+              "type": "bank_account"
+          }
       },
-      "createCustomer": "toBeCreated",
-      "deleteCustomer": "toBeDeleted",
-      "sameAccountDifferentMemos": [
-        "sendingClient",
-        "receivingClient"
-      ]
-    }
+      "withdraw": {
+        "types":{
+          "bank_account":{
+            "transactionFields": {
+              "dest" : "mi_bank_acc"
+            }
+          },
+          "card":{
+            "transactionFields": {
+              "dest" : "mi_card_acc"
+            }
+          },
+          "cash":{
+            "transactionFields": {
+              "dest" : "mi_cash_acc"
+            }
+          }
+        }
+      }
+  },
+  "12": {
+    "customers": {
+      "toBeCreated": {
+        "first_name": "John",
+        "last_name": "Doe",
+        "email_address": "joe@email.com",
+        "bank_number": "123",
+        "bank_account_number": "123",
+        "id_type": "ID_CARD",
+        "id_country_code": "ARG",
+        "id_number": "123456789" 
+      },
+      "sendingClient": {
+        "first_name": "Tomer",
+        "last_name": "Weller",
+        "email_address": "tomer@stellar.org",
+        "id_type": "ID_CARD",
+        "id_country_code": "ARG",
+        "id_number": "123456788" 
+      },
+      "receivingClient": {
+        "first_name": "Lydia",
+        "last_name": "Wagner",
+        "email_address": "lydia@stellar.org",
+        "id_type": "ID_CARD",
+        "id_country_code": "ARG",
+        "id_number": "123456790" 
+      },
+      "toBeDeleted": {
+        "first_name": "Jane",
+        "last_name": "Doe",
+        "email_address": "jane@email.com",
+        "id_type": "ID_CARD",
+        "id_country_code": "ARG",
+        "id_number": "123456791" 
+      }
+    },
+    "createCustomer": "toBeCreated",
+    "deleteCustomer": "toBeDeleted",
+    "sameAccountDifferentMemos": [
+      "sendingClient",
+      "receivingClient"
+    ]
+  }
 }
