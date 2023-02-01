@@ -44,9 +44,10 @@ function printColoredTextStats(
   writeStatsSummary(reportLine, "Time:        " + secondsString + "s")
 }
 
-function writeTestReport(sep: number, testName: string, testRun:string) {
+function writeTestReport(sep: number, testGroup: string, testName: string, testRun:string) {
   testName = testName.replace(/[^a-zA-Z]/g, "");
-  fs.writeFileSync('./@stellar/anchor-tests/src/tests/sep' + sep + '/output/report-' + testName + '.txt', testRun, { flag: 'w+' });
+  testGroup = testGroup.replace(/[^a-zA-Z]/g, "");
+  fs.writeFileSync('./@stellar/anchor-tests/src/tests/sep' + sep + '/output/report-' + testGroup + '-' + testName + '.txt', testRun, { flag: 'w+' });
   console.log("Tests report file has been saved!")
 }
 
@@ -55,6 +56,7 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
   let sepNumber = testRun.test.sep
   let reportDump = '-------------------------------------------------\n'
   let testName = testRun.test.assertion
+  let testGroup = testRun.test.group
   if (testRun.result.skipped) {
     color = c.gray.bold;
     symbol = c.symbols.pointer;
@@ -113,7 +115,7 @@ async function printColoredTextTestRun(testRun: TestRun, verbose: boolean) {
   } else {
     reportDump += "PASSED"
   }
-  writeTestReport(sepNumber, testName, reportDump)
+  writeTestReport(sepNumber, testGroup, testName, reportDump)
   if (verbose && testRun.result.failure && testRun.result.networkCalls.length) {
     console.log(c.bold("Network Calls:\n"));
     for (const networkCall of testRun.result.networkCalls) {
