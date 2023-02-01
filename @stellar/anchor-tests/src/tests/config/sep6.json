@@ -17,38 +17,47 @@
         }
     },
     "12": {
-        "customers": {
-          "toBeCreated": {
-            "first_name": "John",
-            "last_name": "Doe",
-            "email_address": "joe@email.com",
-            "bank_number": "123",
-            "bank_account_number": "123",
-	    "id_type": "ID_CARD",
-            "id_country_code": "ARG",
-            "id_number": "123456789" 
-          },
-          "sendingClient": {
-            "first_name": "Tomer",
-            "last_name": "Weller",
-            "email_address": "tomer@stellar.org"
-          },
-          "receivingClient": {
-            "first_name": "Lydia",
-            "last_name": "Wagner",
-            "email_address": "lydia@stellar.org"
-          },
-          "toBeDeleted": {
-            "first_name": "Jane",
-            "last_name": "Doe",
-            "email_address": "jane@email.com"
-          }
+      "customers": {
+        "toBeCreated": {
+          "first_name": "John",
+          "last_name": "Doe",
+          "email_address": "joe@email.com",
+          "bank_number": "123",
+          "bank_account_number": "123",
+          "id_type": "ID_CARD",
+          "id_country_code": "ARG",
+          "id_number": "123456789" 
         },
-        "createCustomer": "toBeCreated",
-        "deleteCustomer": "toBeDeleted",
-        "sameAccountDifferentMemos": [
-          "sendingClient",
-          "receivingClient"
-        ]
-      }
+        "sendingClient": {
+          "first_name": "Tomer",
+          "last_name": "Weller",
+          "email_address": "tomer@stellar.org",
+          "id_type": "ID_CARD",
+          "id_country_code": "ARG",
+          "id_number": "123456788" 
+        },
+        "receivingClient": {
+          "first_name": "Lydia",
+          "last_name": "Wagner",
+          "email_address": "lydia@stellar.org",
+          "id_type": "ID_CARD",
+          "id_country_code": "ARG",
+          "id_number": "123456790" 
+        },
+        "toBeDeleted": {
+          "first_name": "Jane",
+          "last_name": "Doe",
+          "email_address": "jane@email.com",
+          "id_type": "ID_CARD",
+          "id_country_code": "ARG",
+          "id_number": "123456791" 
+        }
+      },
+      "createCustomer": "toBeCreated",
+      "deleteCustomer": "toBeDeleted",
+      "sameAccountDifferentMemos": [
+        "sendingClient",
+        "receivingClient"
+      ]
+    }
 }
