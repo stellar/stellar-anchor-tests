@@ -76,6 +76,7 @@ export const pricesSchema = {
   required: ["buy_assets"],
 };
 
+// @ts-ignore
 const rateFeeSchema = {
   type: "object",
   properties: {
@@ -137,10 +138,6 @@ export const quoteSchema = {
     price: {
       type: "string",
     },
-    total_price: {
-      type: "string",
-    },
-    fee: rateFeeSchema,
     sell_asset: {
       type: "string",
     },
@@ -159,8 +156,6 @@ export const quoteSchema = {
     "id",
     "expires_at",
     "price",
-    "total_price",
-    "fee",
     "sell_asset",
     "buy_asset",
     "sell_amount",

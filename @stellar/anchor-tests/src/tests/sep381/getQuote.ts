@@ -6,12 +6,12 @@ import { Test, Result, Config, NetworkCall } from "../../types";
 import { hasQuoteServer } from "./toml";
 import { genericFailures, makeFailure } from "../../helpers/failure";
 import { makeRequest } from "../../helpers/request";
-import { quoteSchema } from "../../schemas/sep38";
+import { quoteSchema } from "../../schemas/sep381";
 import { returnsValidJwt } from "../sep10/tests";
 import { canCreateQuote } from "./postQuote";
 
 export const requiresJwt: Test = {
-  sep: 38,
+  sep: 381,
   assertion: "requires SEP-10 authentication",
   group: "GET /quote",
   dependencies: [hasQuoteServer],
@@ -61,7 +61,7 @@ export const requiresJwt: Test = {
 };
 
 export const canFetchQuote: Test = {
-  sep: 38,
+  sep: 381,
   assertion: "can fetch an existing quote",
   group: "GET /quote",
   dependencies: [returnsValidJwt, canCreateQuote],
@@ -148,7 +148,7 @@ export const canFetchQuote: Test = {
 };
 
 export const returnsNotFound: Test = {
-  sep: 38,
+  sep: 381,
   assertion: "returns a 404 for unknown quote IDs",
   group: "GET /quote",
   dependencies: [returnsValidJwt, hasQuoteServer],

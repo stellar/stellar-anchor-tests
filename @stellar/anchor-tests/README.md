@@ -41,6 +41,9 @@ Tests:       5 passed, 5 total
 Time:        0.373s
 ```
 
+### SEP Versioning
+SEP-38 after version v1.6.1 has a different price schema that support `total_price` and `fee` fields. To test SEP 38 latest version, simply run the tool as usual, and to run with older version v.1.6.1, run with `--sep 381`, so that any reference in results and console logging to SEP-381 means that is testing SEP-38 v.1.61.
+
 ### Library
 
 Check out the complete [API Reference documentation](https://stellar.github.io/stellar-anchor-tests).

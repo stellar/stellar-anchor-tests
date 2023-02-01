@@ -27,7 +27,7 @@ import { pricesSchema } from "../../schemas/sep38";
  * single direction. This applies to other tests as well.
  */
 export const hasValidSchema: Test = {
-  sep: 38,
+  sep: 381,
   assertion: "returns a valid response",
   group: "GET /prices",
   dependencies: [hasQuoteServer, returnsValidJwt],
@@ -160,7 +160,7 @@ export const hasValidSchema: Test = {
  * an off-chain asset as a 'sell_asset'.
  */
 export const allowsOffChainSellAssets: Test = {
-  sep: 38,
+  sep: 381,
   assertion: "allows off-chain assets as 'sell_asset'",
   group: "GET /prices",
   dependencies: [hasValidSchema],
@@ -274,7 +274,7 @@ export const allowsOffChainSellAssets: Test = {
 
 export const deliveryMethodIsOptional: Test = {
   assertion: "specifying delivery method is optional",
-  sep: 38,
+  sep: 381,
   group: "GET /prices",
   dependencies: [hasValidSchema],
   context: {
