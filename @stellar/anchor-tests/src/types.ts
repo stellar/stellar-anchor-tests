@@ -4,7 +4,7 @@ import { Request, Response } from "node-fetch";
 /**
  * The [Stellar Ecosystem Proposals (SEPs)](https://github.com/stellar/stellar-protocol/tree/master/ecosystem) this library supports testing.
  */
-export type SEP = 1 | 6 | 10 | 12 | 24 | 31 | 38;
+export type SEP = 1 | 6 | 10 | 12 | 24 | 31 | 38 | 39;
 
 export interface Config {
   /**
@@ -64,6 +64,7 @@ export interface SepConfig {
   12?: Sep12Config;
   31?: Sep31Config;
   38?: Sep38Config;
+  39?: Sep39Config;
 }
 
 /**
@@ -184,6 +185,16 @@ export interface Sep6Config {
  * The configuration object for SEP-38 tests.
  */
 export interface Sep38Config {
+  /**
+   * The list of contexts to test. As of this date, the contexts can be `sep6` or `sep31`.
+   */
+  contexts: string[];
+}
+
+/**
+ * The configuration object for SEP-38v2 tests.
+ */
+export interface Sep39Config {
   /**
    * The list of contexts to test. As of this date, the contexts can be `sep6` or `sep31`.
    */

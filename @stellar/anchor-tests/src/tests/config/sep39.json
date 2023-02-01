@@ -1,0 +1,24 @@
+{   
+    "6": {
+        "deposit": {
+            "transactionFields": {
+                "asset_code": "USDC", 
+                "account": "GAI7LFASBKMLXEN2ISRQZC37OTAG6SVECYUSFCENJECKHL6SGHYCPL7T"
+            }
+        },
+        "withdraw": {
+            "types": {"bank_account": {
+                    "transactionFields": {
+                        "asset_code": "USDC", 
+                        "account": "GAI7LFASBKMLXEN2ISRQZC37OTAG6SVECYUSFCENJECKHL6SGHYCPL7T"
+                    }
+                }
+            }
+        }
+    },
+    "39": {
+    "contexts": [
+      "sep6"
+    ]
+  }
+}

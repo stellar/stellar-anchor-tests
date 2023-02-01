@@ -103,6 +103,20 @@ export const sep38ConfigSchema = {
   additionalProperties: false,
 };
 
+export const sep39ConfigSchema = {
+  type: "object",
+  properties: {
+    contexts: {
+      type: "array",
+      items: {
+        enum: ["sep6", "sep31"],
+      },
+    },
+  },
+  required: ["contexts"],
+  additionalProperties: false,
+};
+
 export const sepConfigSchema = {
   type: "object",
   properties: {
@@ -110,6 +124,7 @@ export const sepConfigSchema = {
     "12": sep12ConfigSchema,
     "31": sep31ConfigSchema,
     "38": sep38ConfigSchema,
+    "39": sep39ConfigSchema,
   },
   additionalProperties: false,
 };
@@ -124,7 +139,7 @@ export const configSchema = {
     seps: {
       type: "array",
       items: {
-        enum: [1, 6, 10, 12, 24, 31, 38],
+        enum: [1, 6, 10, 12, 24, 31, 38, 39],
       },
     },
     verbose: {

@@ -177,4 +177,17 @@ function checkSepConfigObj(config: Config) {
       );
     }
   }
+  if (config.seps.includes(39)) {
+    if (!config.sepConfig || !config.sepConfig["39"]) {
+      throw new ConfigError(
+        "SEP-38 configuration is required to run SEP-38v2 tests.",
+      );
+    }
+
+    if (config.sepConfig["39"].contexts.length === 0) {
+      throw new ConfigError(
+        "SEP-38's 'contexts' must contain at least one context from the list of accepted values: ['sep6', 'sep31']",
+      );
+    }
+  }
 }
