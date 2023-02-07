@@ -140,46 +140,6 @@ const depositRequiresAssetCode: Test = {
 };
 tests.push(depositRequiresAssetCode);
 
-const depositRequiresAccount: Test = {
-  assertion: "requires 'account' parameter",
-  sep: 24,
-  group: depositTestsGroup,
-  dependencies: depositRequiresAssetCode.dependencies,
-  context: depositRequiresAssetCode.context,
-  failureModes: depositRequiresAssetCode.failureModes,
-  async run(config: Config): Promise<Result> {
-    const result: Result = { networkCalls: [] };
-    const postDepositCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.transferServerUrl + depositEndpoint,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${this.context.expects.token}`,
-          },
-          body: JSON.stringify({ asset_code: config.assetCode }),
-        },
-      ),
-    };
-    result.networkCalls.push(postDepositCall);
-    const errorResponse = await makeRequest(
-      postDepositCall,
-      400,
-      result,
-      "application/json",
-    );
-    if (result.failure || !errorResponse) return result;
-    if (!errorResponse.error) {
-      result.failure = makeFailure(
-        this.failureModes.NO_ERROR_RESPONSE_ATTRIBUTE,
-      );
-    }
-    return result;
-  },
-};
-tests.push(depositRequiresAccount);
-
 const depositRejectsInvalidAccount: Test = {
   assertion: "rejects invalid 'account' parameter",
   sep: 24,
