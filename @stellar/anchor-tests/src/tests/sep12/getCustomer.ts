@@ -198,7 +198,7 @@ export const canFetchExistingCustomerById: Test = {
       name: "unexpected customer status",
       text(_args: any): string {
         return (
-          "An existing customer for which all information was provided should no longer be in the " +
+          "An existing customer for which all information was provided, except KYC photos, should be in the " +
           "'NEEDS_INFO' status. Ensure the customer data provided in the SEP-12 configuration includes " +
           "all required properties."
         );
@@ -250,7 +250,7 @@ export const canFetchExistingCustomerById: Test = {
       });
       return result;
     }
-    if (responseBody.status === "NEEDS_INFO") {
+    if (responseBody.status !== "NEEDS_INFO") {
       result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS);
       return result;
     }
@@ -292,7 +292,7 @@ const canFetchExistingCustomerBySep10Token: Test = {
       name: "unexpected customer status",
       text(_args: any): string {
         return (
-          "An existing customer for which all information was provided should no longer be in the " +
+          "An existing customer for which all information was provided, except KYC photos, should be in the " +
           "'NEEDS_INFO' status. Ensure the customer data provided in the SEP-12 configuration includes " +
           "all required properties."
         );
@@ -342,7 +342,7 @@ const canFetchExistingCustomerBySep10Token: Test = {
       });
       return result;
     }
-    if (responseBody.status === "NEEDS_INFO") {
+    if (responseBody.status !== "NEEDS_INFO") {
       result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS);
       return result;
     }

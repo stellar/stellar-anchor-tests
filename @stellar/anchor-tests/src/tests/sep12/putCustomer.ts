@@ -114,6 +114,12 @@ export const canCreateCustomer: Test = {
           "'customers' object matching the value assigned to 'createCustomer'",
       );
     }
+
+    // Log this to console to use secret and public key in Postman manual tests
+    console.dir(this.context.expects.clientKeypair.publicKey())
+    console.dir(this.context.expects.clientKeypair.secret())
+    console.dir(this.context.expects.token)
+
     const putCustomerRequest = makeSep12Request({
       url: this.context.expects.kycServerUrl + "/customer",
       data: {
