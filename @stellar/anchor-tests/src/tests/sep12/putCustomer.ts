@@ -116,9 +116,9 @@ export const canCreateCustomer: Test = {
     }
 
     // Log this to console to use secret and public key in Postman manual tests
-    console.dir(this.context.expects.clientKeypair.publicKey())
-    console.dir(this.context.expects.clientKeypair.secret())
-    console.dir(this.context.expects.token)
+    console.dir(this.context.expects.clientKeypair.publicKey());
+    console.dir(this.context.expects.clientKeypair.secret());
+    console.dir(this.context.expects.token);
 
     const putCustomerRequest = makeSep12Request({
       url: this.context.expects.kycServerUrl + "/customer",
@@ -180,6 +180,257 @@ tests.push(canCreateCustomer);
 
 export const differentMemosSameAccount: Test = {
   assertion: "memos differentiate customers registered by the same account",
+  sep: 12,
+  group: putCustomerGroup,
+  dependencies: [hasKycServerUrl, returnsValidJwt],
+  context: {
+    expects: {
+      webAuthEndpoint: undefined,
+      kycServerUrl: undefined,
+      tomlObj: undefined,
+    },
+    provides: {
+      sendingAnchorClientKeypair: undefined,
+      sendingAnchorToken: undefined,
+      sendingCustomerId: undefined,
+      sendingCustomerMemo: undefined,
+      receivingCustomerId: undefined,
+      receivingCustomerMemo: undefined,
+    },
+  },
+  failureModes: {
+    NO_ID_PROVIDED: {
+      name: "no 'id' provided",
+      text(_args: any): string {
+        return "An 'id' attribute is required for PUT /customer success responses";
+      },
+      links: {
+        "PUT Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#response-1",
+      },
+    },
+    BAD_ID_TYPE: {
+      name: "bad 'id' data type",
+      text(_args: any): string {
+        return "The 'id' returned in PUT /customer in responses must be a string";
+      },
+      links: {
+        "PUT Response":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#response-1",
+      },
+    },
+    MEMO_DOESNT_DIFFERENTIATE: {
+      name: "memos do not differentiate customers",
+      text(_args: any): string {
+        return (
+          "Two PUT /customer requests were made with the same account and " +
+          "different memos, but the same customer ID was returned in both responses. " +
+          "Memos are used to uniquely identify customers registered by the same account."
+        );
+      },
+      links: {
+        "PUT Request":
+          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request",
+      },
+    },
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+    let sendingCustomerData;
+    let receivingCustomerData;
+    if (config.seps.includes(31)) {
+      if (
+        !config.sepConfig ||
+        !config.sepConfig["31"] ||
+        !config.sepConfig["31"].sendingAnchorClientSecret ||
+        !config.sepConfig["12"]
+      ) {
+        // this configuration is checked prior to running tests
+        // but to satisfy TypeScript we make these checks here.
+        throw new Error("improperly configured");
+      }
+      sendingCustomerData =
+        config.sepConfig["12"].customers[
+          config.sepConfig["31"].sendingClientName
+        ];
+      receivingCustomerData =
+        config.sepConfig["12"].customers[
+          config.sepConfig["31"].receivingClientName
+        ];
+      this.context.provides.sendingAnchorClientKeypair = Keypair.fromSecret(
+        config.sepConfig["31"].sendingAnchorClientSecret,
+      );
+    } else {
+      if (
+        !config?.sepConfig?.["12"]?.sameAccountDifferentMemos ||
+        !config.sepConfig["12"]?.customers[
+          config.sepConfig["12"].sameAccountDifferentMemos[0]
+        ] ||
+        !config.sepConfig["12"].customers[
+          config.sepConfig["12"].sameAccountDifferentMemos[1]
+        ]
+      ) {
+        throw new Error(
+          "SEP-12 configuration data missing, expected 'sameAccountDifferentMemos' customers",
+        );
+      }
+      sendingCustomerData =
+        config.sepConfig["12"].customers[
+          config.sepConfig["12"].sameAccountDifferentMemos[0]
+        ];
+      receivingCustomerData =
+        config.sepConfig["12"].customers[
+          config.sepConfig["12"].sameAccountDifferentMemos[1]
+        ];
+      this.context.provides.sendingAnchorClientKeypair = Keypair.random();
+    }
+    this.context.provides.sendingCustomerMemo = Memo.hash(
+      randomBytes(32).toString("hex"),
+    );
+    this.context.provides.receivingCustomerMemo = Memo.hash(
+      randomBytes(32).toString("hex"),
+    );
+    this.context.provides.sendingAnchorToken = await postChallenge(
+      this.context.provides.sendingAnchorClientKeypair,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
+      result,
+    );
+    const sep12Request = makeSep12Request({
+      url: this.context.expects.kycServerUrl + "/customer",
+      data: {
+        memo: this.context.provides.sendingCustomerMemo.value.toString(
+          "base64",
+        ),
+        memo_type: "hash",
+        ...sendingCustomerData,
+      },
+      headers: {
+        Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
+      },
+    });
+    const sendingCustomerCall: NetworkCall = {
+      request: sep12Request,
+    };
+    result.networkCalls.push(sendingCustomerCall);
+    const sendingCustomerResponse = await makeRequest(
+      sendingCustomerCall,
+      202,
+      result,
+      "application/json",
+    );
+    if (!sendingCustomerResponse) return result;
+    if (!sendingCustomerResponse.id) {
+      result.failure = makeFailure(this.failureModes.NO_ID_PROVIDED);
+      return result;
+    }
+    if (typeof sendingCustomerResponse.id !== "string") {
+      result.failure = makeFailure(this.failureModes.BAD_ID_TYPE);
+      return result;
+    }
+
+    console.log("######" + sendingCustomerResponse.id);
+    const sep12UpdateRequest = makeSep12Request({
+      url: this.context.expects.kycServerUrl + "/customer",
+      data: {
+        id: sendingCustomerResponse.id,
+        trusted_kyc_status: "ACCEPTED",
+        ...sendingCustomerData,
+      },
+      headers: {
+        Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
+      },
+    });
+    const sendingCustomerUpdateCall: NetworkCall = {
+      request: sep12UpdateRequest,
+    };
+    result.networkCalls.push(sendingCustomerUpdateCall);
+    const sendingCustomerUpdateResponse = await makeRequest(
+      sendingCustomerUpdateCall,
+      202,
+      result,
+      "application/json",
+    );
+
+    if (!sendingCustomerUpdateResponse.id) {
+      result.failure = makeFailure(this.failureModes.NO_ID_PROVIDED);
+      return result;
+    }
+
+    const receivingCustomerRequest = makeSep12Request({
+      url: this.context.expects.kycServerUrl + "/customer",
+      data: {
+        memo: this.context.provides.receivingCustomerMemo.value.toString(
+          "base64",
+        ),
+        memo_type: "hash",
+        ...receivingCustomerData,
+      },
+      headers: {
+        Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
+      },
+    });
+    const receivingCustomerCall: NetworkCall = {
+      request: receivingCustomerRequest,
+    };
+    result.networkCalls.push(receivingCustomerCall);
+    const receivingCustomerResponse = await makeRequest(
+      receivingCustomerCall,
+      202,
+      result,
+      "application/json",
+    );
+    if (!receivingCustomerResponse) return result;
+    if (!receivingCustomerResponse.id) {
+      result.failure = makeFailure(this.failureModes.NO_ID_PROVIDED);
+      return result;
+    }
+    if (typeof receivingCustomerResponse.id !== "string") {
+      result.failure = makeFailure(this.failureModes.BAD_ID_TYPE);
+      return result;
+    }
+    if (receivingCustomerResponse.id === sendingCustomerResponse.id) {
+      result.failure = makeFailure(this.failureModes.MEMO_DOESNT_DIFFERENTIATE);
+      return result;
+    }
+
+    const receivingCustomerUpdateRequest = makeSep12Request({
+      url: this.context.expects.kycServerUrl + "/customer",
+      data: {
+        trusted_kyc_status: "ACCEPTED",
+        id: receivingCustomerResponse.id,
+        ...receivingCustomerData,
+      },
+      headers: {
+        Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
+      },
+    });
+    const receivingCustomerUpdateCall: NetworkCall = {
+      request: receivingCustomerUpdateRequest,
+    };
+    result.networkCalls.push(receivingCustomerUpdateCall);
+    const receivingCustomerUpdateResponse = await makeRequest(
+      receivingCustomerUpdateCall,
+      202,
+      result,
+      "application/json",
+    );
+
+    if (!receivingCustomerUpdateResponse.id) {
+      result.failure = makeFailure(this.failureModes.NO_ID_PROVIDED);
+      return result;
+    }
+
+    this.context.provides.sendingCustomerId = sendingCustomerResponse.id;
+    this.context.provides.receivingCustomerId = receivingCustomerResponse.id;
+    return result;
+  },
+};
+tests.push(differentMemosSameAccount);
+
+export const statusUpdate: Test = {
+  assertion: "can update a user status",
   sep: 12,
   group: putCustomerGroup,
   dependencies: [hasKycServerUrl, returnsValidJwt],
