@@ -330,12 +330,12 @@ export const differentMemosSameAccount: Test = {
       return result;
     }
 
-    console.log("######" + sendingCustomerResponse.id);
     const sep12UpdateRequest = makeSep12Request({
       url: this.context.expects.kycServerUrl + "/customer",
       data: {
         id: sendingCustomerResponse.id,
         trusted_kyc_status: "ACCEPTED",
+        ...sendingCustomerData,
       },
       headers: {
         Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
@@ -399,6 +399,7 @@ export const differentMemosSameAccount: Test = {
       data: {
         trusted_kyc_status: "ACCEPTED",
         id: receivingCustomerResponse.id,
+        ...receivingCustomerData,
       },
       headers: {
         Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
@@ -619,6 +620,6 @@ export const statusUpdate: Test = {
     return result;
   },
 };
-tests.push(differentMemosSameAccount);
+tests.push(statusUpdate);
 
 export default tests;
