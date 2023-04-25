@@ -19,6 +19,7 @@ export const tomlExists: Test = {
     TOML_CONNECTION_ERROR: {
       name: "connection error",
       text: (args: any) => {
+        console.log("args: ", args);
         return (
           `A connection failure occured when making a request to: ` +
           `\n\n${args.url}\n\n` +
@@ -78,6 +79,7 @@ export const tomlExists: Test = {
     },
   },
   async run(config: Config): Promise<Result> {
+    console.log("config.homeDomain", config.homeDomain);
     const result: Result = { networkCalls: [] };
     const getTomlCall: NetworkCall = {
       request: new Request(config.homeDomain + "/.well-known/stellar.toml"),
@@ -86,6 +88,9 @@ export const tomlExists: Test = {
     try {
       getTomlCall.response = await fetch(getTomlCall.request.clone());
     } catch (e) {
+      console.error("-------------------------------------------");
+      console.error("error: ", e);
+      console.error("-------------------------------------------");
       result.failure = makeFailure(this.failureModes.TOML_CONNECTION_ERROR, {
         homeDomain: config.homeDomain,
       });
