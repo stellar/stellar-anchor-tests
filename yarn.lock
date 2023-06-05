@@ -1630,6 +1630,24 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
+"@stellar/anchor-tests@0.5.8":
+  version "0.5.8"
+  resolved "https://registry.yarnpkg.com/@stellar/anchor-tests/-/anchor-tests-0.5.8.tgz#cc37da60ed28df310edba6e4f1c9dd08c49b14c6"
+  integrity sha512-JVD8QKejJxSw+eI+nrmhuKwFKj+8aWj2ldYkPq5R0BRfCHxIquy+JWNdYM6WmvzZi3AA1hbV5JEU3mOJMRJChg==
+  dependencies:
+    "@types/jsonwebtoken" "^8.5.1"
+    "@types/node" "^14.14.41"
+    "@types/node-fetch" "^2.5.10"
+    ansi-colors "^4.1.1"
+    form-data "^4.0.0"
+    jsonschema "^1.4.0"
+    jsonwebtoken "^8.5.1"
+    node-fetch "^2.6.1"
+    stellar-sdk "~8.2.5"
+    toml "^3.0.0"
+    tslib "^2.2.0"
+    yargs "^16.2.0"
+
 "@stellar/design-system@^0.3.3":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@stellar/design-system/-/design-system-0.3.3.tgz#9ffeb6f613b98c3af1cc5d3e6167b50d93792491"
