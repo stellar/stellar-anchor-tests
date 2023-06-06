@@ -1,4 +1,4 @@
 import PackageJson from "../../package.json";
 
 export const getAnchorTestsVersion = () =>
-  PackageJson.dependencies["@stellar/anchor-tests"].replace(/^(\^)/, "");
+  PackageJson.peerDependencies["@stellar/anchor-tests"].replace(/^(\^)/, "");

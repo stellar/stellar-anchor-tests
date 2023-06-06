@@ -5,7 +5,6 @@
   "dependencies": {
     "@sentry/browser": "^6.3.1",
     "@sentry/tracing": "^6.3.1",
-    "@stellar/anchor-tests": "^0.5.8",
     "@stellar/design-system": "^0.3.3",
     "@stellar/prettier-config": "^1.0.1",
     "@testing-library/jest-dom": "^5.11.4",
@@ -37,6 +36,9 @@
     "@types/react-dom": "^17.0.0",
     "@types/react-router-dom": "^5.1.7",
     "@types/styled-components": "^5.1.7"
+  },
+  "peerDependencies": {
+    "@stellar/anchor-tests": "0.5.8"
   },
   "prettier": "@stellar/prettier-config",
   "scripts": {
