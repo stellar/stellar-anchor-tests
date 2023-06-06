@@ -8,9 +8,11 @@ import {
   SerializedError,
 } from "./serializers";
 import logger from "./logging";
+import { anchorTestsPkgVersion } from "./anchorTestsPkgVersion";
 
 export const getTestsEventName = "getTests";
 export const runTestsEventName = "runTests";
+export const getVersionEventName = "getVersion";
 
 export async function onGetTests(
   this: Socket,
@@ -46,6 +48,23 @@ export async function onRunTests(
     const error = serializeError(e);
     logger.error(
       `run() threw an exception: '${error.name}: ${error.message}'\n${e.stack}`,
+    );
+    if (callback) callback(error);
+    return;
+  }
+}
+
+export async function onGetVersion(
+  this: Socket,
+  callback: (error: SerializedError) => void,
+) {
+  logger.info(`received '${getVersionEventName}' request from ${this.id}`);
+  try {
+    this.emit(getVersionEventName, anchorTestsPkgVersion());
+  } catch (e) {
+    const error = serializeError(e);
+    logger.error(
+      `anchorTestsPkgVersion() threw an exception: '${error.name}: ${error.message}\n${e.stack}'`,
     );
     if (callback) callback(error);
     return;

@@ -1,6 +1,7 @@
 node_modules
 lib
 config.json
+tsconfig.tsbuildinfo
 
 .DS_Store
 
