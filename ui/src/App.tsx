@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import * as Sentry from "@sentry/browser";
 import { Integrations } from "@sentry/tracing";
 import { Layout } from "@stellar/design-system";
-import { currentVersion } from "@stellar/anchor-tests";
 
 import { METRIC_NAMES } from "constants/metricNames";
 import { emitMetric } from "helpers/metrics";
+import { getAnchorTestsVersion } from "helpers/getAnchorTestsVersion";
 import { TestRunner } from "views/TestRunner";
 
 import "./styles.css";
@@ -39,7 +39,7 @@ export const App = () => {
       </Layout.Content>
 
       <Layout.Footer gitHubLink="https://github.com/stellar/stellar-anchor-tests">
-        <div className="Footer__note">{`@stellar/anchor-tests v${currentVersion()}`}</div>
+        <div className="Footer__note">{`@stellar/anchor-tests v${getAnchorTestsVersion()}`}</div>
       </Layout.Footer>
     </>
   );

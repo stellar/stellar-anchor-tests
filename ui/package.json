@@ -5,6 +5,7 @@
   "dependencies": {
     "@sentry/browser": "^6.3.1",
     "@sentry/tracing": "^6.3.1",
+    "@stellar/anchor-tests": "^0.5.8",
     "@stellar/design-system": "^0.3.3",
     "@stellar/prettier-config": "^1.0.1",
     "@testing-library/jest-dom": "^5.11.4",
