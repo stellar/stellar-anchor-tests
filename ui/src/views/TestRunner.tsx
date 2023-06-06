@@ -156,15 +156,17 @@ export const TestRunner = () => {
       const sepArray = testRunArrayCopy.find(({ sep }) => sep === test.sep);
       if (sepArray) {
         const testRun = sepArray.tests[testRunOrderMap[getTestRunId(test)]];
-        if (result) {
-          if (result.failureMode) {
-            sepArray.progress.failed++;
-          } else {
-            sepArray.progress.passed++;
+        if (testRun) {
+          if (result) {
+            if (result.failureMode) {
+              sepArray.progress.failed++;
+            } else {
+              sepArray.progress.passed++;
+            }
+            numberOfTestsRun.current++;
           }
-          numberOfTestsRun.current++;
+          testRun.result = result;
         }
-        testRun.result = result;
       }
       setTestRunArray(testRunArrayCopy);
 
