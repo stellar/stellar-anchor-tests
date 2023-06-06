@@ -10,7 +10,7 @@
   ],
   "license": "Apache-2.0",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p ./src/tsconfig.json",
     "start": "node ./lib/index.js"
   },
   "prettier": "@stellar/prettier-config",

@@ -37,9 +37,6 @@
     "@types/react-router-dom": "^5.1.7",
     "@types/styled-components": "^5.1.7"
   },
-  "peerDependencies": {
-    "@stellar/anchor-tests": "0.5.8"
-  },
   "prettier": "@stellar/prettier-config",
   "scripts": {
     "start": "react-scripts start",

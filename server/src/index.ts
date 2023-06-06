@@ -5,8 +5,10 @@ import { createServer } from "http";
 import {
   getTestsEventName,
   runTestsEventName,
+  getVersionEventName,
   onGetTests,
   onRunTests,
+  onGetVersion,
 } from "./eventHandlers";
 import logger from "./logging";
 
@@ -23,11 +25,16 @@ io.on("connection", (socket: Socket) => {
   logger.info(`Connection established with socket ${socket.id}`);
   socket.on(getTestsEventName, onGetTests);
   socket.on(runTestsEventName, onRunTests);
+  socket.on(getVersionEventName, onGetVersion);
   socket.on("disconnect", (reason: string) => {
     logger.info(`socket ${socket.id} disconnected: ${reason}`);
   });
   socket.onAny((event, ..._args) => {
-    if (![getTestsEventName, runTestsEventName].includes(event)) {
+    if (
+      ![getTestsEventName, runTestsEventName, getVersionEventName].includes(
+        event,
+      )
+    ) {
       logger.warning(`unexpected event received: ${event}`);
     }
   });
