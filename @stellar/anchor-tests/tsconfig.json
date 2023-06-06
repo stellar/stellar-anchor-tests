@@ -1,14 +1,10 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es5",
-    "declaration": true,
-    "declarationDir": "lib",
-    "rootDir": "src",
-    "outDir": "lib",
-    "lib": ["esnext"],
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true
+    "rootDir": ".",
+    "outDir": ".",
+    "resolveJsonModule": true,
+    "composite": true // required on the dependency project for references to work
   },
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],
@@ -17,5 +13,6 @@
     "gitRemote": "upstream",
     "hideGenerator": true,
   },
-  "include": ["src"]
+  "include": ["src"],
+  "files": ["package.json"]
 }

@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../lib/",
+    "target": "es5",
+    "declaration": true,
+    "declarationDir": "lib",
+    "lib": ["esnext"],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true // required to make package.json file import to work
+  },
+  "references": [
+    {
+      "path": "../"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+.Footer__note {
+  color: var(--pal-text-secondary);
+  font-size: 14px;
+}
+
+.Layout__footer__content > a.TextLink {
+  order: 1;
+}
