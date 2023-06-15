@@ -104,12 +104,14 @@ export const hasValidInfoSchema: Test = {
         const failure = makeFailure(this.failureModes.INVALID_ASSET_VALUE, {
           asset: asset.asset,
         });
-        if (parts.length !== 3 && asset !== "stellar:native") {
+        if (parts.length !== 3 && asset.asset !== "stellar:native") {
           result.failure = failure;
           return result;
         }
         try {
-          Keypair.fromPublicKey(parts[2]);
+          if (asset.asset !== "stellar:native") {
+            Keypair.fromPublicKey(parts[2]);
+          }
         } catch {
           result.failure = failure;
           return result;
