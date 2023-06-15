@@ -104,7 +104,7 @@ export const hasValidInfoSchema: Test = {
         const failure = makeFailure(this.failureModes.INVALID_ASSET_VALUE, {
           asset: asset.asset,
         });
-        if (parts.length !== 3) {
+        if (parts.length !== 3 && asset !== "stellar:native") {
           result.failure = failure;
           return result;
         }

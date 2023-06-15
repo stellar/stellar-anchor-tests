@@ -40,7 +40,6 @@ export const currencySchema = {
     "is_asset_anchored",
     "anchor_asset_type",
     "code",
-    "issuer",
     "desc",
     "status",
   ],
