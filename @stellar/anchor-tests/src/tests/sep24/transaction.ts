@@ -204,7 +204,7 @@ export const hasProperWithdrawTransactionSchema: Test = {
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const validationResult = validate(
-      this.context.expects.depositTransactionObj,
+      this.context.expects.withdrawTransactionObj,
       getTransactionSchema(false),
     );
     if (validationResult.errors.length !== 0) {
