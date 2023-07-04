@@ -130,7 +130,7 @@ export const ConfigModalContent: React.FC = () => (
           <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0009.md">
             SEP-9
           </TextLink>{" "}
-          attributes the anchor requires, as well as the
+          attributes the anchor requires, as well as the{" "}
           <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#type-specification">
             type
           </TextLink>{" "}
@@ -153,40 +153,119 @@ export const ConfigModalContent: React.FC = () => (
       <p>Each customers key assigned to the other attributes must be unique.</p>
 
       <Heading4>SEP-24</Heading4>
-      <p>TODO description...</p>
+      <p>
+        SEP-24 configuration objects are used for specifying the account
+        credentials and transaction parameters that should be used when making
+        GET /transaction requests for fetching pending and completed
+        transactions.
+      </p>
       <Json
         src={{
           accountHolder: {
-            accountAddress: "TODO description",
-            accountSignerSecretKey: "TODO description",
+            accountAddress:
+              "GDTW75HOEQFPAMZ7YTFRN2TMVLVBXK7QYC4AJMXISV2WLD7E7RSZTDIA",
+            accountSignerSecretKey:
+              "SAMISXU66LL2QDOP3A4EEKIEV4BV7EG3BJYFR65OF6WBOM6IQTDQOKWG",
           },
           depositPendingTransaction: {
-            status: "<Any pending_ status>",
-            id: "<Anchor's transaction id>",
+            id: "252062",
+            status: "any pending_ status",
           },
           depositCompletedTransaction: {
+            id: "251876",
             status: "completed",
-            id: "<Anchor's transaction id>",
-            stellar_transaction_id: "<transaction id on the stellar network>",
+            stellar_transaction_id:
+              "6d51bff72685b3d6a9a951ff695e7cb361865470011447a9f29f81cc2939c445",
           },
           withdrawPendingUserTransferStartTransaction: {
+            id: "251986",
             status: "pending_user_transfer_start",
-            id: "<Anchor's transaction id>",
-            amount_in: "amount to be sent from Wallet to Anchor",
-            amount_in_asset: "asset to be sent from Wallet to Anchor",
-            withdraw_anchor_account: "TODO description",
-            withdraw_memo: "TODO description",
-            withdraw_memo_type: "TODO description",
+            amount_in: "222.00",
+            amount_in_asset:
+              "stellar:ARST:GB7TAYRUZGE6TVT7NHP5SMIZRNQA6PLM423EYISAOAP3MKYIQMVYP2JO",
+            withdraw_anchor_account:
+              "GDMSN2PQ3EB32LZY5JVACI4H7GUVQ3YUWOM4437IDTVQHHWHYG7CGA5Z",
+            withdraw_memo: "251986",
+            withdraw_memo_type: "text",
           },
           withdrawCompletedTransaction: {
+            id: "251938",
             status: "completed",
-            id: "<Anchor's transaction id>",
-            stellar_transaction_id: "<transaction id on the stellar network>",
+            stellar_transaction_id:
+              "7d9f932216d2476ecd6278c00c1366f2740a40ddbea0e4ec5b5615664592b4ce",
           },
         }}
       ></Json>
       <ul>
-        <li>TODO props description...</li>
+        <li>
+          <strong>accountHolder</strong>: an object containing the{" "}
+          <strong>accountAddress</strong> (public key) of the account which
+          holds all the pending and completed transactions (aka{" "}
+          <strong>depositPendingTransaction</strong>,{" "}
+          <strong>depositCompletedTransaction</strong>,{" "}
+          <strong>withdrawPendingUserTransferStartTransaction</strong>,{" "}
+          <strong>withdrawCompletedTransaction</strong>) that will be used to
+          test against. The <strong>accountHolder</strong> object should also
+          contain an <strong>accountSignerSecretKey</strong> param which should
+          be a valid signer of the specified <strong>accountAddress</strong>.
+        </li>
+        <li>
+          <strong>depositPendingTransaction</strong>: this object should contain
+          an <strong>id</strong> of a <strong>deposit</strong> transaction which
+          is in any of the <strong>'pending_' status</strong> usually achieved
+          after{" "}
+          <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#guidance-for-anchors-closing-the-interactive-popup">
+            closing the interactive popup
+          </TextLink>
+          .
+        </li>
+        <li>
+          <strong>depositCompletedTransaction</strong>: this object should
+          contain an <strong>id</strong> of a <strong>deposit</strong>{" "}
+          transaction which is in a <strong>'completed' status</strong> usually
+          achieved after the user receives the funds in the wallet. This object
+          should also contain a <strong>stellar_transaction_id</strong>{" "}
+          parameter which is the id of the stellar payment transaction used to
+          send funds from Anchor to wallet. The wallet should be able to fetch
+          the Sep-24 transaction object through the{" "}
+          <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#single-historical-transaction">
+            GET /transaction
+          </TextLink>{" "}
+          endpoint using this <strong>stellar_transaction_id</strong> as the
+          query parameter.
+        </li>
+        <li>
+          <strong>withdrawPendingUserTransferStartTransaction</strong>: this
+          object should contain an <strong>id</strong> of a{" "}
+          <strong>withdrawal</strong> transaction which is specifically in a{" "}
+          <strong>'pending_user_transfer_start' status</strong> that should be
+          achieved after the user{" "}
+          <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#guidance-for-wallets-completing-an-interactive-withdrawal">
+            completes the interactive withdrawal
+          </TextLink>
+          . This is an important <strong>status</strong> on the withdrawal flow
+          as it signals to the wallet that it's time to send funds to the Anchor
+          using the provided transaction parameters (aka{" "}
+          <strong>amount_in</strong>, <strong>amount_in_asset</strong>,{" "}
+          <strong>withdraw_anchor_account</strong>,{" "}
+          <strong>withdraw_memo</strong>, <strong>withdraw_memo_type</strong>).
+        </li>
+        <li>
+          <strong>withdrawCompletedTransaction</strong>: this object should
+          contain an <strong>id</strong> of a <strong>withdrawal</strong>{" "}
+          transaction which is in a <strong>'completed' status</strong> usually
+          achieved after the user receives the funds in the bank account (or
+          other off-chain rails). This object should also contain a{" "}
+          <strong>stellar_transaction_id</strong> parameter which is the id of
+          the stellar payment transaction used to send funds from wallet to
+          Anchor. The wallet should be able to fetch the Sep-24 transaction
+          object through the{" "}
+          <TextLink href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#single-historical-transaction">
+            GET /transaction
+          </TextLink>{" "}
+          endpoint using this <strong>stellar_transaction_id</strong> as the
+          query parameter.
+        </li>
       </ul>
 
       <Heading4>SEP-31</Heading4>
