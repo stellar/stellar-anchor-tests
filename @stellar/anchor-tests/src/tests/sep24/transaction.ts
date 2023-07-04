@@ -203,7 +203,7 @@ const hasProperPendingDepositTransactionSchema: Test = {
 
     const pendingDepositTransactionObj = await fetchTransaction({
       transferServerUrl: this.context.expects.transferServerUrl,
-      transactionId: config.sepConfig?.["24"]?.depositPendingTransaction?.id!,
+      transactionId: config.sepConfig?.["24"]?.depositPendingTransaction?.id,
       authToken: this.context.expects.token,
       result,
     });
@@ -277,7 +277,7 @@ const hasProperCompletedDepositTransactionSchema: Test = {
 
     const completedDepositTransactionObj = await fetchTransaction({
       transferServerUrl: this.context.expects.transferServerUrl,
-      transactionId: config.sepConfig?.["24"]?.depositCompletedTransaction?.id!,
+      transactionId: config.sepConfig?.["24"]?.depositCompletedTransaction?.id,
       authToken: this.context.expects.token,
       result,
     });
@@ -401,7 +401,7 @@ export const hasProperPendingWithdrawTransactionSchema: Test = {
       transferServerUrl: this.context.expects.transferServerUrl,
       transactionId:
         config.sepConfig?.["24"]?.withdrawPendingUserTransferStartTransaction
-          ?.id!,
+          ?.id,
       authToken: this.context.expects.token,
       result,
     });
@@ -474,8 +474,7 @@ export const hasProperCompletedWithdrawTransactionSchema: Test = {
 
     const completedWithdrawTransactionObj = await fetchTransaction({
       transferServerUrl: this.context.expects.transferServerUrl,
-      transactionId:
-        config.sepConfig?.["24"]?.withdrawCompletedTransaction?.id!,
+      transactionId: config.sepConfig?.["24"]?.withdrawCompletedTransaction?.id,
       authToken: this.context.expects.token,
       result,
     });
@@ -509,6 +508,128 @@ export const hasProperCompletedWithdrawTransactionSchema: Test = {
 };
 tests.push(hasProperCompletedWithdrawTransactionSchema);
 
+const returnsDepositTransactionForStellarTxId: Test = {
+  assertion:
+    "returns valid deposit transaction when using 'stellar_transaction_id' param",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [hasTransferServerUrl, returnsValidJwt],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+      token: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_CONFIG: invalidConfigFile,
+    INVALID_SCHEMA: invalidTransactionSchema,
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+
+    const configValidationResult = validate(
+      config.sepConfig?.["24"],
+      getConfigFileSchema(true, false),
+    );
+    if (configValidationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_CONFIG, {
+        errors: configValidationResult.errors.join("; "),
+      });
+
+      return result;
+    }
+
+    const fetchedDepositTransactionObj = await fetchTransaction({
+      transferServerUrl: this.context.expects.transferServerUrl,
+      stellarTransactionId:
+        config.sepConfig?.["24"]?.depositCompletedTransaction
+          ?.stellar_transaction_id,
+      authToken: this.context.expects.token,
+      result,
+    });
+
+    if (result.failure) {
+      return result;
+    }
+
+    const validationResult = validate(
+      fetchedDepositTransactionObj,
+      getTransactionSchema(true, false, true),
+    );
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+    }
+
+    return result;
+  },
+};
+tests.push(returnsDepositTransactionForStellarTxId);
+
+const returnsWithdrawTransactionForStellarTxId: Test = {
+  assertion:
+    "returns valid withdraw transaction when using 'stellar_transaction_id' param",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [hasTransferServerUrl, returnsValidJwt],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+      token: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_CONFIG: invalidConfigFile,
+    INVALID_SCHEMA: invalidTransactionSchema,
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+
+    const configValidationResult = validate(
+      config.sepConfig?.["24"],
+      getConfigFileSchema(false, false),
+    );
+    if (configValidationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_CONFIG, {
+        errors: configValidationResult.errors.join("; "),
+      });
+
+      return result;
+    }
+
+    const fetchedWithdrawTransactionObj = await fetchTransaction({
+      transferServerUrl: this.context.expects.transferServerUrl,
+      stellarTransactionId:
+        config.sepConfig?.["24"]?.withdrawCompletedTransaction
+          ?.stellar_transaction_id,
+      authToken: this.context.expects.token,
+      result,
+    });
+
+    if (result.failure) {
+      return result;
+    }
+
+    const validationResult = validate(
+      fetchedWithdrawTransactionObj,
+      getTransactionSchema(false, false, true),
+    );
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+    }
+
+    return result;
+  },
+};
+tests.push(returnsWithdrawTransactionForStellarTxId);
+
 const hasValidMoreInfoUrl: Test = {
   assertion: "has a valid 'more_info_url'",
   sep: 24,
@@ -535,7 +656,7 @@ const hasValidMoreInfoUrl: Test = {
 tests.push(hasValidMoreInfoUrl);
 
 const returns404ForBadId: Test = {
-  assertion: "returns 404 for a nonexistent transaction ID",
+  assertion: "returns 404 for a nonexistent transaction 'id'",
   sep: 24,
   group: transactionTestGroup,
   dependencies: [hasTransferServerUrl, returnsValidJwt],
@@ -568,7 +689,7 @@ const returns404ForBadId: Test = {
 tests.push(returns404ForBadId);
 
 const returns404ForBadExternalId: Test = {
-  assertion: "returns 404 for a nonexistent external transaction ID",
+  assertion: "returns 404 for a nonexistent 'external_transaction_id'",
   sep: 24,
   group: transactionTestGroup,
   dependencies: [hasTransferServerUrl, returnsValidJwt],
@@ -601,7 +722,7 @@ const returns404ForBadExternalId: Test = {
 tests.push(returns404ForBadExternalId);
 
 const returns404ForBadStellarId: Test = {
-  assertion: "returns 404 for a nonexistent Stellar transaction ID",
+  assertion: "returns 404 for a nonexistent 'stellar_transaction_id'",
   sep: 24,
   group: transactionTestGroup,
   dependencies: [hasTransferServerUrl, returnsValidJwt],

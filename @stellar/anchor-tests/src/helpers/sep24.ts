@@ -35,23 +35,26 @@ export const invalidConfigFile: Failure = {
 export const fetchTransaction = async ({
   transferServerUrl,
   transactionId,
+  stellarTransactionId,
   authToken,
   result,
 }: {
   transferServerUrl: string;
-  transactionId: string;
+  transactionId?: string;
+  stellarTransactionId?: string;
   authToken: string;
   result: Result;
 }) => {
+  const idQuery = stellarTransactionId
+    ? `stellar_transaction_id=${stellarTransactionId}`
+    : `id=${transactionId}`;
+
   const getTransactionCall: NetworkCall = {
-    request: new Request(
-      transferServerUrl + `/transaction?id=${transactionId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
+    request: new Request(transferServerUrl + `/transaction?${idQuery}`, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
       },
-    ),
+    }),
   };
   result.networkCalls.push(getTransactionCall);
   const response = await makeRequest(
