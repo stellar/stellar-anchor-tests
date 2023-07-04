@@ -20,7 +20,10 @@ import {
   depositEndpoint,
 } from "./deposit";
 import { returnsProperSchemaForValidWithdrawRequest } from "./withdraw";
-import { hasProperWithdrawTransactionSchema } from "./transaction";
+import {
+  hasProperIncompleteDepositTransactionSchema,
+  hasProperIncompleteWithdrawTransactionSchema,
+} from "./transaction";
 
 const transactionsTestGroup = "/transactions";
 const tests: Test[] = [];
@@ -43,7 +46,7 @@ const invalidTransactionsSchema = {
 };
 
 const transactionsRequiresToken: Test = {
-  assertion: "requires a JWT",
+  assertion: "requires a SEP-10 JWT on /transactions",
   sep: 24,
   group: transactionsTestGroup,
   dependencies: [hasTransferServerUrl, returnsValidJwt],
@@ -845,7 +848,7 @@ const honorsWithdrawTransactionKind: Test = {
   dependencies: [
     hasTransferServerUrl,
     hasProperDepositTransactionsSchema,
-    hasProperWithdrawTransactionSchema,
+    hasProperIncompleteWithdrawTransactionSchema,
     returnsValidJwt,
   ],
   context: {
@@ -931,7 +934,7 @@ const honorsDepositTransactionKind: Test = {
   dependencies: [
     hasTransferServerUrl,
     hasProperDepositTransactionsSchema,
-    hasProperWithdrawTransactionSchema,
+    hasProperIncompleteDepositTransactionSchema,
     returnsValidJwt,
   ],
   context: {

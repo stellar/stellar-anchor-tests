@@ -164,6 +164,13 @@ function checkSepConfigObj(config: Config) {
       );
     }
   }
+  if (config.seps.includes(24)) {
+    if (!config.sepConfig || !config.sepConfig["24"]) {
+      throw new ConfigError(
+        "SEP 24 configuration is required to run SEP-24 tests.",
+      );
+    }
+  }
   if (config.seps.includes(38)) {
     if (!config.sepConfig || !config.sepConfig["38"]) {
       throw new ConfigError(

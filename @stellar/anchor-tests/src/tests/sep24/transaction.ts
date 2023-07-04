@@ -1,10 +1,16 @@
 import { Request } from "node-fetch";
 import { validate } from "jsonschema";
 
-import { Test, Config, Result, NetworkCall, Failure } from "../../types";
-import { getTransactionSchema } from "../../schemas/sep24";
+import { Test, Config, Result, NetworkCall } from "../../types";
+import { getConfigFileSchema, getTransactionSchema } from "../../schemas/sep24";
 import { makeRequest } from "../../helpers/request";
 import { genericFailures, makeFailure } from "../../helpers/failure";
+import {
+  fetchTransaction,
+  invalidConfigFile,
+  invalidTransactionSchema,
+  unexpectedTransactionStatus,
+} from "../../helpers/sep24";
 import { hasTransferServerUrl } from "./toml";
 import { returnsValidJwt } from "../sep10/tests";
 import { returnsProperSchemaForValidDepositRequest } from "./deposit";
@@ -14,23 +20,8 @@ const transactionEndpoint = "/transaction";
 const transactionTestGroup = "/transaction";
 const tests: Test[] = [];
 
-const invalidTransactionSchema: Failure = {
-  name: "invalid schema",
-  text(args: any): string {
-    return (
-      "The response body returned does not comply with the schema defined for the /transaction endpoint. " +
-      "The errors returned from the schema validation:\n\n" +
-      `${args.errors}`
-    );
-  },
-  links: {
-    "Transaction Schema":
-      "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#single-historical-transaction",
-  },
-};
-
 const transactionRequiresToken: Test = {
-  assertion: "requires a JWT",
+  assertion: "requires a SEP-10 JWT on /transaction",
   sep: 24,
   group: transactionTestGroup,
   dependencies: [hasTransferServerUrl, returnsValidJwt],
@@ -77,25 +68,14 @@ const transactionIsPresentAfterDepositRequest: Test = {
   failureModes: genericFailures,
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    const getTransactionCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.transferServerUrl +
-          transactionEndpoint +
-          `?id=${this.context.expects.depositTransactionId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.context.expects.token}`,
-          },
-        },
-      ),
-    };
-    result.networkCalls.push(getTransactionCall);
-    this.context.provides.depositTransactionObj = await makeRequest(
-      getTransactionCall,
-      200,
+
+    this.context.provides.depositTransactionObj = await fetchTransaction({
+      transferServerUrl: this.context.expects.transferServerUrl,
+      transactionId: this.context.expects.depositTransactionId,
+      authToken: this.context.expects.token,
       result,
-      "application/json",
-    );
+    });
+
     return result;
   },
 };
@@ -123,32 +103,22 @@ const transactionIsPresentAfterWithdrawRequest: Test = {
   failureModes: genericFailures,
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    const getTransactionCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.transferServerUrl +
-          transactionEndpoint +
-          `?id=${this.context.expects.withdrawTransactionId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.context.expects.token}`,
-          },
-        },
-      ),
-    };
-    result.networkCalls.push(getTransactionCall);
-    this.context.provides.withdrawTransactionObj = await makeRequest(
-      getTransactionCall,
-      200,
+
+    this.context.provides.withdrawTransactionObj = await fetchTransaction({
+      transferServerUrl: this.context.expects.transferServerUrl,
+      transactionId: this.context.expects.withdrawTransactionId,
+      authToken: this.context.expects.token,
       result,
-      "application/json",
-    );
+    });
+
     return result;
   },
 };
 tests.push(transactionIsPresentAfterWithdrawRequest);
 
-const hasProperDepositTransactionSchema: Test = {
-  assertion: "has proper deposit transaction schema on /transaction",
+export const hasProperIncompleteDepositTransactionSchema: Test = {
+  assertion:
+    "has proper 'incomplete' deposit transaction schema on /transaction",
   sep: 24,
   group: transactionTestGroup,
   dependencies: [
@@ -164,26 +134,185 @@ const hasProperDepositTransactionSchema: Test = {
   },
   failureModes: {
     INVALID_SCHEMA: invalidTransactionSchema,
+    UNEXPECTED_STATUS: unexpectedTransactionStatus,
     ...genericFailures,
   },
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const validationResult = validate(
       this.context.expects.depositTransactionObj,
-      getTransactionSchema(true),
+      getTransactionSchema(true, false, false),
     );
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
         errors: validationResult.errors.join("\n"),
       });
+
+      return result;
+    }
+
+    const transactionStatus =
+      this.context.expects.depositTransactionObj.transaction.status;
+    if (transactionStatus !== "incomplete") {
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS, {
+        expected: "incomplete",
+        received: transactionStatus,
+      });
     }
     return result;
   },
 };
-tests.push(hasProperDepositTransactionSchema);
+tests.push(hasProperIncompleteDepositTransactionSchema);
 
-export const hasProperWithdrawTransactionSchema: Test = {
-  assertion: "has proper withdraw transaction schema on /transaction",
+const hasProperPendingDepositTransactionSchema: Test = {
+  assertion: "has proper 'pending_' deposit transaction schema on /transaction",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [
+    hasTransferServerUrl,
+    returnsValidJwt,
+    returnsProperSchemaForValidDepositRequest,
+  ],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+      token: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_CONFIG: invalidConfigFile,
+    INVALID_SCHEMA: invalidTransactionSchema,
+    UNEXPECTED_STATUS: unexpectedTransactionStatus,
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+
+    const configValidationResult = validate(
+      config.sepConfig?.["24"],
+      getConfigFileSchema(true, true),
+    );
+    if (configValidationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_CONFIG, {
+        errors: configValidationResult.errors.join("; "),
+      });
+
+      return result;
+    }
+
+    const pendingDepositTransactionObj = await fetchTransaction({
+      transferServerUrl: this.context.expects.transferServerUrl,
+      transactionId: config.sepConfig?.["24"]?.depositPendingTransaction?.id!,
+      authToken: this.context.expects.token,
+      result,
+    });
+
+    if (result.failure) {
+      return result;
+    }
+
+    const validationResult = validate(
+      pendingDepositTransactionObj,
+      getTransactionSchema(true, true, false),
+    );
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+
+      return result;
+    }
+
+    const transactionStatus = pendingDepositTransactionObj.transaction
+      .status as string;
+    if (!transactionStatus.startsWith("pending_")) {
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS, {
+        expected: "any of pending_",
+        received: transactionStatus,
+      });
+    }
+    return result;
+  },
+};
+tests.push(hasProperPendingDepositTransactionSchema);
+
+const hasProperCompletedDepositTransactionSchema: Test = {
+  assertion:
+    "has proper 'completed' deposit transaction schema on /transaction",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [
+    hasTransferServerUrl,
+    returnsValidJwt,
+    returnsProperSchemaForValidDepositRequest,
+  ],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+      token: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_SCHEMA: invalidTransactionSchema,
+    INVALID_CONFIG: invalidConfigFile,
+    UNEXPECTED_STATUS: unexpectedTransactionStatus,
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+
+    const configValidationResult = validate(
+      config.sepConfig?.["24"],
+      getConfigFileSchema(true, false),
+    );
+    if (configValidationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_CONFIG, {
+        errors: configValidationResult.errors.join("; "),
+      });
+
+      return result;
+    }
+
+    const completedDepositTransactionObj = await fetchTransaction({
+      transferServerUrl: this.context.expects.transferServerUrl,
+      transactionId: config.sepConfig?.["24"]?.depositCompletedTransaction?.id!,
+      authToken: this.context.expects.token,
+      result,
+    });
+
+    if (result.failure) {
+      return result;
+    }
+
+    const validationResult = validate(
+      completedDepositTransactionObj,
+      getTransactionSchema(true, false, true),
+    );
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+
+      return result;
+    }
+
+    const transactionStatus = completedDepositTransactionObj.transaction.status;
+    if (transactionStatus !== "completed") {
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS, {
+        expected: "completed",
+        received: transactionStatus,
+      });
+    }
+    return result;
+  },
+};
+tests.push(hasProperCompletedDepositTransactionSchema);
+
+export const hasProperIncompleteWithdrawTransactionSchema: Test = {
+  assertion:
+    "has proper 'incomplete' withdraw transaction schema on /transaction",
   sep: 24,
   group: transactionTestGroup,
   dependencies: [
@@ -199,29 +328,192 @@ export const hasProperWithdrawTransactionSchema: Test = {
   },
   failureModes: {
     INVALID_SCHEMA: invalidTransactionSchema,
+    UNEXPECTED_STATUS: unexpectedTransactionStatus,
     ...genericFailures,
   },
   async run(_config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     const validationResult = validate(
       this.context.expects.withdrawTransactionObj,
-      getTransactionSchema(false),
+      getTransactionSchema(false, false, false),
     );
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
         errors: validationResult.errors.join("\n"),
       });
+
+      return result;
+    }
+
+    const transactionStatus =
+      this.context.expects.withdrawTransactionObj.transaction.status;
+    if (transactionStatus !== "incomplete") {
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS, {
+        expected: "incomplete",
+        received: transactionStatus,
+      });
+    }
+
+    return result;
+  },
+};
+tests.push(hasProperIncompleteWithdrawTransactionSchema);
+
+export const hasProperPendingWithdrawTransactionSchema: Test = {
+  assertion:
+    "has proper 'pending_user_transfer_start' withdraw transaction schema on /transaction",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [
+    hasTransferServerUrl,
+    returnsValidJwt,
+    returnsProperSchemaForValidWithdrawRequest,
+  ],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+      token: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_CONFIG: invalidConfigFile,
+    INVALID_SCHEMA: invalidTransactionSchema,
+    UNEXPECTED_STATUS: unexpectedTransactionStatus,
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+
+    const configValidationResult = validate(
+      config.sepConfig?.["24"],
+      getConfigFileSchema(false, true),
+    );
+    if (configValidationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_CONFIG, {
+        errors: configValidationResult.errors.join("; "),
+      });
+
+      return result;
+    }
+
+    const pendingWithdrawTransactionObj = await fetchTransaction({
+      transferServerUrl: this.context.expects.transferServerUrl,
+      transactionId:
+        config.sepConfig?.["24"]?.withdrawPendingUserTransferStartTransaction
+          ?.id!,
+      authToken: this.context.expects.token,
+      result,
+    });
+
+    if (result.failure) {
+      return result;
+    }
+
+    const validationResult = validate(
+      pendingWithdrawTransactionObj,
+      getTransactionSchema(false, true, false),
+    );
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+
+      return result;
+    }
+
+    const transactionStatus = pendingWithdrawTransactionObj.transaction.status;
+    if (transactionStatus !== "pending_user_transfer_start") {
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS, {
+        expected: "pending_user_transfer_start",
+        received: transactionStatus,
+      });
     }
     return result;
   },
 };
-tests.push(hasProperWithdrawTransactionSchema);
+tests.push(hasProperPendingWithdrawTransactionSchema);
+
+export const hasProperCompletedWithdrawTransactionSchema: Test = {
+  assertion:
+    "has proper 'completed' withdraw transaction schema on /transaction",
+  sep: 24,
+  group: transactionTestGroup,
+  dependencies: [
+    hasTransferServerUrl,
+    returnsValidJwt,
+    returnsProperSchemaForValidWithdrawRequest,
+  ],
+  context: {
+    expects: {
+      transferServerUrl: undefined,
+      token: undefined,
+    },
+    provides: {},
+  },
+  failureModes: {
+    INVALID_CONFIG: invalidConfigFile,
+    INVALID_SCHEMA: invalidTransactionSchema,
+    UNEXPECTED_STATUS: unexpectedTransactionStatus,
+    ...genericFailures,
+  },
+  async run(config: Config): Promise<Result> {
+    const result: Result = { networkCalls: [] };
+
+    const configValidationResult = validate(
+      config.sepConfig?.["24"],
+      getConfigFileSchema(false, false),
+    );
+    if (configValidationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_CONFIG, {
+        errors: configValidationResult.errors.join("; "),
+      });
+
+      return result;
+    }
+
+    const completedWithdrawTransactionObj = await fetchTransaction({
+      transferServerUrl: this.context.expects.transferServerUrl,
+      transactionId:
+        config.sepConfig?.["24"]?.withdrawCompletedTransaction?.id!,
+      authToken: this.context.expects.token,
+      result,
+    });
+
+    if (result.failure) {
+      return result;
+    }
+
+    const validationResult = validate(
+      completedWithdrawTransactionObj,
+      getTransactionSchema(false, false, true),
+    );
+    if (validationResult.errors.length !== 0) {
+      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
+        errors: validationResult.errors.join("\n"),
+      });
+
+      return result;
+    }
+
+    const transactionStatus =
+      completedWithdrawTransactionObj.transaction.status;
+    if (transactionStatus !== "completed") {
+      result.failure = makeFailure(this.failureModes.UNEXPECTED_STATUS, {
+        expected: "completed",
+        received: transactionStatus,
+      });
+    }
+    return result;
+  },
+};
+tests.push(hasProperCompletedWithdrawTransactionSchema);
 
 const hasValidMoreInfoUrl: Test = {
   assertion: "has a valid 'more_info_url'",
   sep: 24,
   group: transactionTestGroup,
-  dependencies: [hasProperDepositTransactionSchema],
+  dependencies: [hasProperIncompleteDepositTransactionSchema],
   context: {
     expects: {
       depositTransactionObj: undefined,

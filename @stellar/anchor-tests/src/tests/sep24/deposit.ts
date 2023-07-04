@@ -31,7 +31,7 @@ export const invalidDepositSchema: Failure = {
 };
 
 const depositRequiresToken: Test = {
-  assertion: "requires a SEP-10 JWT",
+  assertion: "requires a SEP-10 JWT for deposit",
   sep: 24,
   group: depositTestsGroup,
   dependencies: [hasTransferServerUrl, assetCodeEnabledForDeposit],
@@ -69,7 +69,7 @@ const depositRequiresToken: Test = {
 tests.push(depositRequiresToken);
 
 const depositRequiresAssetCode: Test = {
-  assertion: "requires 'asset_code' parameter",
+  assertion: "requires 'asset_code' parameter for deposit",
   sep: 24,
   group: depositTestsGroup,
   dependencies: [
@@ -184,7 +184,7 @@ const depositRejectsInvalidAccount: Test = {
 tests.push(depositRejectsInvalidAccount);
 
 const depositRejectsUnsupportedAssetCode: Test = {
-  assertion: "rejects unsupported 'asset_code' parameter",
+  assertion: "rejects unsupported 'asset_code' parameter for deposit",
   sep: 24,
   group: depositTestsGroup,
   dependencies: depositRequiresAssetCode.dependencies,
@@ -227,7 +227,7 @@ const depositRejectsUnsupportedAssetCode: Test = {
 tests.push(depositRejectsUnsupportedAssetCode);
 
 export const returnsProperSchemaForValidDepositRequest: Test = {
-  assertion: "returns a proper schema for valid requests",
+  assertion: "returns a proper schema for valid deposit requests",
   sep: 24,
   group: depositTestsGroup,
   dependencies: depositRequiresAssetCode.dependencies,

@@ -39,7 +39,7 @@ const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
   38: [1, 10, 38],
 };
 // SEPs that require the config file field to be rendered in UI
-const CONFIG_SEPS = [6, 12, 31, 38];
+const CONFIG_SEPS = [6, 12, 24, 31, 38];
 // SEPs that require an asset to use in tests
 const TRANSFER_SEPS = [6, 24, 31];
 
@@ -302,6 +302,14 @@ export const TestRunner = () => {
     if (sepNumber && CONFIG_SEPS.includes(sepNumber)) {
       setIsConfigNeeded(true);
       configValue = formData.sepConfig;
+
+      // Sets default config value for Sep-24 so Anchors are able to initially
+      // run most of Sep-24 tests without actually uploading the config file
+      if (sepNumber === 24 && !configValue) {
+        configValue = {
+          24: {},
+        };
+      }
     } else {
       setIsConfigNeeded(false);
       configValue = undefined;
@@ -358,7 +366,7 @@ export const TestRunner = () => {
         sepConfig: sepConfigObj,
       });
       // remove any images for customers that are not in the SEP-12 config object
-      const sep12Customers = sepConfigObj["12"]?.customers;
+      const sep12Customers = sepConfigObj["12"]?.customers || {};
       if (Object.keys(sep12Customers).length) {
         let i = 0;
         let customerImageDataCopy = [...customerImageData];

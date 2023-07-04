@@ -44,7 +44,7 @@ export interface Config {
   searchStrings?: string[];
 
   /**
-   * Only relevant for SEP-6, 12, 31 & 38.
+   * Only relevant for SEP-6, 12, 24, 31 & 38.
    *
    * A ``SepConfig`` object.
    */
@@ -62,6 +62,7 @@ export interface Config {
 export interface SepConfig {
   6?: Sep6Config;
   12?: Sep12Config;
+  24?: Sep24Config;
   31?: Sep31Config;
   38?: Sep38Config;
 }
@@ -104,6 +105,46 @@ export interface Sep12Config {
    * customers will be created in the "memos differentiate customers registered by the same account" test.
    */
   sameAccountDifferentMemos?: [string, string];
+}
+
+/**
+ * The configuration object for SEP-24 tests.
+ */
+export interface Sep24Config {
+  /**
+   * TODO: add descriptions
+   */
+  accountHolder: {
+    accountAddress: string;
+    accountSignerSecretKey: string;
+  };
+
+  depositPendingTransaction: {
+    status: string;
+    id: string;
+  };
+
+  depositCompletedTransaction: {
+    status: string;
+    id: string;
+    stellar_transaction_id: string;
+  };
+
+  withdrawPendingUserTransferStartTransaction: {
+    status: string;
+    id: string;
+    amount_in: string;
+    amount_in_asset: string;
+    withdraw_anchor_account: string;
+    withdraw_memo: string;
+    withdraw_memo_type: string;
+  };
+
+  withdrawCompletedTransaction: {
+    status: string;
+    id: string;
+    stellar_transaction_id: string;
+  };
 }
 
 /**

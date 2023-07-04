@@ -7,9 +7,9 @@ export const ConfigModalContent: React.FC = () => (
     <Modal.Heading>Configuration Files</Modal.Heading>
     <Modal.Body>
       <p>
-        Configuration files are required for running SEP-6, 12, and 31 tests.
-        These files provide information required for the test suite to interact
-        with your anchor service properly.
+        Configuration files are required for running SEP-6, 12, 24, 31 and 38
+        tests. These files provide information required for the test suite to
+        interact with your anchor service properly.
       </p>
       <p>
         Configuration files are JSON-formatted and have top-level keys for each
@@ -19,6 +19,7 @@ export const ConfigModalContent: React.FC = () => (
         src={{
           "6": {},
           "12": {},
+          "24": {},
           "31": {},
           "38": {},
         }}
@@ -150,6 +151,43 @@ export const ConfigModalContent: React.FC = () => (
         </li>
       </ul>
       <p>Each customers key assigned to the other attributes must be unique.</p>
+
+      <Heading4>SEP-24</Heading4>
+      <p>TODO description...</p>
+      <Json
+        src={{
+          accountHolder: {
+            accountAddress: "TODO description",
+            accountSignerSecretKey: "TODO description",
+          },
+          depositPendingTransaction: {
+            status: "<Any pending_ status>",
+            id: "<Anchor's transaction id>",
+          },
+          depositCompletedTransaction: {
+            status: "completed",
+            id: "<Anchor's transaction id>",
+            stellar_transaction_id: "<transaction id on the stellar network>",
+          },
+          withdrawPendingUserTransferStartTransaction: {
+            status: "pending_user_transfer_start",
+            id: "<Anchor's transaction id>",
+            amount_in: "amount to be sent from Wallet to Anchor",
+            amount_in_asset: "asset to be sent from Wallet to Anchor",
+            withdraw_anchor_account: "TODO description",
+            withdraw_memo: "TODO description",
+            withdraw_memo_type: "TODO description",
+          },
+          withdrawCompletedTransaction: {
+            status: "completed",
+            id: "<Anchor's transaction id>",
+            stellar_transaction_id: "<transaction id on the stellar network>",
+          },
+        }}
+      ></Json>
+      <ul>
+        <li>TODO props description...</li>
+      </ul>
 
       <Heading4>SEP-31</Heading4>
       <p>
