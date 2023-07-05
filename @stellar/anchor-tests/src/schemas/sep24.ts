@@ -178,7 +178,7 @@ export const transactionSchema = {
     transaction: {
       type: "object",
       properties: {
-        id: { type: ["string", "number"] },
+        id: { type: "string" },
         kind: { type: "string", pattern: "deposit|withdrawal" },
         status: {
           type: "string",
