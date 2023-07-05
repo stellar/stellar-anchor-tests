@@ -141,7 +141,7 @@ export const hasProperIncompleteDepositTransactionSchema: Test = {
     const result: Result = { networkCalls: [] };
     const validationResult = validate(
       this.context.expects.depositTransactionObj,
-      getTransactionSchema(true, false, false),
+      getTransactionSchema("deposit", "incomplete"),
     );
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
@@ -214,7 +214,7 @@ const hasProperPendingDepositTransactionSchema: Test = {
 
     const validationResult = validate(
       pendingDepositTransactionObj,
-      getTransactionSchema(true, true, false),
+      getTransactionSchema("deposit", "pending_"),
     );
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
@@ -288,7 +288,7 @@ const hasProperCompletedDepositTransactionSchema: Test = {
 
     const validationResult = validate(
       completedDepositTransactionObj,
-      getTransactionSchema(true, false, true),
+      getTransactionSchema("deposit", "completed"),
     );
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
@@ -335,7 +335,7 @@ export const hasProperIncompleteWithdrawTransactionSchema: Test = {
     const result: Result = { networkCalls: [] };
     const validationResult = validate(
       this.context.expects.withdrawTransactionObj,
-      getTransactionSchema(false, false, false),
+      getTransactionSchema("withdrawal", "incomplete"),
     );
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
@@ -412,7 +412,7 @@ export const hasProperPendingWithdrawTransactionSchema: Test = {
 
     const validationResult = validate(
       pendingWithdrawTransactionObj,
-      getTransactionSchema(false, true, false),
+      getTransactionSchema("withdrawal", "pending_user_transfer_start"),
     );
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
@@ -485,7 +485,7 @@ export const hasProperCompletedWithdrawTransactionSchema: Test = {
 
     const validationResult = validate(
       completedWithdrawTransactionObj,
-      getTransactionSchema(false, false, true),
+      getTransactionSchema("withdrawal", "completed"),
     );
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
@@ -556,7 +556,7 @@ const returnsDepositTransactionForStellarTxId: Test = {
 
     const validationResult = validate(
       fetchedDepositTransactionObj,
-      getTransactionSchema(true, false, true),
+      getTransactionSchema("deposit", "completed"),
     );
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
@@ -617,7 +617,7 @@ const returnsWithdrawTransactionForStellarTxId: Test = {
 
     const validationResult = validate(
       fetchedWithdrawTransactionObj,
-      getTransactionSchema(false, false, true),
+      getTransactionSchema("withdrawal", "completed"),
     );
     if (validationResult.errors.length !== 0) {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
