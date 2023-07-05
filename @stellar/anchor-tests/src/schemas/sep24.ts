@@ -1,4 +1,4 @@
-// > > > > > > > > > > > > > CONFIG FILE schemas > > > > > > > > > > > > > >
+// =========================== > CONFIG FILE schema =========================== //
 const initialConfigSchema = {
   type: "object",
   properties: {
@@ -116,9 +116,8 @@ export function getConfigFileSchema(isDeposit: boolean, isPending: boolean) {
 
   return schema;
 }
-// < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < <
 
-// > > > > > > > > > > > > > TRANSACTION schemas > > > > > > > > > > > > > >
+// =========================== > TRANSACTION schema =========================== //
 const depositAndWithdrawInfoSchema = {
   type: "object",
   patternProperties: {
@@ -179,7 +178,7 @@ export const transactionSchema = {
     transaction: {
       type: "object",
       properties: {
-        id: { type: "string" },
+        id: { type: ["string", "number"] },
         kind: { type: "string", pattern: "deposit|withdrawal" },
         status: {
           type: "string",
@@ -381,4 +380,3 @@ export function getTransactionSchema(
 
   return schema;
 }
-// < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < <
