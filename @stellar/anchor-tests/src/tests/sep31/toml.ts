@@ -51,7 +51,10 @@ export const hasDirectPaymentServer: Test = {
     }
     if (
       !this.context.provides.directPaymentServerUrl.startsWith("https") &&
-      !config.homeDomain.includes("localhost")
+      !(
+        config.homeDomain.includes("localhost") ||
+        config.homeDomain.includes("host.docker.internal")
+      )
     ) {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;

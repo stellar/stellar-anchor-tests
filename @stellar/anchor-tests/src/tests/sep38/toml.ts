@@ -44,12 +44,17 @@ export const hasQuoteServer: Test = {
     this.context.provides.quoteServerUrl =
       this.context.expects.tomlObj.ANCHOR_QUOTE_SERVER;
     if (!this.context.provides.quoteServerUrl) {
-      result.failure = makeFailure(this.failureModes.ANCHOR_QUOTE_SERVER_NOT_FOUND);
+      result.failure = makeFailure(
+        this.failureModes.ANCHOR_QUOTE_SERVER_NOT_FOUND,
+      );
       return result;
     }
     if (
       !this.context.provides.quoteServerUrl.startsWith("https") &&
-      !config.homeDomain.includes("localhost")
+      !(
+        config.homeDomain.includes("localhost") ||
+        config.homeDomain.includes("host.docker.internal")
+      )
     ) {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;

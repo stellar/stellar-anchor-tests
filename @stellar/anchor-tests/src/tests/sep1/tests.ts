@@ -339,7 +339,10 @@ const validUrls: Test = {
       if (!u) return;
       if (
         !u.startsWith("https://") &&
-        !config.homeDomain.includes("localhost")
+        !(
+          config.homeDomain.includes("localhost") ||
+          config.homeDomain.includes("host.docker.internal")
+        )
       ) {
         result.failure = makeFailure(this.failureModes.NO_HTTPS);
       } else if (u.slice(-1) === "/") {

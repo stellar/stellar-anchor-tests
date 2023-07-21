@@ -77,7 +77,10 @@ export const hasWebAuthEndpoint: Test = {
     }
     if (
       !this.context.expects.tomlObj.WEB_AUTH_ENDPOINT.startsWith("https") &&
-      !config.homeDomain.includes("localhost")
+      !(
+        config.homeDomain.includes("localhost") ||
+        config.homeDomain.includes("host.docker.internal")
+      )
     ) {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;

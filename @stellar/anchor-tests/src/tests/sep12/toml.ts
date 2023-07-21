@@ -49,7 +49,10 @@ export const hasKycServerUrl: Test = {
     }
     if (
       !this.context.provides.kycServerUrl.startsWith("https") &&
-      !config.homeDomain.includes("localhost")
+      !(
+        config.homeDomain.includes("localhost") ||
+        config.homeDomain.includes("host.docker.internal")
+      )
     ) {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;
