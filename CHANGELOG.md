@@ -4,6 +4,9 @@ This changelog documents all releases and included changes to the @stellar/ancho
 
 A breaking change will get clearly marked in this log.
 
+## [v0.5.12](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.5...v0.5.12)
+- Add Dockerfile, build and push docker images to hub.docker.io
+
 ## [v0.5.6](https://github.com/stellar/stellar-anchor-tests/compare/v0.5.5...v0.5.6)
 
 ### Update
