@@ -51,7 +51,10 @@ export const hasTransferServerUrl: Test = {
     }
     if (
       !this.context.provides.sep6TransferServerUrl.startsWith("https") &&
-      !config.homeDomain.includes("localhost")
+      !(
+        config.homeDomain.includes("localhost") ||
+        config.homeDomain.includes("host.docker.internal")
+      )
     ) {
       result.failure = makeFailure(this.failureModes.NO_HTTPS);
       return result;
