@@ -7,9 +7,9 @@ export const ConfigModalContent: React.FC = () => (
     <Modal.Heading>Configuration Files</Modal.Heading>
     <Modal.Body>
       <p>
-        Configuration files are required for running SEP-6, 12, 24, 31 and 38
-        tests. These files provide information required for the test suite to
-        interact with your anchor service properly.
+        Configuration files are required for running SEP-6, 12, 31 and 38 tests,
+        and is optional for SEP-24 tests. These files provide information needed
+        for the test suite to interact with your anchor service properly.
       </p>
       <p>
         Configuration files are JSON-formatted and have top-level keys for each
@@ -152,12 +152,19 @@ export const ConfigModalContent: React.FC = () => (
       </ul>
       <p>Each customers key assigned to the other attributes must be unique.</p>
 
-      <Heading4>SEP-24</Heading4>
+      <Heading4>SEP-24 (optional*)</Heading4>
       <p>
         SEP-24 configuration objects are used for specifying the account
         credentials and transaction parameters that should be used when making
         GET /transaction requests for fetching pending and completed
         transactions.
+      </p>
+      <p>
+        *This SEP-24 configuration object is <strong>optional</strong> so
+        Anchors are able to initially skip the tests for pending and completed
+        transactions. But we <strong>strongly encourage</strong> Anchors to
+        succeed with ALL tests in order to minimize issues before onboarding
+        with a new wallet.
       </p>
       <Json
         src={{
