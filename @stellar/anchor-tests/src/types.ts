@@ -116,14 +116,15 @@ export interface Sep24Config {
    * (depositPendingTransaction, depositCompletedTransaction, withdrawPendingUserTransferStartTransaction
    * and withdrawCompletedTransaction).
    *
-   * - accountAddress: the public key of the account which holds the pending and completed transactions.
-   * - accountSignerSecretKey: the secret key of a valid signer of the accountAddress.
+   * - publicKey: (optional) the public key of the account which holds the pending and completed transactions.
+   * in case this param is not provided then the public key will be inferred from the secretKey below.
+   * - secretKey: the secret key of a valid signer on the account.
    *
    * When provided, it'll be used in the sep10 "returns a valid JWT" test.
    */
-  accountHolder: {
-    accountAddress: string;
-    accountSignerSecretKey: string;
+  account: {
+    publicKey?: string;
+    secretKey: string;
   };
 
   /**

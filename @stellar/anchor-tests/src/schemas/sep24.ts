@@ -284,16 +284,16 @@ export const successResponseSchema = {
 const initialConfigSchema = {
   type: "object",
   properties: {
-    accountHolder: {
+    account: {
       type: "object",
       properties: {
-        accountAddress: { type: "string" },
-        accountSignerSecretKey: { type: "string" },
+        publicKey: { type: "string" },
+        secretKey: { type: "string" },
       },
-      required: ["accountAddress", "accountSignerSecretKey"],
+      required: ["secretKey"],
     },
   },
-  required: ["accountHolder"],
+  required: ["account"],
 };
 
 const pendingDepositConfigSchema = {

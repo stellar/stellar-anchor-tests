@@ -732,14 +732,17 @@ export const returnsValidJwt: Test = {
     const result: Result = { networkCalls: [] };
     this.context.provides.clientKeypair = Keypair.random();
 
-    const sep24AccountAddress =
-      config.sepConfig?.["24"]?.accountHolder?.accountAddress;
-    const sep24AccountSigner =
-      config.sepConfig?.["24"]?.accountHolder?.accountSignerSecretKey;
-    if (sep24AccountAddress && sep24AccountSigner) {
-      this.context.provides.clientKeypair =
-        Keypair.fromPublicKey(sep24AccountAddress);
+    const sep24AccountSigner = config.sepConfig?.["24"]?.account?.secretKey;
+    if (sep24AccountSigner) {
       const signerKeypair = Keypair.fromSecret(sep24AccountSigner);
+
+      // If the optional 'publicKey' value is provided let's use that for the
+      // 'clientKeypair', otherwise let's infer the publicKey value from the
+      // provided 'secretKey'
+      const sep24AccountAddress = config.sepConfig?.["24"]?.account?.publicKey;
+      this.context.provides.clientKeypair = sep24AccountAddress
+        ? Keypair.fromPublicKey(sep24AccountAddress)
+        : signerKeypair;
 
       const challenge = (await getChallenge(
         this.context.provides.clientKeypair.publicKey(),

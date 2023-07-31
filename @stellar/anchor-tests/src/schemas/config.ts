@@ -29,9 +29,9 @@ export const sep12ConfigSchema = {
 export const sep24ConfigSchema = {
   type: "object",
   properties: {
-    accountHolder: {
+    account: {
       type: "object",
-      minProperties: 2,
+      minProperties: 1,
     },
     depositPendingTransaction: {
       type: "object",

@@ -168,10 +168,10 @@ export const ConfigModalContent: React.FC = () => (
       </p>
       <Json
         src={{
-          accountHolder: {
-            accountAddress:
+          account: {
+            publicKey:
               "GDTW75HOEQFPAMZ7YTFRN2TMVLVBXK7QYC4AJMXISV2WLD7E7RSZTDIA",
-            accountSignerSecretKey:
+            secretKey:
               "SAMISXU66LL2QDOP3A4EEKIEV4BV7EG3BJYFR65OF6WBOM6IQTDQOKWG",
           },
           depositPendingTransaction: {
@@ -205,16 +205,16 @@ export const ConfigModalContent: React.FC = () => (
       ></Json>
       <ul>
         <li>
-          <strong>accountHolder</strong>: an object containing the{" "}
-          <strong>accountAddress</strong> (public key) of the account which
-          holds all the pending and completed transactions (aka{" "}
+          <strong>account</strong>: an object containing the credentials of the
+          account which holds all the pending and completed transactions (aka{" "}
           <strong>depositPendingTransaction</strong>,{" "}
           <strong>depositCompletedTransaction</strong>,{" "}
           <strong>withdrawPendingUserTransferStartTransaction</strong>,{" "}
           <strong>withdrawCompletedTransaction</strong>) that will be used to
-          test against. The <strong>accountHolder</strong> object should also
-          contain an <strong>accountSignerSecretKey</strong> param which should
-          be a valid signer of the specified <strong>accountAddress</strong>.
+          test against. The <strong>account</strong> object must contain a{" "}
+          <strong>secretKey</strong> param which should be a valid signer on the
+          account. In case the <strong>publicKey</strong> param is not set it'll
+          be inferred from the provided <strong>secretKey</strong>.
         </li>
         <li>
           <strong>depositPendingTransaction</strong>: this object should contain
