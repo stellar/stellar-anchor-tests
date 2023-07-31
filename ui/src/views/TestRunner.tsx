@@ -307,12 +307,11 @@ export const TestRunner = () => {
       setIsConfigNeeded(true);
       configValue = formData.sepConfig;
 
-      // Sets default config value for Sep-24 so Anchors are able to initially
-      // run most of Sep-24 tests without actually uploading the config file
+      // Sets default config value for Sep-24 to make sure the "Run Tests" button
+      // is always enabled allowing Anchors to initially run most of Sep-24 tests
+      // without actually uploading the config file
       if (sepNumber === 24 && !configValue) {
-        configValue = {
-          24: {},
-        };
+        configValue = {};
       }
     } else {
       setIsConfigNeeded(false);

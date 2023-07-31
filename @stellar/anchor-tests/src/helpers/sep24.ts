@@ -25,6 +25,13 @@ export const unexpectedTransactionStatus: Failure = {
   },
 };
 
+export const missingConfigFile: Failure = {
+  name: "missing config file",
+  text(args: any): string {
+    return `The ${args.sep} configuration object is missing. Please make sure to upload a config file containing a ${args.sep} configuration object in order for this test to run.`;
+  },
+};
+
 export const invalidConfigFile: Failure = {
   name: "invalid config file",
   text(args: any): string {

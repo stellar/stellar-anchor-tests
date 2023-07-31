@@ -7,6 +7,7 @@ import { makeRequest } from "../../helpers/request";
 import { genericFailures, makeFailure } from "../../helpers/failure";
 import {
   fetchTransaction,
+  missingConfigFile,
   invalidConfigFile,
   invalidTransactionSchema,
   unexpectedTransactionStatus,
@@ -181,6 +182,7 @@ const hasProperPendingDepositTransactionSchema: Test = {
     provides: {},
   },
   failureModes: {
+    MISSING_CONFIG: missingConfigFile,
     INVALID_CONFIG: invalidConfigFile,
     INVALID_SCHEMA: invalidTransactionSchema,
     UNEXPECTED_STATUS: unexpectedTransactionStatus,
@@ -189,8 +191,15 @@ const hasProperPendingDepositTransactionSchema: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
+    if (!config.sepConfig?.["24"]) {
+      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
+        sep: "SEP-24",
+      });
+      return result;
+    }
+
     const configValidationResult = validate(
-      config.sepConfig?.["24"],
+      config.sepConfig["24"],
       getConfigFileSchema(true, true),
     );
     if (configValidationResult.errors.length !== 0) {
@@ -203,7 +212,7 @@ const hasProperPendingDepositTransactionSchema: Test = {
 
     const pendingDepositTransactionObj = await fetchTransaction({
       transferServerUrl: this.context.expects.transferServerUrl,
-      transactionId: config.sepConfig?.["24"]?.depositPendingTransaction?.id,
+      transactionId: config.sepConfig["24"].depositPendingTransaction?.id,
       authToken: this.context.expects.token,
       result,
     });
@@ -255,6 +264,7 @@ const hasProperCompletedDepositTransactionSchema: Test = {
     provides: {},
   },
   failureModes: {
+    MISSING_CONFIG: missingConfigFile,
     INVALID_SCHEMA: invalidTransactionSchema,
     INVALID_CONFIG: invalidConfigFile,
     UNEXPECTED_STATUS: unexpectedTransactionStatus,
@@ -263,8 +273,15 @@ const hasProperCompletedDepositTransactionSchema: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
+    if (!config.sepConfig?.["24"]) {
+      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
+        sep: "SEP-24",
+      });
+      return result;
+    }
+
     const configValidationResult = validate(
-      config.sepConfig?.["24"],
+      config.sepConfig["24"],
       getConfigFileSchema(true, false),
     );
     if (configValidationResult.errors.length !== 0) {
@@ -277,7 +294,7 @@ const hasProperCompletedDepositTransactionSchema: Test = {
 
     const completedDepositTransactionObj = await fetchTransaction({
       transferServerUrl: this.context.expects.transferServerUrl,
-      transactionId: config.sepConfig?.["24"]?.depositCompletedTransaction?.id,
+      transactionId: config.sepConfig["24"].depositCompletedTransaction?.id,
       authToken: this.context.expects.token,
       result,
     });
@@ -377,6 +394,7 @@ export const hasProperPendingWithdrawTransactionSchema: Test = {
     provides: {},
   },
   failureModes: {
+    MISSING_CONFIG: missingConfigFile,
     INVALID_CONFIG: invalidConfigFile,
     INVALID_SCHEMA: invalidTransactionSchema,
     UNEXPECTED_STATUS: unexpectedTransactionStatus,
@@ -385,8 +403,15 @@ export const hasProperPendingWithdrawTransactionSchema: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
+    if (!config.sepConfig?.["24"]) {
+      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
+        sep: "SEP-24",
+      });
+      return result;
+    }
+
     const configValidationResult = validate(
-      config.sepConfig?.["24"],
+      config.sepConfig["24"],
       getConfigFileSchema(false, true),
     );
     if (configValidationResult.errors.length !== 0) {
@@ -400,8 +425,7 @@ export const hasProperPendingWithdrawTransactionSchema: Test = {
     const pendingWithdrawTransactionObj = await fetchTransaction({
       transferServerUrl: this.context.expects.transferServerUrl,
       transactionId:
-        config.sepConfig?.["24"]?.withdrawPendingUserTransferStartTransaction
-          ?.id,
+        config.sepConfig["24"].withdrawPendingUserTransferStartTransaction?.id,
       authToken: this.context.expects.token,
       result,
     });
@@ -452,6 +476,7 @@ export const hasProperCompletedWithdrawTransactionSchema: Test = {
     provides: {},
   },
   failureModes: {
+    MISSING_CONFIG: missingConfigFile,
     INVALID_CONFIG: invalidConfigFile,
     INVALID_SCHEMA: invalidTransactionSchema,
     UNEXPECTED_STATUS: unexpectedTransactionStatus,
@@ -460,8 +485,15 @@ export const hasProperCompletedWithdrawTransactionSchema: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
+    if (!config.sepConfig?.["24"]) {
+      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
+        sep: "SEP-24",
+      });
+      return result;
+    }
+
     const configValidationResult = validate(
-      config.sepConfig?.["24"],
+      config.sepConfig["24"],
       getConfigFileSchema(false, false),
     );
     if (configValidationResult.errors.length !== 0) {
@@ -474,7 +506,7 @@ export const hasProperCompletedWithdrawTransactionSchema: Test = {
 
     const completedWithdrawTransactionObj = await fetchTransaction({
       transferServerUrl: this.context.expects.transferServerUrl,
-      transactionId: config.sepConfig?.["24"]?.withdrawCompletedTransaction?.id,
+      transactionId: config.sepConfig["24"].withdrawCompletedTransaction?.id,
       authToken: this.context.expects.token,
       result,
     });
@@ -522,6 +554,7 @@ const returnsDepositTransactionForStellarTxId: Test = {
     provides: {},
   },
   failureModes: {
+    MISSING_CONFIG: missingConfigFile,
     INVALID_CONFIG: invalidConfigFile,
     INVALID_SCHEMA: invalidTransactionSchema,
     ...genericFailures,
@@ -529,8 +562,15 @@ const returnsDepositTransactionForStellarTxId: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
+    if (!config.sepConfig?.["24"]) {
+      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
+        sep: "SEP-24",
+      });
+      return result;
+    }
+
     const configValidationResult = validate(
-      config.sepConfig?.["24"],
+      config.sepConfig["24"],
       getConfigFileSchema(true, false),
     );
     if (configValidationResult.errors.length !== 0) {
@@ -544,7 +584,7 @@ const returnsDepositTransactionForStellarTxId: Test = {
     const fetchedDepositTransactionObj = await fetchTransaction({
       transferServerUrl: this.context.expects.transferServerUrl,
       stellarTransactionId:
-        config.sepConfig?.["24"]?.depositCompletedTransaction
+        config.sepConfig["24"].depositCompletedTransaction
           ?.stellar_transaction_id,
       authToken: this.context.expects.token,
       result,
@@ -583,6 +623,7 @@ const returnsWithdrawTransactionForStellarTxId: Test = {
     provides: {},
   },
   failureModes: {
+    MISSING_CONFIG: missingConfigFile,
     INVALID_CONFIG: invalidConfigFile,
     INVALID_SCHEMA: invalidTransactionSchema,
     ...genericFailures,
@@ -590,8 +631,15 @@ const returnsWithdrawTransactionForStellarTxId: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
+    if (!config.sepConfig?.["24"]) {
+      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
+        sep: "SEP-24",
+      });
+      return result;
+    }
+
     const configValidationResult = validate(
-      config.sepConfig?.["24"],
+      config.sepConfig["24"],
       getConfigFileSchema(false, false),
     );
     if (configValidationResult.errors.length !== 0) {
@@ -605,7 +653,7 @@ const returnsWithdrawTransactionForStellarTxId: Test = {
     const fetchedWithdrawTransactionObj = await fetchTransaction({
       transferServerUrl: this.context.expects.transferServerUrl,
       stellarTransactionId:
-        config.sepConfig?.["24"]?.withdrawCompletedTransaction
+        config.sepConfig["24"].withdrawCompletedTransaction
           ?.stellar_transaction_id,
       authToken: this.context.expects.token,
       result,
