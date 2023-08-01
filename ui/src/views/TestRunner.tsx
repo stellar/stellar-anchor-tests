@@ -38,8 +38,10 @@ const DROPDOWN_SEPS_MAP: Record<number, Array<number>> = {
   31: [1, 10, 12, 31],
   38: [1, 10, 38],
 };
-// SEPs that require the config file field to be rendered in UI
-const CONFIG_SEPS = [6, 12, 31, 38];
+// SEPs that require the config file field to be rendered on UI
+const CONFIG_SEPS = [6, 12, 24, 31, 38];
+// SEPs that require the customer files field to be rendered on UI
+const CUSTOMER_FILES_SEPS = [6, 12, 31];
 // SEPs that require an asset to use in tests
 const TRANSFER_SEPS = [6, 24, 31];
 
@@ -67,6 +69,7 @@ export const TestRunner = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [serverFailure, setServerFailure] = useState("");
   const [isConfigNeeded, setIsConfigNeeded] = useState(false);
+  const [isCustomerFilesNeeded, setIsCustomerFilesNeeded] = useState(false);
   const [testRunArray, setTestRunArray] = useState([] as GroupedTestCases);
   const [testRunOrderMap, setTestRunOrderMap] = useState(
     {} as Record<string, number>,
@@ -87,6 +90,7 @@ export const TestRunner = () => {
     setRunState(RunState.noTests);
     setServerFailure("");
     setIsConfigNeeded(false);
+    setIsCustomerFilesNeeded(false);
     setCustomerImageData([]);
     setSupportedAssets([]);
     setSupportedSeps([]);
@@ -302,10 +306,22 @@ export const TestRunner = () => {
     if (sepNumber && CONFIG_SEPS.includes(sepNumber)) {
       setIsConfigNeeded(true);
       configValue = formData.sepConfig;
+
+      // Sets default config value for Sep-24 to make sure the "Run Tests" button
+      // is always enabled allowing Anchors to initially run most of Sep-24 tests
+      // without actually uploading the config file
+      if (sepNumber === 24 && !configValue) {
+        configValue = {};
+      }
     } else {
       setIsConfigNeeded(false);
       configValue = undefined;
     }
+
+    // display customer files button only if it is still needed
+    setIsCustomerFilesNeeded(
+      Boolean(sepNumber && CUSTOMER_FILES_SEPS.includes(sepNumber)),
+    );
 
     const newFormData = {
       ...formData,
@@ -358,7 +374,7 @@ export const TestRunner = () => {
         sepConfig: sepConfigObj,
       });
       // remove any images for customers that are not in the SEP-12 config object
-      const sep12Customers = sepConfigObj["12"]?.customers;
+      const sep12Customers = sepConfigObj["12"]?.customers || {};
       if (Object.keys(sep12Customers).length) {
         let i = 0;
         let customerImageDataCopy = [...customerImageData];
@@ -452,67 +468,65 @@ export const TestRunner = () => {
           </FieldWrapper>
         )}
         {isConfigNeeded && (
-          <>
-            <FieldWrapper>
-              <Input
-                id="sepConfig"
-                label="Upload Config"
-                onChange={(e) => handleFileChange(e.target.files)}
-                type="file"
-                accept="application/json"
-              />
-              <ModalInfoButton onClick={() => setIsModalVisible(true)} />
+          <FieldWrapper>
+            <Input
+              id="sepConfig"
+              label="Upload Config"
+              onChange={(e) => handleFileChange(e.target.files)}
+              type="file"
+              accept="application/json"
+            />
+            <ModalInfoButton onClick={() => setIsModalVisible(true)} />
 
-              <Modal
-                visible={isModalVisible}
-                onClose={() => setIsModalVisible(false)}
-              >
-                <ConfigModalContent></ConfigModalContent>
-              </Modal>
-            </FieldWrapper>
-            <FieldWrapper>
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setIsImageUploadModalVisible(true);
-                }}
-                disabled={
-                  !Boolean(formData.sepConfig && formData.sepConfig["12"])
+            <Modal
+              visible={isModalVisible}
+              onClose={() => setIsModalVisible(false)}
+            >
+              <ConfigModalContent></ConfigModalContent>
+            </Modal>
+          </FieldWrapper>
+        )}
+        {isCustomerFilesNeeded && (
+          <FieldWrapper>
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                setIsImageUploadModalVisible(true);
+              }}
+              disabled={!formData?.sepConfig?.["12"]}
+            >
+              Upload Customer Files
+            </Button>
+            {customerImageData.some((cid) => Boolean(cid.fileName)) && (
+              <p style={numUploadedFilesStyle}>
+                {customerImageData.reduce(
+                  (prev, cur) => prev + (cur.fileName ? 1 : 0),
+                  0,
+                )}{" "}
+                file
+                {customerImageData.reduce(
+                  (prev, cur) => prev + (cur.fileName ? 1 : 0),
+                  0,
+                ) > 1
+                  ? "s"
+                  : ""}{" "}
+                uploaded
+              </p>
+            )}
+            <Modal
+              visible={isImageUploadModalVisible}
+              onClose={() => setIsImageUploadModalVisible(false)}
+            >
+              <ImageUploadModalContent
+                imageData={customerImageData}
+                setImageData={setCustomerImageData}
+                sep12Config={
+                  formData.sepConfig ? formData.sepConfig["12"] : undefined
                 }
-              >
-                Upload Customer Files
-              </Button>
-              {customerImageData.some((cid) => Boolean(cid.fileName)) && (
-                <p style={numUploadedFilesStyle}>
-                  {customerImageData.reduce(
-                    (prev, cur) => prev + (cur.fileName ? 1 : 0),
-                    0,
-                  )}{" "}
-                  file
-                  {customerImageData.reduce(
-                    (prev, cur) => prev + (cur.fileName ? 1 : 0),
-                    0,
-                  ) > 1
-                    ? "s"
-                    : ""}{" "}
-                  uploaded
-                </p>
-              )}
-              <Modal
-                visible={isImageUploadModalVisible}
-                onClose={() => setIsImageUploadModalVisible(false)}
-              >
-                <ImageUploadModalContent
-                  imageData={customerImageData}
-                  setImageData={setCustomerImageData}
-                  sep12Config={
-                    formData.sepConfig ? formData.sepConfig["12"] : undefined
-                  }
-                  setIsImageUploadModalVisible={setIsImageUploadModalVisible}
-                ></ImageUploadModalContent>
-              </Modal>
-            </FieldWrapper>
-          </>
+                setIsImageUploadModalVisible={setIsImageUploadModalVisible}
+              ></ImageUploadModalContent>
+            </Modal>
+          </FieldWrapper>
         )}
         {serverFailure && (
           <InfoBlock variant={InfoBlock.variant.error}>

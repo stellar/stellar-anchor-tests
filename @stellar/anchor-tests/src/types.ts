@@ -44,7 +44,7 @@ export interface Config {
   searchStrings?: string[];
 
   /**
-   * Only relevant for SEP-6, 12, 31 & 38.
+   * Only relevant for SEP-6, 12, 24, 31 & 38.
    *
    * A ``SepConfig`` object.
    */
@@ -62,6 +62,7 @@ export interface Config {
 export interface SepConfig {
   6?: Sep6Config;
   12?: Sep12Config;
+  24?: Sep24Config;
   31?: Sep31Config;
   38?: Sep38Config;
 }
@@ -104,6 +105,90 @@ export interface Sep12Config {
    * customers will be created in the "memos differentiate customers registered by the same account" test.
    */
   sameAccountDifferentMemos?: [string, string];
+}
+
+/**
+ * The configuration object for SEP-24 tests.
+ */
+export interface Sep24Config {
+  /**
+   * The credentials that should be used to fetch the pending and completed transactions listed below
+   * (depositPendingTransaction, depositCompletedTransaction, withdrawPendingUserTransferStartTransaction
+   * and withdrawCompletedTransaction).
+   *
+   * - publicKey: (optional) the public key of the account which holds the pending and completed transactions.
+   * in case this param is not provided then the public key will be inferred from the secretKey below.
+   * - secretKey: the secret key of a valid signer on the account.
+   *
+   * When provided, it'll be used in the sep10 "returns a valid JWT" test.
+   */
+  account: {
+    publicKey?: string;
+    secretKey: string;
+  };
+
+  /**
+   * Should reference the "id" of a "deposit" transaction which is in any of the "pending_" status.
+   *
+   * When provided, it'll be used in the sep24
+   * "has proper 'pending_' deposit transaction schema on /transaction" test.
+   */
+  depositPendingTransaction: {
+    id: string;
+    status:
+      | "pending_anchor"
+      | "pending_external"
+      | "pending_stellar"
+      | "pending_trust"
+      | "pending_user"
+      | "pending_user_transfer_start"
+      | "pending_user_transfer_complete";
+  };
+
+  /**
+   * Should reference the "id" and "stellar_transaction_id" of a "deposit" transaction which is in a
+   * "completed" status.
+   *
+   * When provided, they'll be used in the following sep24 tests:
+   * - "has proper 'completed' deposit transaction schema on /transaction"
+   * - "returns valid deposit transaction when using 'stellar_transaction_id' param"
+   */
+  depositCompletedTransaction: {
+    id: string;
+    status: "completed";
+    stellar_transaction_id: string;
+  };
+
+  /**
+   * Should reference the "id" and other parameters of a "withdrawal" transaction which is
+   * in the "pending_user_transfer_start" status.
+   *
+   * When provided, it'll be used in the sep24
+   * "has proper 'pending_user_transfer_start' withdraw transaction schema on /transaction" test.
+   */
+  withdrawPendingUserTransferStartTransaction: {
+    id: string;
+    status: "pending_user_transfer_start";
+    amount_in: string;
+    amount_in_asset: string;
+    withdraw_anchor_account: string;
+    withdraw_memo: string;
+    withdraw_memo_type: string;
+  };
+
+  /**
+   * Should reference the "id" and "stellar_transaction_id" of a "withdrawal" transaction which is in a
+   * "completed" status.
+   *
+   * When provided, they'll be used in the following sep24 tests:
+   * - "has proper 'completed' withdraw transaction schema on /transaction"
+   * - "returns valid withdraw transaction when using 'stellar_transaction_id' param"
+   */
+  withdrawCompletedTransaction: {
+    id: string;
+    status: "completed";
+    stellar_transaction_id: string;
+  };
 }
 
 /**

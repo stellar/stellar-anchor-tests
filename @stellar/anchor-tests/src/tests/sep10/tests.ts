@@ -731,21 +731,53 @@ export const returnsValidJwt: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
     this.context.provides.clientKeypair = Keypair.random();
-    if (
-      config.sepConfig &&
-      config.sepConfig["31"] &&
-      config.sepConfig["31"].sendingAnchorClientSecret
-    ) {
+
+    const sep24AccountSigner = config.sepConfig?.["24"]?.account?.secretKey;
+    if (sep24AccountSigner) {
+      const signerKeypair = Keypair.fromSecret(sep24AccountSigner);
+
+      // If the optional 'publicKey' value is provided let's use that for the
+      // 'clientKeypair', otherwise let's infer the publicKey value from the
+      // provided 'secretKey'
+      const sep24AccountAddress = config.sepConfig?.["24"]?.account?.publicKey;
+      this.context.provides.clientKeypair = sep24AccountAddress
+        ? Keypair.fromPublicKey(sep24AccountAddress)
+        : signerKeypair;
+
+      const challenge = (await getChallenge(
+        this.context.provides.clientKeypair.publicKey(),
+        this.context.expects.webAuthEndpoint,
+        this.context.expects.tomlObj.NETWORK_PASSPHRASE,
+        result,
+      )) as Transaction;
+
+      challenge.sign(signerKeypair);
+
+      this.context.provides.token = await postChallenge(
+        this.context.provides.clientKeypair,
+        this.context.expects.webAuthEndpoint,
+        this.context.expects.tomlObj.NETWORK_PASSPHRASE,
+        result,
+        false,
+        challenge,
+      );
+
+      return result;
+    }
+
+    if (config?.sepConfig?.["31"]?.sendingAnchorClientSecret) {
       this.context.provides.clientKeypair = Keypair.fromSecret(
         config.sepConfig["31"].sendingAnchorClientSecret,
       );
     }
+
     this.context.provides.token = await postChallenge(
       this.context.provides.clientKeypair,
       this.context.expects.webAuthEndpoint,
       this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
     );
+
     return result;
   },
 };
@@ -880,7 +912,7 @@ const failsWithNoClientSignature: Test = {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const challenge = await getChallenge(
-      clientKeypair,
+      clientKeypair.publicKey(),
       this.context.expects.webAuthEndpoint,
       this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
@@ -1015,7 +1047,7 @@ const extraClientSigners: Test = {
     const result: Result = { networkCalls: [] };
     const clientKeypair = Keypair.random();
     const challenge = await getChallenge(
-      clientKeypair,
+      clientKeypair.publicKey(),
       this.context.expects.webAuthEndpoint,
       this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
@@ -1097,7 +1129,7 @@ const failsIfWeighBelowMediumThreshold: Test = {
     );
     if (!horizonResponse) return result;
     const challenge = await getChallenge(
-      clientKeypair,
+      clientKeypair.publicKey(),
       this.context.expects.webAuthEndpoint,
       this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
@@ -1178,7 +1210,7 @@ const signedByNonMasterSigner: Test = {
     await submitTransaction(raiseThresholdsTx.toXDR(), result);
     if (result.failure) return result;
     const challenge = await getChallenge(
-      clientKeypair,
+      clientKeypair.publicKey(),
       this.context.expects.webAuthEndpoint,
       this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
@@ -1265,7 +1297,7 @@ const failsWithDuplicateSignatures: Test = {
     await submitTransaction(raiseThresholdsTx.toXDR(), result);
     if (result.failure) return result;
     const challenge = await getChallenge(
-      clientKeypair,
+      clientKeypair.publicKey(),
       this.context.expects.webAuthEndpoint,
       this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
@@ -1358,7 +1390,7 @@ const multipleNonMasterSigners: Test = {
     await submitTransaction(raiseThresholdsTx.toXDR(), result);
     if (result.failure) return result;
     const challenge = await getChallenge(
-      clientKeypair,
+      clientKeypair.publicKey(),
       this.context.expects.webAuthEndpoint,
       this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,

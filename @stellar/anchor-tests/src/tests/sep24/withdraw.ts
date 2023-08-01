@@ -31,7 +31,7 @@ export const invalidWithdrawSchema: Failure = {
 };
 
 const withdrawRequiresToken: Test = {
-  assertion: "requires a SEP-10 JWT",
+  assertion: "requires a SEP-10 JWT for withdraw",
   sep: 24,
   group: withdrawTestsGroup,
   dependencies: [hasTransferServerUrl, assetCodeEnabledForWithdraw],
@@ -69,7 +69,7 @@ const withdrawRequiresToken: Test = {
 tests.push(withdrawRequiresToken);
 
 const withdrawRequiresAssetCode: Test = {
-  assertion: "requires 'asset_code' parameter",
+  assertion: "requires 'asset_code' parameter for withdraw",
   sep: 24,
   group: withdrawTestsGroup,
   dependencies: [
@@ -141,7 +141,7 @@ const withdrawRequiresAssetCode: Test = {
 tests.push(withdrawRequiresAssetCode);
 
 const withdrawRejectsUnsupportedAssetCode: Test = {
-  assertion: "rejects unsupported 'asset_code' parameter",
+  assertion: "rejects unsupported 'asset_code' parameter for withdraw",
   sep: 24,
   group: withdrawTestsGroup,
   dependencies: withdrawRequiresAssetCode.dependencies,
@@ -184,7 +184,7 @@ const withdrawRejectsUnsupportedAssetCode: Test = {
 tests.push(withdrawRejectsUnsupportedAssetCode);
 
 export const returnsProperSchemaForValidWithdrawRequest: Test = {
-  assertion: "returns a proper schema for valid requests",
+  assertion: "returns a proper schema for valid withdraw requests",
   sep: 24,
   group: withdrawTestsGroup,
   dependencies: withdrawRequiresAssetCode.dependencies,

@@ -50,7 +50,7 @@ const SepTests = styled.div`
   transition: all 0.5s ease-in-out;
 `;
 
-interface AccordianState {
+interface AccordionState {
   [key: string]: boolean;
 }
 
@@ -73,7 +73,7 @@ export const TestCases: React.FC<{
   runState: RunState;
   testCases: GroupedTestCases;
 }> = ({ runState, testCases }) => {
-  const [accordianState, setAccordianState] = useState({} as AccordianState);
+  const [accordionState, setAccordionState] = useState({} as AccordionState);
   return (
     <>
       <TestCasesWrapper>
@@ -83,7 +83,7 @@ export const TestCases: React.FC<{
             sep: number;
             tests: TestCase[];
           }) => {
-            const sepGroupAccordionState = !!accordianState[sepGroup.sep];
+            const sepGroupAccordionState = !!accordionState[sepGroup.sep];
             return (
               <SepGroupWrapper key={`sep-${sepGroup.sep}-tests`}>
                 <SepBlock progress={sepGroup.progress} sep={sepGroup.sep}>
@@ -95,8 +95,8 @@ export const TestCases: React.FC<{
                     <AccordionToggle
                       isOpen={sepGroupAccordionState}
                       onClick={() =>
-                        setAccordianState({
-                          ...accordianState,
+                        setAccordionState({
+                          ...accordionState,
                           [sepGroup.sep]: !sepGroupAccordionState,
                         })
                       }
@@ -105,7 +105,7 @@ export const TestCases: React.FC<{
                 </SepBlock>
                 <SepTests
                   accordionMaxHeight={sepGroup.tests.length}
-                  isOpen={accordianState[sepGroup.sep]}
+                  isOpen={accordionState[sepGroup.sep]}
                 >
                   {sepGroup.tests.map((testCase: TestCase, i: number) => (
                     <TestBlock

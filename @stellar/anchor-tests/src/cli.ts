@@ -46,7 +46,7 @@ const command = yargs
       type: "string",
       requiresArg: true,
       description:
-        "A relative or absolute file path to JSON file containing the configuration required for SEP 6, 12, & 31.",
+        "A relative or absolute file path to JSON file containing the configuration used by SEP 6, 12, 24, 31 & 38.",
     },
   })
   .check((argv: any) => {

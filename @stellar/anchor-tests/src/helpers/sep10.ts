@@ -218,7 +218,7 @@ export const postChallengeFailureModes: Record<string, Failure> = {
 };
 
 export async function getChallenge(
-  clientKeypair: Keypair,
+  accountAddress: string,
   webAuthEndpoint: string,
   networkPassphrase: string,
   result: Result,
@@ -228,9 +228,7 @@ export async function getChallenge(
     return;
   }
   const getAuthCall: NetworkCall = {
-    request: new Request(
-      webAuthEndpoint + `?account=${clientKeypair.publicKey()}`,
-    ),
+    request: new Request(webAuthEndpoint + `?account=${accountAddress}`),
   };
   result.networkCalls.push(getAuthCall);
   try {
@@ -301,7 +299,7 @@ export async function postChallenge(
 ): Promise<string | void> {
   if (!challenge) {
     challenge = (await getChallenge(
-      clientKeypair,
+      clientKeypair.publicKey(),
       webAuthEndpoint,
       networkPassphrase,
       result,

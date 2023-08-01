@@ -26,6 +26,33 @@ export const sep12ConfigSchema = {
   required: ["customers", "createCustomer", "deleteCustomer"],
 };
 
+export const sep24ConfigSchema = {
+  type: "object",
+  properties: {
+    account: {
+      type: "object",
+      minProperties: 1,
+    },
+    depositPendingTransaction: {
+      type: "object",
+      minProperties: 2,
+    },
+    depositCompletedTransaction: {
+      type: "object",
+      minProperties: 3,
+    },
+    withdrawPendingUserTransferStartTransaction: {
+      type: "object",
+      minProperties: 7,
+    },
+    withdrawCompletedTransaction: {
+      type: "object",
+      minProperties: 3,
+    },
+  },
+  required: [],
+};
+
 export const sep31ConfigSchema = {
   type: "object",
   properties: {
@@ -108,6 +135,7 @@ export const sepConfigSchema = {
   properties: {
     "6": sep6ConfigSchema,
     "12": sep12ConfigSchema,
+    "24": sep24ConfigSchema,
     "31": sep31ConfigSchema,
     "38": sep38ConfigSchema,
   },
