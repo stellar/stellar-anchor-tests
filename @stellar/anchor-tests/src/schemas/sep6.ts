@@ -213,7 +213,7 @@ export const transactionSchema = {
         status: {
           type: "string",
           pattern:
-            "completed|pending_external|pending_anchor|pending_stellar|pending_trust|pending_user|pending_user_transfer_start|incomplete|no_market|too_small|too_large|error",
+            "completed|pending_external|pending_anchor|pending_stellar|pending_trust|pending_user|pending_customer_info_update|pending_user_transfer_start|incomplete|no_market|too_small|too_large|error",
         },
         more_info_url: {
           type: "string",
@@ -255,18 +255,7 @@ export const transactionSchema = {
           type: ["string", "null"],
         },
       },
-      required: [
-        "id",
-        "kind",
-        "status",
-        "amount_in",
-        "amount_out",
-        "amount_fee",
-        "started_at",
-        "completed_at",
-        "stellar_transaction_id",
-        "refunded",
-      ],
+      required: ["id", "kind", "status", "started_at"],
     },
   },
   required: ["transaction"],
@@ -290,10 +279,9 @@ export const transactionsSchema = {
 
 export function getTransactionSchema(isDeposit: boolean) {
   const schema = JSON.parse(JSON.stringify(transactionSchema));
-  const requiredDepositParams = ["from", "to"];
+  const requiredDepositParams = ["to"];
   const requiredWithdrawParams = [
     "from",
-    "to",
     "withdraw_memo",
     "withdraw_memo_type",
     "withdraw_anchor_account",
@@ -333,14 +321,12 @@ export function getTransactionSchema(isDeposit: boolean) {
   };
 
   if (isDeposit) {
-    schema.properties.transaction.required = schema.properties.transaction.required.concat(
-      requiredDepositParams,
-    );
+    schema.properties.transaction.required =
+      schema.properties.transaction.required.concat(requiredDepositParams);
     Object.assign(schema.properties.transaction.properties, depositProperties);
   } else {
-    schema.properties.transaction.required = schema.properties.transaction.required.concat(
-      requiredWithdrawParams,
-    );
+    schema.properties.transaction.required =
+      schema.properties.transaction.required.concat(requiredWithdrawParams);
     Object.assign(schema.properties.transaction.properties, withdrawProperties);
   }
 
