@@ -191,10 +191,9 @@ const hasProperPendingDepositTransactionSchema: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
-    if (!config.sepConfig?.["24"]) {
-      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
-        sep: "SEP-24",
-      });
+    // Skip this test if SEP-24 config with field depositPendingTransaction is not present
+    if (!config.sepConfig?.["24"]?.depositPendingTransaction) {
+      result.skipped = true;
       return result;
     }
 
@@ -273,10 +272,9 @@ const hasProperCompletedDepositTransactionSchema: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
-    if (!config.sepConfig?.["24"]) {
-      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
-        sep: "SEP-24",
-      });
+    // Skip this test if SEP-24 config with field depositCompletedTransaction is not present
+    if (!config.sepConfig?.["24"]?.depositCompletedTransaction) {
+      result.skipped = true;
       return result;
     }
 
@@ -403,10 +401,11 @@ export const hasProperPendingWithdrawTransactionSchema: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
-    if (!config.sepConfig?.["24"]) {
-      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
-        sep: "SEP-24",
-      });
+    // Skip this test if SEP-24 config with field withdrawPendingUserTransferStartTransaction is not present
+    if (
+      !config.sepConfig?.["24"]?.withdrawPendingUserTransferStartTransaction
+    ) {
+      result.skipped = true;
       return result;
     }
 
@@ -485,10 +484,9 @@ export const hasProperCompletedWithdrawTransactionSchema: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
-    if (!config.sepConfig?.["24"]) {
-      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
-        sep: "SEP-24",
-      });
+    // Skip this test if SEP-24 config with field withdrawCompletedTransaction is not present
+    if (!config.sepConfig?.["24"]?.withdrawCompletedTransaction) {
+      result.skipped = true;
       return result;
     }
 
@@ -562,10 +560,9 @@ const returnsDepositTransactionForStellarTxId: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
-    if (!config.sepConfig?.["24"]) {
-      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
-        sep: "SEP-24",
-      });
+    // Skip this test if SEP-24 config with field depositCompletedTransaction is not present
+    if (!config.sepConfig?.["24"]?.depositCompletedTransaction) {
+      result.skipped = true;
       return result;
     }
 
@@ -631,10 +628,9 @@ const returnsWithdrawTransactionForStellarTxId: Test = {
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
 
-    if (!config.sepConfig?.["24"]) {
-      result.failure = makeFailure(this.failureModes.MISSING_CONFIG, {
-        sep: "SEP-24",
-      });
+    // Skip this test if SEP-24 config with field depositCompletedTransaction is not present
+    if (!config.sepConfig?.["24"]?.withdrawCompletedTransaction) {
+      result.skipped = true;
       return result;
     }
 
