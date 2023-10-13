@@ -27,6 +27,8 @@ Options:
                                                               [array] [required]
   -v, --verbose      Display the each request and response used in each failed
                      test.                            [boolean] [default: false]
+  --sep-config       Path to a JSON file containing SEP-specific configuration
+                     options. See below for config examples.                    [string]
 ```
 
 ```
@@ -58,4 +60,91 @@ const config: Config = {
     console.dir(testRun, { depth: Infinity });
   }
 })()
+```
+
+### SEP config example
+
+```json
+{
+  "12": {
+    "customers": {
+      "toBeCreated": {
+        "first_name": "John",
+        "last_name": "Doe",
+        "email_address": "john@email.com",
+        "bank_number": "123",
+        "bank_account_number": "456",
+        "bank_account_type": "checking"
+      },
+      "sendingClient": {
+        "first_name": "Allie",
+        "last_name": "Grater",
+        "email_address": "allie@email.com"
+      },
+      "receivingClient": {
+        "first_name": "Lee",
+        "last_name": "Sun",
+        "email_address": "lee@email.com",
+        "clabe_number": "1234",
+        "bank_number": "abcd",
+        "bank_account_number": "1234",
+        "bank_account_type": "checking"
+      },
+      "toBeDeleted": {
+        "first_name": "Jane",
+        "last_name": "Doe",
+        "email_address": "jane@email.com"
+      }
+    },
+    "createCustomer": "toBeCreated",
+    "deleteCustomer": "toBeDeleted",
+    "sameAccountDifferentMemos": ["sendingClient", "receivingClient"]
+  },
+  /*
+   * SEP-24 config is optional for enabling partial tests in transaction. 
+   * Please provide valid input if you plan to do so.
+   */
+  "24": {
+    "account": {
+      "publicKey": "<your_public_key>",
+      "secretKey": "<your_secret_key>"
+    },
+    "depositPendingTransaction": {
+      "id": "<id>",
+      "status": "any pending_ status"
+    },
+    "depositCompletedTransaction": {
+      "id": "<id>",
+      "status": "completed",
+      "stellar_transaction_id": "<valid_completed_deposit_transaction_id>"
+    },
+    "withdrawPendingUserTransferStartTransaction": {
+      "id": "<id>",
+      "status": "pending_user_transfer_start",
+      "amount_in": "222.00",
+      "amount_in_asset": "",
+      "withdraw_anchor_account": "",
+      "withdraw_memo": "<id>",
+      "withdraw_memo_type": "text"
+    },
+    "withdrawCompletedTransaction": {
+      "id": "<id>",
+      "status": "completed",
+      "stellar_transaction_id": "<valid_completed_withdraw_transaction_id>"
+    }
+  },
+  "31": {
+    "sendingAnchorClientSecret": "<secret>",
+    "sendingClientName": "sendingClient",
+    "receivingClientName": "receivingClient",
+    "transactionFields": {
+      "receiver_account_number": "123",
+      "receiver_routing_number": "456",
+      "type": "SWIFT"
+    }
+  },
+  "38": {
+    "contexts": ["sep31"]
+  }
+}
 ```
