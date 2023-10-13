@@ -2,7 +2,7 @@ name: docker image publish
 on:
   workflow_run:
     workflows: ["npm publish"]
-    branches: [main]
+    branches: [master]
     types:
       - completed
 
