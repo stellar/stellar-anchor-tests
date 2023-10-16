@@ -27,5 +27,15 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish docker image
-        uses: ./.github/workflows/docker_publish.yml
+      - name: Docker Login
+        uses: docker/login-action@v2.1.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v4.0.0
+        with:
+          push: true
+          tags: stellar/anchor-tests:${{ github.event.release.tag_name }},stellar/anchor-tests:latest
+          file: Dockerfile
