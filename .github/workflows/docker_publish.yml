@@ -1,10 +1,7 @@
 name: docker image publish
 on:
-  workflow_run:
-    workflows: ["npm publish"]
-    branches: [master]
-    types:
-      - completed
+  workflow_dispatch:
+  workflow_call:
 
 jobs:
   build_and_push_docker_image:
