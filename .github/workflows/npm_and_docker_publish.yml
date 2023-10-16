@@ -1,4 +1,4 @@
-name: npm publish
+name: npm and docker publish
 on:
   release:
     types: [published]
@@ -26,3 +26,6 @@ jobs:
         run: yarn publish:anchor-tests
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish docker image
+        uses: ./.github/workflows/docker_publish.yml
