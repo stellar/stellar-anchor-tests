@@ -1,6 +1,7 @@
-name: npm and docker publish
+name: npm and docker build and publish
 on:
-  pull_request:
+  release:
+    types: [published]
 
 jobs:
   build-publish:
@@ -21,10 +22,10 @@ jobs:
       - name: Build
         run: yarn build:all
 
-#      - name: Publish npm package
-#        run: yarn publish:anchor-tests
-#        env:
-#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish npm package
+        run: yarn publish:anchor-tests
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Docker Login
         uses: docker/login-action@v2.1.0
@@ -36,6 +37,5 @@ jobs:
         uses: docker/build-push-action@v4.0.0
         with:
           push: true
-#          tags: stellar/anchor-tests:${{ github.event.release.tag_name }},stellar/anchor-tests:latest
-          tags: stellar/anchor-tests:to-be-deleted
+          tags: stellar/anchor-tests:${{ github.event.release.tag_name }},stellar/anchor-tests:latest
           file: Dockerfile
