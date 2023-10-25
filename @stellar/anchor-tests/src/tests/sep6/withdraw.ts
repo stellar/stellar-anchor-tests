@@ -7,7 +7,6 @@ import { Test, Config, Result, NetworkCall } from "../../types";
 import { makeRequest } from "../../helpers/request";
 import { genericFailures, makeFailure } from "../../helpers/failure";
 import { hasWebAuthEndpoint, returnsValidJwt } from "../sep10/tests";
-import { canCreateCustomer } from "../sep12/putCustomer";
 import { hasTransferServerUrl } from "./toml";
 import { assetCodeEnabledForWithdraw, isCompliantWithSchema } from "./info";
 import {
@@ -334,12 +333,11 @@ const withdrawRejectsUnsupportedAssetCode: Test = {
 tests.push(withdrawRejectsUnsupportedAssetCode);
 
 export const returnsProperSchemaForKnownAccounts: Test = {
-  assertion:
-    "returns a success or customer info status response for valid requests from KYC'ed accounts",
+  assertion: "returns a success response for valid requests",
   sep: 6,
   group: withdrawTestsGroup,
   dependencies: (config: Config) => {
-    let resultDependencies = [canCreateCustomer];
+    let resultDependencies: Test[] = [];
 
     if (withdrawRequiresAssetCode.dependencies) {
       let otherDependencies =
