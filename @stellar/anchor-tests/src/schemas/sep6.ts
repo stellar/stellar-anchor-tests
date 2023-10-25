@@ -1,5 +1,3 @@
-import { sep9Fields } from "./sep12";
-
 const fieldsSchema = {
   type: "object",
   additionalProperties: {
@@ -88,23 +86,6 @@ export const infoSchema = {
     transactions: otherFieldSchema,
   },
   required: ["deposit", "withdraw", "fee", "transaction", "transactions"],
-};
-
-export const needsInfoResponseSchema = {
-  type: "object",
-  properties: {
-    type: {
-      type: "string",
-      pattern: "non_interactive_customer_info_needed",
-    },
-    fields: {
-      type: "array",
-      items: {
-        type: "string",
-        enum: sep9Fields,
-      },
-    },
-  },
 };
 
 export const customerInfoStatusSchema = {
