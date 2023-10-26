@@ -5,14 +5,11 @@ import { validate } from "jsonschema";
 
 import { Test, Config, Result, NetworkCall } from "../../types";
 import { makeRequest } from "../../helpers/request";
-import { postChallenge } from "../../helpers/sep10";
 import { genericFailures, makeFailure } from "../../helpers/failure";
 import { hasWebAuthEndpoint, returnsValidJwt } from "../sep10/tests";
-import { canCreateCustomer } from "../sep12/putCustomer";
 import { hasTransferServerUrl } from "./toml";
 import { assetCodeEnabledForDeposit, isCompliantWithSchema } from "./info";
 import {
-  needsInfoResponseSchema,
   depositSuccessResponseSchema,
   customerInfoStatusSchema,
 } from "../../schemas/sep6";
@@ -289,94 +286,12 @@ const depositRejectsUnsupportedAssetCode: Test = {
 };
 tests.push(depositRejectsUnsupportedAssetCode);
 
-export const returnsProperSchemaForUnknownAccounts: Test = {
-  assertion:
-    "returns a needs info response for valid requests from unknown accounts",
-  sep: 6,
-  group: depositTestsGroup,
-  dependencies: depositRequiresAssetCode.dependencies,
-  context: {
-    expects: depositRequiresAssetCode.context.expects,
-    provides: {
-      sep6FieldsRequired: undefined,
-    },
-  },
-  failureModes: {
-    INVALID_SCHEMA: {
-      name: "invalid schema",
-      text(args: any): string {
-        return (
-          "The response body returned does not comply with the schema defined for the /deposit endpoint. " +
-          "The errors returned from the schema validation:\n\n" +
-          `${args.errors}`
-        );
-      },
-      links: {
-        "Deposit Response":
-          "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#2-customer-information-needed-non-interactive",
-      },
-    },
-    ...genericFailures,
-  },
-  async run(config: Config): Promise<Result> {
-    if (!config.sepConfig || !config.sepConfig["6"])
-      throw { message: "improperly configured" };
-    const result: Result = { networkCalls: [] };
-    const clientKeypair = Keypair.random();
-    const token = await postChallenge(
-      clientKeypair,
-      this.context.expects.webAuthEndpoint,
-      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
-      result,
-    );
-    const headers = this.context.expects.authRequired
-      ? {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      : {};
-    const callParams = new URLSearchParams({
-      asset_code: config.assetCode,
-      account: clientKeypair.publicKey(),
-      ...config.sepConfig["6"].deposit.transactionFields,
-    });
-    const getDepositCall: NetworkCall = {
-      request: new Request(
-        this.context.expects.sep6TransferServerUrl +
-          depositEndpoint +
-          `?${callParams.toString()}`,
-        { ...headers },
-      ),
-    };
-    result.networkCalls.push(getDepositCall);
-    const responseBody = await makeRequest(
-      getDepositCall,
-      403,
-      result,
-      "application/json",
-    );
-    if (!responseBody) return result;
-    const validatorResult = validate(responseBody, needsInfoResponseSchema);
-    if (validatorResult.errors.length !== 0) {
-      result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
-        errors: validatorResult.errors.join("\n"),
-      });
-      return result;
-    }
-    this.context.provides.sep6FieldsRequired = responseBody.fields;
-    return result;
-  },
-};
-tests.push(returnsProperSchemaForUnknownAccounts);
-
 export const returnsProperSchemaForKnownAccounts: Test = {
-  assertion:
-    "returns a success or customer info status response for valid requests from KYC'ed accounts",
+  assertion: "returns a success response for valid requests",
   sep: 6,
   group: depositTestsGroup,
   dependencies: (config: Config) => {
-    let resultDependencies = [canCreateCustomer];
+    let resultDependencies: Test[] = [];
 
     if (depositRequiresAssetCode.dependencies) {
       let otherDependencies =
