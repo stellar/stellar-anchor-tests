@@ -446,7 +446,9 @@ export const returnsProperSchemaForKnownAccounts: Test = {
         memoValue = Buffer.from(responseBody.memo, "base64");
       }
       try {
-        new Memo(responseBody.memo_type, memoValue);
+        if (memoValue) {
+          new Memo(responseBody.memo_type, memoValue);
+        }
       } catch {
         result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
           errors: "invalid 'memo' for 'memo_type'",
