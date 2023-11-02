@@ -179,7 +179,7 @@ export const withdrawSuccessResponseSchema = {
       type: "object",
     },
   },
-  required: ["account_id", "id"],
+  required: ["id"],
   additionalProperties: false,
 };
 

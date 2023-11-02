@@ -434,7 +434,9 @@ export const returnsProperSchemaForKnownAccounts: Test = {
     this.context.provides.sep6WithdrawTransactionId = responseBody.id || null;
     if (getWithdrawCall.response.status === 200) {
       try {
-        Keypair.fromPublicKey(responseBody.account_id);
+        if (responseBody.account_id) {
+          Keypair.fromPublicKey(responseBody.account_id);
+        }
       } catch {
         result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
           errors: "invalid Stellar public key",
