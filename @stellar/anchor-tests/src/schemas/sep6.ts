@@ -261,12 +261,7 @@ export const transactionsSchema = {
 export function getTransactionSchema(isDeposit: boolean) {
   const schema = JSON.parse(JSON.stringify(transactionSchema));
   const requiredDepositParams = ["to"];
-  const requiredWithdrawParams = [
-    "from",
-    "withdraw_memo",
-    "withdraw_memo_type",
-    "withdraw_anchor_account",
-  ];
+  const requiredWithdrawParams = ["from"];
 
   const depositProperties = {
     deposit_memo: {
