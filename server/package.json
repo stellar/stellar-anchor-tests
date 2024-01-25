@@ -30,6 +30,6 @@
     "winston": "^3.3.3"
   },
   "peerDependencies": {
-    "@stellar/anchor-tests": "0.6.9"
+    "@stellar/anchor-tests": "0.6.10"
   }
 }

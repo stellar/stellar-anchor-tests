@@ -40,6 +40,10 @@ export const sep9Fields = [
   "notary_approval_of_photo_id",
   "ip_address",
   "photo_proof_residence",
+  "sex",
+  "photo_proof_of_income",
+  "proof_of_liveness",
+  "referral_id",
   "type",
 ];
 
