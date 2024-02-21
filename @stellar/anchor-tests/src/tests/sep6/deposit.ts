@@ -156,6 +156,9 @@ const depositRequiresAccount: Test = {
   context: depositRequiresAssetCode.context,
   failureModes: depositRequiresAssetCode.failureModes,
   async run(config: Config): Promise<Result> {
+    if (!config.assetCode)
+      // checked in assetCodeEnabledForDeposit
+      throw "improperly configured";
     const result: Result = { networkCalls: [] };
     if (!this.context.provides.authRequired) {
       result.skipped = true;
@@ -198,6 +201,9 @@ const depositRejectsInvalidAccount: Test = {
   context: depositRequiresAssetCode.context,
   failureModes: depositRequiresAssetCode.failureModes,
   async run(config: Config): Promise<Result> {
+    if (!config.assetCode)
+      // checked in assetCodeEnabledForWithdraw
+      throw "improperly configured";
     const result: Result = { networkCalls: [] };
     if (!this.context.provides.authRequired) {
       result.skipped = true;

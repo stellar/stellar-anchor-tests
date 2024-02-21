@@ -1,4 +1,4 @@
-FROM node:18.14.1
+FROM node:20 as build
 
 # Check the versions
 RUN node --version &&  \

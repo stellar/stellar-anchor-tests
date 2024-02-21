@@ -10,7 +10,7 @@
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
-    "@types/node": "^15.12.2",
+    "@types/node": "^20.11.0",
     "lodash": "^4.17.21",
     "lodash.throttle": "^4.1.1",
     "node-fetch": "^2.6.1",
@@ -39,7 +39,7 @@
   },
   "prettier": "@stellar/prettier-config",
   "scripts": {
-    "start": "react-scripts start",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
