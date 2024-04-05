@@ -34,7 +34,8 @@ export const HomeDomainField = ({
   setSupportedSeps,
   toml,
 }: HomeDomainFieldProps) => {
-  const [domainStr, setDomainStr] = useState("");
+  const DEFAULT_DOMAIN = "https://testanchor.stellar.org/";
+  const [domainStr, setDomainStr] = useState(DEFAULT_DOMAIN);
   const updateSupportedSepsState = (tomlObj: { [key: string]: string }) => {
     if (tomlObj) {
       const newSupportedSeps = [1];
@@ -122,6 +123,7 @@ export const HomeDomainField = ({
           id="homeDomain"
           label="Home Domain"
           onChange={(e) => handleHomeDomainChange(e.target.value)}
+          defaultValue={DEFAULT_DOMAIN}
         />
         <TooltipInfoButton>
           <p>
