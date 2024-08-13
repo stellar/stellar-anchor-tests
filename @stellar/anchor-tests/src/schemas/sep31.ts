@@ -15,7 +15,7 @@ export const postTransactionsSchema = {
       type: "string",
     },
   },
-  required: ["id", "stellar_memo", "stellar_memo_type", "stellar_memo"],
+  required: ["id"],
   additionalProperties: false,
 };
 
@@ -87,13 +87,7 @@ export const getTransactionSchema = {
           type: "boolean",
         },
       },
-      required: [
-        "id",
-        "status",
-        "stellar_account_id",
-        "stellar_memo",
-        "stellar_memo_type",
-      ],
+      required: ["id", "status"],
     },
   },
   required: ["transaction"],
