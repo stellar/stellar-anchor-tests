@@ -260,7 +260,7 @@ const canCreateTransaction: Test = {
       }
     } catch {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
-        errors: "'stellar_acocunt_id' must be a valid Stellar public key",
+        errors: "'stellar_account_id' must be a valid Stellar public key",
       });
       return result;
     }
