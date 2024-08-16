@@ -128,10 +128,12 @@ const canCreateTransaction: Test = {
       return result;
     }
     try {
-      Keypair.fromPublicKey(responseBody.stellar_account_id);
+      if (responseBody.stellar_account_id) {
+        Keypair.fromPublicKey(responseBody.stellar_account_id);
+      }
     } catch {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
-        errors: "'stellar_acocunt_id' must be a valid Stellar public key",
+        errors: "'stellar_account_id' must be a valid Stellar public key",
       });
       return result;
     }
@@ -140,7 +142,9 @@ const canCreateTransaction: Test = {
       memoValue = Buffer.from(responseBody.stellar_memo, "base64");
     }
     try {
-      new Memo(responseBody.stellar_memo_type, memoValue);
+      if (memoValue) {
+        new Memo(responseBody.stellar_memo_type, memoValue);
+      }
     } catch {
       result.failure = makeFailure(this.failureModes.INVALID_SCHEMA, {
         errors: "invalid 'stellar_memo' for 'stellar_memo_type'",
