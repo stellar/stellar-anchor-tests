@@ -12,6 +12,7 @@ RUN npm install -g typescript &&  \
 WORKDIR /code
 
 COPY . .
-RUN npm install -g @stellar/anchor-tests
+RUN yarn install
+RUN yarn build:anchor-tests
 
-ENTRYPOINT ["stellar-anchor-tests"]
+ENTRYPOINT ["yarn", "stellar-anchor-tests"]
