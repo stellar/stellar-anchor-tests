@@ -35,7 +35,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Install Latest npm Package
-        run: yarn add anchor-tests@latest -W
+        run: yarn add @stellar/anchor-tests@latest -W
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v4.0.0
