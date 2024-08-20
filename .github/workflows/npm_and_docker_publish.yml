@@ -23,7 +23,6 @@ jobs:
         run: yarn build:all
 
       - name: Publish npm package
-        continue-on-error: true
         run: yarn publish:anchor-tests
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
