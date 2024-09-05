@@ -145,7 +145,7 @@ export const hasExpectedAssetEnabled: Test = {
 };
 
 const hasExpectedTransactionFields: Test = {
-  assertion: "has configured transaction 'fields'",
+  assertion: "check optional transaction 'fields'",
   sep: 31,
   group: "GET /info",
   dependencies: [hasValidInfoSchema],
@@ -184,31 +184,33 @@ const hasExpectedTransactionFields: Test = {
       // this is checked before tests are run
       throw new Error("improperly configured");
     const result: Result = { networkCalls: [] };
-    const responseTransactionFields =
-      this.context.expects.sep31InfoObj.receive[config.assetCode].fields
-        .transaction;
-    const responseTransactionFieldNames = Object.keys(
-      responseTransactionFields,
-    );
-    const configuredTransactionFieldNames = Object.keys(
-      config.sepConfig["31"].transactionFields,
-    );
-    for (const fieldName of responseTransactionFieldNames) {
-      if (
-        !responseTransactionFields[fieldName].optional &&
-        !configuredTransactionFieldNames.includes(fieldName)
-      ) {
-        result.failure = makeFailure(this.failureModes.UNEXPECTED_FIELD, {
-          field: fieldName,
-        });
-        return result;
+    if (this.context.expects.sep31InfoObj.receive[config.assetCode].fields) {
+      const responseTransactionFields =
+        this.context.expects.sep31InfoObj.receive[config.assetCode].fields
+          .transaction;
+      const responseTransactionFieldNames = Object.keys(
+        responseTransactionFields,
+      );
+      const configuredTransactionFieldNames = Object.keys(
+        config.sepConfig["31"].transactionFields,
+      );
+      for (const fieldName of responseTransactionFieldNames) {
+        if (
+          !responseTransactionFields[fieldName].optional &&
+          !configuredTransactionFieldNames.includes(fieldName)
+        ) {
+          result.failure = makeFailure(this.failureModes.UNEXPECTED_FIELD, {
+            field: fieldName,
+          });
+          return result;
+        }
       }
-    }
-    for (const fieldName of configuredTransactionFieldNames) {
-      if (!responseTransactionFieldNames.includes(fieldName)) {
-        result.failure = makeFailure(this.failureModes.FIELD_NOT_FOUND);
-        result.expected = fieldName;
-        return result;
+      for (const fieldName of configuredTransactionFieldNames) {
+        if (!responseTransactionFieldNames.includes(fieldName)) {
+          result.failure = makeFailure(this.failureModes.FIELD_NOT_FOUND);
+          result.expected = fieldName;
+          return result;
+        }
       }
     }
     return result;
