@@ -80,10 +80,10 @@ const rateFeeSchema = {
   type: "object",
   properties: {
     total: {
-      type: "string"
+      type: "string",
     },
     asset: {
-      type: "string"
+      type: "string",
     },
     details: {
       type: "array",
@@ -91,21 +91,21 @@ const rateFeeSchema = {
         type: "object",
         properties: {
           name: {
-            type: "string"
+            type: "string",
           },
           description: {
-            type: "string"
+            type: "string",
           },
           amount: {
-            type: "string"
+            type: "string",
           },
         },
         required: ["name", "amount"],
-      }
-    }
+      },
+    },
   },
-  required: ["total", "asset"]
-}
+  required: ["total", "asset"],
+};
 
 export const priceSchema = {
   type: "object",
@@ -155,6 +155,12 @@ export const quoteSchema = {
       type: "string",
     },
     buy_amount: {
+      type: "string",
+    },
+    buy_delivery_method: {
+      type: "string",
+    },
+    sell_delivery_method: {
       type: "string",
     },
   },
