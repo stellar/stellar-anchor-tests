@@ -94,6 +94,26 @@ export const getTransactionSchema = {
   additionalProperties: false,
 };
 
+const fieldsSchema = {
+  type: "object",
+  additionalProperties: {
+    type: "object",
+    properties: {
+      description: {
+        type: "string",
+      },
+      optional: {
+        type: "boolean",
+      },
+      choices: {
+        type: "array",
+      },
+    },
+    required: ["description"],
+    additionalProperties: false,
+  },
+};
+
 export const infoSchema = {
   type: "object",
   properties: {
@@ -102,87 +122,10 @@ export const infoSchema = {
       additionalProperties: {
         type: "object",
         properties: {
-          enabled: {
-            type: "boolean",
-          },
-          fee_fixed: {
-            type: "number",
-          },
-          fee_percent: {
-            type: "number",
-          },
-          min_amount: {
-            type: "number",
-          },
-          max_amount: {
-            type: "number",
-          },
-          sep12: {
-            type: "object",
-            properties: {
-              sender: {
-                type: "object",
-                properties: {
-                  types: {
-                    type: "object",
-                    additionalProperties: {
-                      type: "object",
-                      properties: {
-                        description: {
-                          type: "string",
-                        },
-                      },
-                      required: ["description"],
-                    },
-                  },
-                },
-              },
-              receiver: {
-                type: "object",
-                properties: {
-                  types: {
-                    type: "object",
-                    additionalProperties: {
-                      type: "object",
-                      properties: {
-                        description: {
-                          type: "string",
-                        },
-                      },
-                      required: ["description"],
-                    },
-                  },
-                },
-              },
-            },
-            required: ["sender", "receiver"],
-            additionalProperties: false,
-          },
-          fields: {
-            type: "object",
-            properties: {
-              transaction: {
-                type: "object",
-                additionalProperties: {
-                  type: "object",
-                  properties: {
-                    description: {
-                      type: "string",
-                    },
-                    optional: {
-                      type: "boolean",
-                    },
-                    choices: {
-                      type: "array",
-                    },
-                  },
-                  required: ["description"],
-                },
-              },
-            },
-            required: ["transaction"],
-            additionalProperties: false,
-          },
+          enabled: { type: "boolean" },
+          min_amount: { type: "number" },
+          max_amount: { type: "number" },
+          fields: fieldsSchema,
         },
       },
     },
