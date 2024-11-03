@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 as build
+FROM ubuntu:24.04 as build
 
 MAINTAINER SDF Ops Team <ops@stellar.org>
 
@@ -28,7 +28,7 @@ COPY ./ui /app/ui/
 RUN yarn install
 RUN yarn workspace ui build
 
-FROM nginx:1.17
+FROM nginx:1.27
 
 COPY --from=build /app/ui/build/ /usr/share/nginx/html/
 COPY --from=build /app/ui/nginx.conf /etc/nginx/conf.d/default.conf
