@@ -117,7 +117,7 @@ export const infoSchema = {
           max_amount: {
             type: "number",
           },
-          funding_method: {
+          funding_methods: {
             type: "array",
           },
           sep12: {

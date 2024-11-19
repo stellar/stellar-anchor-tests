@@ -30,7 +30,7 @@ const depositInfoSchema = {
         min_amount: { type: "number" },
         max_amount: { type: "number" },
         authentication_required: { type: "boolean" },
-        funding_method: { type: "array" },
+        funding_methods: { type: "array" },
         fields: fieldsSchema,
       },
       required: ["enabled"],
@@ -51,7 +51,7 @@ const withdrawInfoSchema = {
         min_amount: { type: "number" },
         max_amount: { type: "number" },
         authentication_required: { type: "boolean" },
-        funding_method: { type: "array" },
+        funding_methods: { type: "array" },
         types: {
           additionalProperties: {
             type: "object",
