@@ -103,6 +103,7 @@ const canCreateTransaction: Test = {
             amount: 100,
             asset_code: splitAsset[1],
             quote_id: this.context.expects.sep38QuoteResponseObj.id,
+            funding_method: "SEPA",
             fields: {
               transaction: {
                 ...config.sepConfig["31"].transactionFields,
