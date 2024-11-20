@@ -212,6 +212,7 @@ const canCreateTransaction: Test = {
             receiver_id: this.context.expects.receivingCustomerId,
             amount: 100,
             asset_code: config.assetCode,
+            funding_method: "SEPA",
             fields: {
               transaction: {
                 ...config.sepConfig["31"].transactionFields,
@@ -317,6 +318,7 @@ const failsWithNoAmount: Test = {
             sender_id: this.context.expects.sendingCustomerId,
             receiver_id: this.context.expects.receivingCustomerId,
             asset_code: config.assetCode,
+            funding_method: "SEPA",
             fields: {
               transaction: {
                 ...config.sepConfig["31"].transactionFields,
@@ -366,6 +368,7 @@ const failsWithNoAssetCode: Test = {
             sender_id: this.context.expects.sendingCustomerId,
             receiver_id: this.context.expects.receivingCustomerId,
             amount: 100,
+            funding_method: "SEPA",
             fields: {
               transaction: {
                 ...config.sepConfig["31"].transactionFields,
