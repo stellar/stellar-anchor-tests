@@ -54,14 +54,11 @@ const withdrawRequiresToken: Test = {
       result.skipped = true;
       return result;
     }
-    const withdrawType = Object.keys(withdrawInfo.types)[0];
-    const withdrawTypeFields =
-      withdrawInfo.types[withdrawType].transactionFields || {};
+    const withdrawMethod = withdrawInfo.funding_methods[0];
     const callParams = new URLSearchParams({
       account: Keypair.random().publicKey(),
       asset_code: config.assetCode,
-      type: withdrawType,
-      ...withdrawTypeFields,
+      type: withdrawMethod,
     });
     const getWithdrawCall: NetworkCall = {
       request: new Request(
@@ -129,13 +126,10 @@ const withdrawRequiresAssetCode: Test = {
       : {};
     const withdrawInfo =
       this.context.expects.sep6InfoObj.withdraw[config.assetCode];
-    const withdrawType = Object.keys(withdrawInfo.types)[0];
-    const withdrawTypeFields =
-      withdrawInfo.types[withdrawType].transactionFields || {};
+    const withdrawMethod = withdrawInfo.funding_methods[0];
     const callParams = new URLSearchParams({
       account: Keypair.random().publicKey(),
-      type: withdrawType,
-      ...withdrawTypeFields,
+      type: withdrawMethod,
     });
     const getWithdrawCall: NetworkCall = {
       request: new Request(
@@ -182,13 +176,10 @@ const withdrawRequiresAccount: Test = {
     }
     const withdrawInfo =
       this.context.expects.sep6InfoObj.withdraw[config.assetCode];
-    const withdrawType = Object.keys(withdrawInfo.types)[0];
-    const withdrawTypeFields =
-      withdrawInfo.types[withdrawType].transactionFields || {};
+    const withdrawMethod = withdrawInfo.funding_methods[0];
     const callParams = new URLSearchParams({
       asset_code: config.assetCode,
-      type: withdrawType,
-      ...withdrawTypeFields,
+      type: withdrawMethod,
     });
     const getWithdrawCall: NetworkCall = {
       request: new Request(
@@ -241,14 +232,11 @@ const withdrawRejectsInvalidAccount: Test = {
       : {};
     const withdrawInfo =
       this.context.expects.sep6InfoObj.withdraw[config.assetCode];
-    const withdrawType = Object.keys(withdrawInfo.types)[0];
-    const withdrawTypeFields =
-      withdrawInfo.types[withdrawType].transactionFields || {};
+    const withdrawMethod = withdrawInfo.funding_methods[0];
     const callParams = new URLSearchParams({
       asset_code: config.assetCode,
       account: "invalid account",
-      type: withdrawType,
-      ...withdrawTypeFields,
+      type: withdrawMethod,
     });
     const getWithdrawCall: NetworkCall = {
       request: new Request(
@@ -297,14 +285,11 @@ const withdrawRejectsUnsupportedAssetCode: Test = {
       : {};
     const withdrawInfo =
       this.context.expects.sep6InfoObj.withdraw[config.assetCode];
-    const withdrawType = Object.keys(withdrawInfo.types)[0];
-    const withdrawTypeFields =
-      withdrawInfo.types[withdrawType].transactionFields || {};
+    const withdrawMethod = withdrawInfo.funding_methods[0];
     const callParams = new URLSearchParams({
       asset_code: "NOT_SUPPORTED",
       account: this.context.expects.clientKeypair.publicKey(),
-      type: withdrawType,
-      ...withdrawTypeFields,
+      type: withdrawMethod,
     });
     const getWithdrawCall: NetworkCall = {
       request: new Request(
@@ -392,15 +377,11 @@ export const returnsProperSchemaForKnownAccounts: Test = {
       : {};
     const withdrawInfo =
       this.context.expects.sep6InfoObj.withdraw[config.assetCode];
-    const withdrawType = Object.keys(withdrawInfo.types)[0];
-    const withdrawTypeFields =
-      config.sepConfig["6"].withdraw.types[withdrawType].transactionFields ||
-      {};
+    const withdrawMethod = withdrawInfo.funding_methods[0];
     const callParams = new URLSearchParams({
       asset_code: config.assetCode,
       account: this.context.expects.clientKeypair.publicKey(),
-      type: withdrawType,
-      ...withdrawTypeFields,
+      type: withdrawMethod,
     });
     const getWithdrawCall: NetworkCall = {
       request: new Request(
