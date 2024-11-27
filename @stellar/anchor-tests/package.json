@@ -1,6 +1,6 @@
 {
   "name": "@stellar/anchor-tests",
-  "version": "0.6.19",
+  "version": "0.6.20",
   "description": "stellar-anchor-tests is a library and command line interface for testing Stellar anchors.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
