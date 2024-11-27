@@ -276,13 +276,11 @@ const requiredDepositFieldsMatchConfiguration: Test = {
     const depositFieldKeys = Object.keys(
       config.sepConfig["6"].deposit.transactionFields,
     );
-    for (const configuredKey of depositFieldKeys) {
-      if (
-        !this.context.expects.sep6DepositFieldsRequired.includes(configuredKey)
-      ) {
+    for (const requiredKey of this.context.expects.sep6DepositFieldsRequired) {
+      if (depositFieldKeys.includes(requiredKey)) {
         result.failure = makeFailure(this.failureModes.FIELD_NOT_FOUND);
-        result.expected = configuredKey;
-        result.actual = this.context.expects.sep6DepositFieldsRequired;
+        result.expected = requiredKey;
+        result.actual = depositFieldKeys;
         return result;
       }
     }
