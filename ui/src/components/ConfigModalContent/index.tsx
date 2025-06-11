@@ -172,7 +172,7 @@ export const ConfigModalContent: React.FC = () => (
             publicKey:
               "GDTW75HOEQFPAMZ7YTFRN2TMVLVBXK7QYC4AJMXISV2WLD7E7RSZTDIA",
             secretKey:
-              "SAMISXU66LL2QDOP3A4EEKIEV4BV7EG3BJYFR65OF6WBOM6IQTDQOKWG",
+              "SBDR...GVEO",
           },
           depositPendingTransaction: {
             id: "252062",
@@ -283,7 +283,7 @@ export const ConfigModalContent: React.FC = () => (
       <Json
         src={{
           sendingAnchorClientSecret:
-            "SB7E7M6VLBXXIEDJ4RXP7E4SS4CFDMFMIMWERJVY3MSRGNN5ROANA5OJ",
+            "SBE6...NDTM",
           sendingClientName: "sendingClient",
           receivingClientName: "receivingClient",
           transactionFields: {},
