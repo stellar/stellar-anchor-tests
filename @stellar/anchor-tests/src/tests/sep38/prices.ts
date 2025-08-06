@@ -121,7 +121,6 @@ export const hasValidSchema: Test = {
     }
     for (const asset of pricesResponse.buy_assets) {
       const parts = asset.asset.split(":");
-      
       const notValidFiat = parts.length === 2 && parts[0] !== "iso4217";
       const notValidStellar = parts.length === 3 && parts[0] !== "stellar";
       const notValidAtAll = parts.length < 2 || parts.length > 3;
@@ -251,12 +250,17 @@ export const allowsOffChainSellAssets: Test = {
         this.failureModes.INVALID_ASSET_VALUE,
         { asset: asset.asset },
       );
-      if (parts.length !== 3 || parts[0] !== "stellar") {
+
+      const isNativeAsset = asset.asset === "stellar:native";
+      const isValidOnChainAsset = parts.length === 3 && parts[0] === "stellar";
+      if (!isNativeAsset && !isValidOnChainAsset) {
         result.failure = invalidAssetFailure;
         return result;
       }
       try {
-        Keypair.fromPublicKey(parts[2]);
+        if (!isNativeAsset) {
+          Keypair.fromPublicKey(parts[2]);
+        }
       } catch {
         result.failure = invalidAssetFailure;
         return result;

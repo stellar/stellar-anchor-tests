@@ -111,35 +111,24 @@ export const hasExpectedAssetEnabled: Test = {
   },
   async run(config: Config): Promise<Result> {
     const result: Result = { networkCalls: [] };
-    if (!config.assetCode) {
-      for (const assetCode in this.context.expects.sep31InfoObj.receive) {
-        if (this.context.expects.sep31InfoObj.receive[assetCode].enabled) {
-          config.assetCode = assetCode;
-          break;
-        }
-      }
-      if (!config.assetCode) {
-        result.failure = makeFailure(this.failureModes.NO_ASSET_CODES);
-        return result;
+    // Always pick the first enabled asset from SEP-31's /info response
+    // Don't reuse previously selected assets from other SEPs
+    let selectedAssetCode: string | undefined;
+    for (const assetCode in this.context.expects.sep31InfoObj.receive) {
+      if (this.context.expects.sep31InfoObj.receive[assetCode].enabled) {
+        selectedAssetCode = assetCode;
+        break;
       }
     }
-    if (
-      !Object.keys(this.context.expects.sep31InfoObj.receive).includes(
-        config.assetCode,
-      )
-    ) {
-      result.failure = makeFailure(this.failureModes.ASSET_NOT_FOUND, {
-        assetCode: config.assetCode,
-      });
-      return result;
-    } else if (
-      !this.context.expects.sep31InfoObj.receive[config.assetCode].enabled
-    ) {
-      result.failure = makeFailure(this.failureModes.ASSET_CODE_NOT_ENABLED, {
-        assetCode: config.assetCode,
-      });
+
+    if (!selectedAssetCode) {
+      result.failure = makeFailure(this.failureModes.NO_ASSET_CODES);
       return result;
     }
+
+    // Set the asset code for SEP-31 tests
+    config.assetCode = selectedAssetCode;
+
     return result;
   },
 };
@@ -148,7 +137,7 @@ const hasExpectedTransactionFields: Test = {
   assertion: "check optional transaction 'fields'",
   sep: 31,
   group: "GET /info",
-  dependencies: [hasValidInfoSchema],
+  dependencies: [hasExpectedAssetEnabled],
   context: {
     expects: {
       sep31InfoObj: undefined,
@@ -184,10 +173,20 @@ const hasExpectedTransactionFields: Test = {
       // this is checked before tests are run
       throw new Error("improperly configured");
     const result: Result = { networkCalls: [] };
-    if (this.context.expects.sep31InfoObj.receive[config.assetCode].fields) {
-      const responseTransactionFields =
-        this.context.expects.sep31InfoObj.receive[config.assetCode].fields
-          .transaction;
+
+    // Ensure the asset exists in the receive object before accessing its fields
+    const assetInfo =
+      this.context.expects.sep31InfoObj.receive[config.assetCode];
+    if (!assetInfo) {
+      // This should not happen if hasExpectedAssetEnabled ran successfully,
+      // but adding this check for safety
+      throw new Error(
+        `Asset ${config.assetCode} not found in SEP-31 info response`,
+      );
+    }
+
+    if (assetInfo.fields) {
+      const responseTransactionFields = assetInfo.fields.transaction;
       const responseTransactionFieldNames = Object.keys(
         responseTransactionFields,
       );
