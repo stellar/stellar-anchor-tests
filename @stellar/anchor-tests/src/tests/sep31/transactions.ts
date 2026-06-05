@@ -68,6 +68,7 @@ const canCreateTransaction: Test = {
       kycServerUrl: undefined,
       sendingAnchorClientKeypair: undefined,
       sendingAnchorToken: undefined,
+      receivingAnchorToken: undefined,
       sendingCustomerId: undefined,
       receivingCustomerId: undefined,
       sep31InfoObj: undefined,
@@ -139,15 +140,11 @@ const canCreateTransaction: Test = {
       kycServerUrl: string,
       customerId: string,
       token: string,
+      customerType: string | undefined,
     ): NetworkCall {
       const requestParamsObj: Record<string, string> = {
         id: customerId,
       };
-
-      const customerType =
-        config?.sepConfig?.["12"]?.customers?.[
-          config?.sepConfig?.["12"]?.createCustomer
-        ].type;
 
       if (customerType) requestParamsObj["type"] = customerType;
       const searchParams = new URLSearchParams(requestParamsObj);
@@ -165,16 +162,30 @@ const canCreateTransaction: Test = {
       return getCustomerCall;
     }
 
+    const sendingCustomerType =
+      config?.sepConfig?.["12"]?.customers?.[
+        config?.sepConfig?.["31"]?.sendingClientName ?? ""
+      ]?.type;
+
+    const receivingCustomerType =
+      config?.sepConfig?.["12"]?.customers?.[
+        config?.sepConfig?.["31"]?.receivingClientName ?? ""
+      ]?.type;
+
+    // Each customer must be polled with the token whose JWT sub matches its
+    // (account, memo) — SEP-12 binds customer identity to the SEP-10 caller.
     const getSendingCustomerNetworkCall = generateGetCustomerNetworkCall(
       this.context.expects.kycServerUrl,
       this.context.expects.sendingCustomerId,
       this.context.expects.sendingAnchorToken,
+      sendingCustomerType,
     );
 
     const getReceivingCustomerNetworkCall = generateGetCustomerNetworkCall(
       this.context.expects.kycServerUrl,
       this.context.expects.receivingCustomerId,
-      this.context.expects.sendingAnchorToken,
+      this.context.expects.receivingAnchorToken,
+      receivingCustomerType,
     );
 
     const customerPollingTimeout =
