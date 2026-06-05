@@ -222,13 +222,16 @@ export async function getChallenge(
   webAuthEndpoint: string,
   networkPassphrase: string,
   result: Result,
+  memo?: string,
 ): Promise<Transaction | void> {
   if (!webAuthEndpoint) {
     result.failure = makeFailure(getChallengeFailureModes.NO_WEB_AUTH_ENDPOINT);
     return;
   }
+  let challengeUrl = webAuthEndpoint + `?account=${accountAddress}`;
+  if (memo) challengeUrl += `&memo=${memo}`;
   const getAuthCall: NetworkCall = {
-    request: new Request(webAuthEndpoint + `?account=${accountAddress}`),
+    request: new Request(challengeUrl),
   };
   result.networkCalls.push(getAuthCall);
   try {
@@ -296,6 +299,7 @@ export async function postChallenge(
   result: Result,
   useJson: boolean = false,
   challenge?: Transaction,
+  memo?: string,
 ): Promise<string | void> {
   if (!challenge) {
     challenge = (await getChallenge(
@@ -303,6 +307,7 @@ export async function postChallenge(
       webAuthEndpoint,
       networkPassphrase,
       result,
+      memo,
     )) as Transaction;
     if (!challenge) return;
     challenge.sign(clientKeypair);
@@ -377,7 +382,19 @@ export async function postChallenge(
     return;
   }
   try {
-    Keypair.fromPublicKey(jwtContents.sub);
+    // SEP-10 JWT sub may be "<account>" or "<account>:<memo_id>" where
+    // <memo_id> is a uint64 (digits only). Validate the account portion via
+    // Keypair.fromPublicKey (handles G/M/C addresses) and require the memo
+    // suffix, if present, to be all digits.
+    const colonIdx = jwtContents.sub.indexOf(":");
+    const subAccount =
+      colonIdx >= 0 ? jwtContents.sub.substring(0, colonIdx) : jwtContents.sub;
+    const memoPart =
+      colonIdx >= 0 ? jwtContents.sub.substring(colonIdx + 1) : null;
+    if (memoPart !== null && !/^\d+$/.test(memoPart)) {
+      throw new Error("invalid memo suffix in JWT sub");
+    }
+    Keypair.fromPublicKey(subAccount);
   } catch {
     result.failure = makeFailure(postChallengeFailureModes.INVALID_JWT_SUB);
     return;

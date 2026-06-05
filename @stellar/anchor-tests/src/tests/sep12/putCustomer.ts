@@ -1,7 +1,6 @@
 import fetch from "node-fetch";
 import { Request, BodyInit } from "node-fetch";
 import { Keypair, Memo } from "stellar-sdk";
-import { randomBytes } from "crypto";
 
 import { Test, Config, Result, NetworkCall } from "../../types";
 import { returnsValidJwt } from "../sep10/tests";
@@ -186,6 +185,7 @@ export const differentMemosSameAccount: Test = {
     provides: {
       sendingAnchorClientKeypair: undefined,
       sendingAnchorToken: undefined,
+      receivingAnchorToken: undefined,
       sendingCustomerId: undefined,
       sendingCustomerMemo: undefined,
       receivingCustomerId: undefined,
@@ -279,25 +279,36 @@ export const differentMemosSameAccount: Test = {
         ];
       this.context.provides.sendingAnchorClientKeypair = Keypair.random();
     }
-    this.context.provides.sendingCustomerMemo = Memo.hash(
-      randomBytes(32).toString("hex"),
-    );
-    this.context.provides.receivingCustomerMemo = Memo.hash(
-      randomBytes(32).toString("hex"),
-    );
+    // Use id-type memos so the memo can be carried in the SEP-10 JWT sub.
+    // SEP-10 only supports id-type memos; hash/text memos cannot be encoded in
+    // the JWT, so they can't satisfy SEP-12's (account, memo) auth model.
+    const sendingMemoId = "1";
+    const receivingMemoId = "2";
+    this.context.provides.sendingCustomerMemo = Memo.id(sendingMemoId);
+    this.context.provides.receivingCustomerMemo = Memo.id(receivingMemoId);
     this.context.provides.sendingAnchorToken = await postChallenge(
       this.context.provides.sendingAnchorClientKeypair,
       this.context.expects.webAuthEndpoint,
       this.context.expects.tomlObj.NETWORK_PASSPHRASE,
       result,
+      false,
+      undefined,
+      sendingMemoId,
+    );
+    this.context.provides.receivingAnchorToken = await postChallenge(
+      this.context.provides.sendingAnchorClientKeypair,
+      this.context.expects.webAuthEndpoint,
+      this.context.expects.tomlObj.NETWORK_PASSPHRASE,
+      result,
+      false,
+      undefined,
+      receivingMemoId,
     );
     const sep12Request = makeSep12Request({
       url: this.context.expects.kycServerUrl + "/customer",
       data: {
-        memo: this.context.provides.sendingCustomerMemo.value.toString(
-          "base64",
-        ),
-        memo_type: "hash",
+        memo: sendingMemoId,
+        memo_type: "id",
         ...sendingCustomerData,
       },
       headers: {
@@ -326,14 +337,12 @@ export const differentMemosSameAccount: Test = {
     const receivingCustomerRequest = makeSep12Request({
       url: this.context.expects.kycServerUrl + "/customer",
       data: {
-        memo: this.context.provides.receivingCustomerMemo.value.toString(
-          "base64",
-        ),
-        memo_type: "hash",
+        memo: receivingMemoId,
+        memo_type: "id",
         ...receivingCustomerData,
       },
       headers: {
-        Authorization: `Bearer ${this.context.provides.sendingAnchorToken}`,
+        Authorization: `Bearer ${this.context.provides.receivingAnchorToken}`,
       },
     });
     const receivingCustomerCall: NetworkCall = {
