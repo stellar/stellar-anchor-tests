@@ -1,22 +1,30 @@
 name: npm and docker build and publish
 on:
+  workflow_dispatch:
   release:
     types: [published]
+
+permissions:
+  id-token: write # required for OIDC trusted publishing to npm
+  contents: read
 
 jobs:
   build-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "20.x"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Install Depencencies
+      - name: Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@^11.5.1
+
+      - name: Install Dependencies
         run: yarn install
 
       - name: Build
@@ -24,8 +32,6 @@ jobs:
 
       - name: Publish npm package
         run: yarn publish:anchor-tests
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Docker Login
         uses: docker/login-action@v2.1.0
