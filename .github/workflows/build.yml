@@ -1,0 +1,62 @@
+name: Build and push stellar-anchor-tests
+
+# Deployed to: https://github.com/stellar/stellar-anchor-tests
+#
+# Converted from the Jenkins pipeline (Jenkinsfile). Builds the ui and server
+# docker images and pushes each to both the dev and prd ECR namespaces on
+# pushes to master.
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine image label
+        id: vars
+        run: echo "label=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build images
+        env:
+          SERVER_HOST: anchor-tests.stellar.org
+          LABEL: ${{ steps.vars.outputs.label }}
+        run: |
+          set -eu
+          make -C ui docker-build
+          make -C server docker-build
+
+      - name: ECR login
+        id: ecr-login
+        uses: stellar/actions/sdf-ecr-login@main
+
+      - name: Tag and push images
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.ecr-registry }}
+          LABEL: ${{ steps.vars.outputs.label }}
+        run: |
+          set -eu
+          export UI_DEV_TAG="${ECR_REGISTRY}/dev/stellar-anchor-tests-ui:${LABEL}"
+          export UI_PROD_TAG="${ECR_REGISTRY}/prd/stellar-anchor-tests-ui:${LABEL}"
+          export SERVER_DEV_TAG="${ECR_REGISTRY}/dev/stellar-anchor-tests-server:${LABEL}"
+          export SERVER_PROD_TAG="${ECR_REGISTRY}/prd/stellar-anchor-tests-server:${LABEL}"
+
+          docker tag "stellar/stellar-anchor-tests-ui:${LABEL}"     "${UI_DEV_TAG}"
+          docker tag "stellar/stellar-anchor-tests-ui:${LABEL}"     "${UI_PROD_TAG}"
+          docker tag "stellar/stellar-anchor-tests-server:${LABEL}" "${SERVER_DEV_TAG}"
+          docker tag "stellar/stellar-anchor-tests-server:${LABEL}" "${SERVER_PROD_TAG}"
+
+          ecr-push "${UI_DEV_TAG}"
+          ecr-push "${UI_PROD_TAG}"
+          ecr-push "${SERVER_DEV_TAG}"
+          ecr-push "${SERVER_PROD_TAG}"
