@@ -35,7 +35,7 @@ const canCreateTransaction: Test = {
     expects: {
       directPaymentServerUrl: undefined,
       sendingAnchorClientKeypair: undefined,
-      sendingAnchorToken: undefined,
+      token: undefined,
       sendingCustomerId: undefined,
       sep38QuoteResponseObj: undefined,
       receivingCustomerId: undefined,
@@ -94,7 +94,7 @@ const canCreateTransaction: Test = {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${this.context.expects.sendingAnchorToken}`,
+            Authorization: `Bearer ${this.context.expects.token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -165,7 +165,7 @@ const canFetchTransaction: Test = {
   dependencies: [hasDirectPaymentServer, canCreateTransaction],
   context: {
     expects: {
-      sendingAnchorToken: undefined,
+      token: undefined,
       directPaymentServerUrl: undefined,
       transactionId: undefined,
     },
@@ -189,7 +189,7 @@ const canFetchTransaction: Test = {
           `/transactions/${this.context.expects.transactionId}`,
         {
           headers: {
-            Authorization: `Bearer ${this.context.expects.sendingAnchorToken}`,
+            Authorization: `Bearer ${this.context.expects.token}`,
           },
         },
       ),
