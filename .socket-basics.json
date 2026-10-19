@@ -1,0 +1,12 @@
+{
+  "workspace": ".",
+  "javascript_sast_enabled": true,
+  "javascript_disabled_rules": "js-unhandled-promise-rejection",
+  "sast_ignore_overrides": "js-missing-await:@stellar/anchor-tests/src/tests/sep1/tests.ts,js-missing-await:@stellar/anchor-tests/src/tests/sep12/putCustomer.ts,js-unsafe-type-coercion:@stellar/anchor-tests/src/tests/sep38/prices.ts,js-unsafe-type-coercion:@stellar/anchor-tests/src/tests/sep6/deposit.ts,js-unsafe-type-coercion:@stellar/anchor-tests/src/tests/sep6/withdraw.ts,js-jwt-no-verify:@stellar/anchor-tests/src/helpers/sep10.ts,js-express-async-no-error-handler:server/src/index.ts,js-prototype-pollution:@stellar/anchor-tests/src/helpers/test.ts,js-sensitive-data-in-logs:@stellar/anchor-tests/src/cli.ts,js-sensitive-data-in-logs:server/src/eventHandlers.ts,js-sensitive-data-in-logs:server/src/index.ts",
+  "secret_scanning_enabled": true,
+  "console_tabular_enabled": true,
+  "dockerfiles": "Dockerfile,server/Dockerfile,ui/Dockerfile",
+  "socket_tier_1_enabled": false,
+  "trivy_vuln_enabled": false,
+  "trufflehog_exclude_dir": "node_modules,dist,build,.git,yarn.lock,package-lock.json,pnpm-lock.yaml,Cargo.lock,go.sum,poetry.lock,Gemfile.lock,composer.lock"
+}
