@@ -24,8 +24,8 @@
   },
   "dependencies": {
     "@types/node": "^20.11.0",
-    "express": "^4.17.1",
-    "socket.io": "^4.1.2",
+    "express": "^4.19.2",
+    "socket.io": "^4.6.2",
     "tslib": "^2.2.0",
     "winston": "^3.3.3"
   },
